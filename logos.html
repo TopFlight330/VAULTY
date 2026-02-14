@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vaulty.com — Logo Concepts v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;800;900&family=Sora:wght@400;600;700;800&family=Lexend:wght@400;600;700;800;900&family=Outfit:wght@300;400;700;800;900&family=Nunito:wght@700;800;900&family=Plus+Jakarta+Sans:wght@700;800&family=Manrope:wght@700;800&family=Space+Mono:wght@700&family=Clash+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'Clash Display';
+  src: url('https://api.fontsource.org/v1/fonts/clash-display/latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #08060d;
+  --card: #0f0c17;
+  --border: #1a1525;
+  --text: #a09aae;
+  --text-dim: #5a5468;
+  --pink: #f43f8e;
+  --purple: #8b5cf6;
+  --grad: linear-gradient(135deg, #f43f8e, #a855f7, #6366f1);
+  --grad2: linear-gradient(135deg, #f43f8e, #8b5cf6);
+  --grad3: linear-gradient(135deg, #ff6b9d, #c084fc);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 200px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.page-header {
+  text-align: center;
+  padding: 80px 40px 20px;
+}
+.page-header h1 {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.page-header .domain {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 52px;
+  font-weight: 900;
+  background: var(--grad2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -2px;
+}
+.page-header p {
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--text-dim);
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+.page-header .faves {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+.page-header .faves span {
+  background: #1a1525;
+  border: 1px solid #231f2e;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #a09aae;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+  max-width: 1440px;
+  margin: 50px auto 100px;
+  padding: 0 40px;
+}
+
+.logo-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 56px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.logo-card:nth-child(1) { animation-delay: 0.04s; }
+.logo-card:nth-child(2) { animation-delay: 0.08s; }
+.logo-card:nth-child(3) { animation-delay: 0.12s; }
+.logo-card:nth-child(4) { animation-delay: 0.16s; }
+.logo-card:nth-child(5) { animation-delay: 0.2s; }
+.logo-card:nth-child(6) { animation-delay: 0.24s; }
+.logo-card:nth-child(7) { animation-delay: 0.28s; }
+.logo-card:nth-child(8) { animation-delay: 0.32s; }
+.logo-card:nth-child(9) { animation-delay: 0.36s; }
+.logo-card:nth-child(10) { animation-delay: 0.4s; }
+.logo-card:nth-child(11) { animation-delay: 0.44s; }
+.logo-card:nth-child(12) { animation-delay: 0.48s; }
+.logo-card:nth-child(13) { animation-delay: 0.52s; }
+.logo-card:nth-child(14) { animation-delay: 0.56s; }
+.logo-card:nth-child(15) { animation-delay: 0.6s; }
+.logo-card:nth-child(16) { animation-delay: 0.64s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.logo-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: #2a2438;
+  box-shadow: 0 20px 60px #f43f8e08;
+}
+
+.logo-card .label {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.logo-card .number {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #1e1a28;
+  font-weight: 700;
+}
+
+/* ===== LOGO 1: Vault Wheel Gradient ===== */
+.logo-1 .logo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.logo-1 .vault-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  position: relative;
+  background: var(--grad2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-1 .vault-icon::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 2;
+}
+.logo-1 .vault-icon .spoke {
+  position: absolute;
+  width: 2.5px;
+  height: 20px;
+  background: #fff;
+  transform-origin: center center;
+  border-radius: 2px;
+}
+.logo-1 .vault-icon .spoke:nth-child(1) { transform: rotate(0deg); }
+.logo-1 .vault-icon .spoke:nth-child(2) { transform: rotate(60deg); }
+.logo-1 .vault-icon .spoke:nth-child(3) { transform: rotate(120deg); }
+.logo-1 .wordmark {
+  font-family: 'Sora', sans-serif;
+  font-size: 46px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1.5px;
+}
+
+/* ===== LOGO 2: Blob Vault Door ===== */
+.logo-2 .logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo-2 .icon {
+  width: 60px;
+  height: 60px;
+  background: var(--grad);
+  border-radius: 18px;
+  transform: rotate(-6deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.logo-2 .icon::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 2;
+}
+.logo-2 .icon .ring {
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid rgba(255,255,255,0.5);
+  border-radius: 50%;
+  position: absolute;
+}
+.logo-2 .wordmark {
+  font-family: 'Lexend', sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+}
+
+/* ===== LOGO 3: Stacked Unbounded ===== */
+.logo-3 .logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.logo-3 .top {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 62px;
+  font-weight: 900;
+  background: var(--grad2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+.logo-3 .divider {
+  width: 80px;
+  height: 3px;
+  background: var(--grad2);
+  border-radius: 2px;
+  margin: 8px 0 6px;
+}
+.logo-3 .bottom {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px;
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  color: #f43f8e90;
+  padding-left: 12px;
+}
+
+/* ===== LOGO 4: V Inside Vault ===== */
+.logo-4 .logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo-4 .icon {
+  width: 64px;
+  height: 64px;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  background-image: var(--grad2);
+  background-origin: border-box;
+  background-clip: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.logo-4 .icon::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: var(--card);
+  border-radius: 50%;
+}
+.logo-4 .icon .v {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  background: var(--grad2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 2;
+}
+.logo-4 .wordmark {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -2px;
+}
+
+/* ===== LOGO 5: Split Color ===== */
+.logo-5 .logo {
+  font-family: 'Sora', sans-serif;
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+.logo-5 .logo .part1 {
+  color: #f43f8e;
+}
+.logo-5 .logo .part2 {
+  color: #8b5cf6;
+}
+
+/* ===== LOGO 6: App Icon + Type ===== */
+.logo-6 .logo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.logo-6 .app-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--grad);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 30px #f43f8e25;
+  position: relative;
+  overflow: hidden;
+}
+.logo-6 .app-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+}
+.logo-6 .app-icon svg { position: relative; z-index: 1; }
+.logo-6 .wordmark {
+  font-family: 'Sora', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+}
+
+/* ===== LOGO 7: Outline V + Bold ===== */
+.logo-7 .logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.logo-7 .v-outline {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 56px;
+  font-weight: 900;
+  -webkit-text-stroke: 2.5px #f43f8e;
+  color: transparent;
+  line-height: 1;
+}
+.logo-7 .rest {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 56px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+
+/* ===== LOGO 8: Rounded Vault Wheel ===== */
+.logo-8 .logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo-8 .icon {
+  width: 56px;
+  height: 56px;
+  background: var(--card);
+  border: 2.5px solid #f43f8e;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.logo-8 .icon::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #f43f8e;
+  border-radius: 50%;
+  position: absolute;
+  z-index: 2;
+}
+.logo-8 .icon .spoke {
+  position: absolute;
+  width: 2px;
+  height: 14px;
+  background: #f43f8e;
+  transform-origin: center center;
+  border-radius: 2px;
+}
+.logo-8 .icon .spoke:nth-child(1) { transform: rotate(0deg); }
+.logo-8 .icon .spoke:nth-child(2) { transform: rotate(60deg); }
+.logo-8 .icon .spoke:nth-child(3) { transform: rotate(120deg); }
+.logo-8 .wordmark {
+  font-family: 'Nunito', sans-serif;
+  font-size: 44px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+/* ===== LOGO 9: Tilted Playful ===== */
+.logo-9 .logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transform: rotate(-3deg);
+}
+.logo-9 .blob {
+  width: 54px;
+  height: 54px;
+  background: var(--grad3);
+  border-radius: 16px 16px 16px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-9 .blob svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+.logo-9 .wordmark {
+  font-family: 'Lexend', sans-serif;
+  font-size: 46px;
+  font-weight: 800;
+  background: var(--grad3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+
+/* ===== LOGO 10: Heavy Condensed ===== */
+.logo-10 .logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.logo-10 .main {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 68px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -4px;
+  line-height: 1;
+  position: relative;
+}
+.logo-10 .main::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--grad2);
+  border-radius: 3px;
+}
+.logo-10 .sub {
+  font-family: 'Sora', sans-serif;
+  font-size: 10px;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 12px;
+  padding-left: 8px;
+}
+
+/* ===== LOGO 11: Double Ring V ===== */
+.logo-11 .logo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.logo-11 .rings {
+  width: 66px;
+  height: 66px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-11 .rings .outer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid #f43f8e;
+}
+.logo-11 .rings .inner {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 2px solid #8b5cf6;
+}
+.logo-11 .rings .v {
+  font-family: 'Sora', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  background: var(--grad2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 2;
+}
+.logo-11 .wordmark {
+  font-family: 'Sora', sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1.5px;
+}
+
+/* ===== LOGO 12: Lock Dot (i = lock) ===== */
+.logo-12 .logo {
+  position: relative;
+}
+.logo-12 .wordmark {
+  font-family: 'Lexend', sans-serif;
+  font-size: 50px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+  position: relative;
+}
+.logo-12 .lock-dot {
+  position: absolute;
+  top: -14px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== LOGO 13: Gradient Pill Icon ===== */
+.logo-13 .logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo-13 .pill {
+  background: var(--grad2);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+}
+.logo-13 .text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.logo-13 .wordmark {
+  font-family: 'Sora', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.logo-13 .tagline {
+  font-family: 'Sora', sans-serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #f43f8e90;
+}
+
+/* ===== LOGO 14: Abstract V Shield ===== */
+.logo-14 .logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo-14 .wordmark {
+  font-family: 'Lexend', sans-serif;
+  font-size: 46px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1.5px;
+}
+
+/* ===== LOGO 15: Stacked with Vault ===== */
+.logo-15 .logo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.logo-15 .icon-wrap {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #f43f8e15, #8b5cf610);
+  border: 1.5px solid #f43f8e30;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-15 .icon-wrap .inner-vault {
+  width: 40px;
+  height: 40px;
+  border: 2.5px solid #f43f8e;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-15 .icon-wrap .inner-vault::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background: #f43f8e;
+  border-radius: 50%;
+}
+.logo-15 .icon-wrap .inner-vault .s {
+  position: absolute;
+  width: 2px;
+  height: 12px;
+  background: #f43f8e;
+  border-radius: 2px;
+}
+.logo-15 .icon-wrap .inner-vault .s:nth-child(1) { transform: rotate(0deg); }
+.logo-15 .icon-wrap .inner-vault .s:nth-child(2) { transform: rotate(90deg); }
+.logo-15 .icon-wrap .inner-vault .s:nth-child(3) { transform: rotate(45deg); }
+.logo-15 .icon-wrap .inner-vault .s:nth-child(4) { transform: rotate(135deg); }
+.logo-15 .right {
+  display: flex;
+  flex-direction: column;
+}
+.logo-15 .wordmark {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.logo-15 .sub {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  margin-top: 4px;
+}
+
+/* ===== LOGO 16: Full Gradient Bold ===== */
+.logo-16 .logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.logo-16 .main {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff6b9d 0%, #f43f8e 25%, #a855f7 60%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 30px #f43f8e20);
+}
+.logo-16 .dot {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: #ffffff30;
+  margin-top: 6px;
+}
+
+/* ===== Hover glow effects ===== */
+.logo-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, #f43f8e06, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.logo-card:hover::before {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr;
+    padding: 0 20px;
+  }
+  .page-header .domain { font-size: 38px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Logo Exploration — Round 2</h1>
+  <div class="domain">vaulty.com</div>
+  <p>16 variations based on your favorites: vault icons, gradient blobs, bold type</p>
+  <div class="faves">
+    <span>Vault Door</span>
+    <span>Gradient Blob</span>
+    <span>Stacked Bold</span>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- 1. Vault Wheel Gradient Fill -->
+  <div class="logo-card logo-1">
+    <span class="number">01</span>
+    <div class="logo">
+      <div class="vault-icon">
+        <div class="spoke"></div>
+        <div class="spoke"></div>
+        <div class="spoke"></div>
+      </div>
+      <div class="wordmark">vaulty</div>
+    </div>
+    <span class="label">Vault Wheel — Gradient Fill</span>
+  </div>
+
+  <!-- 2. Blob Vault Door -->
+  <div class="logo-card logo-2">
+    <span class="number">02</span>
+    <div class="logo">
+      <div class="icon">
+        <div class="ring"></div>
+      </div>
+      <div class="wordmark">vaulty</div>
+    </div>
+    <span class="label">Blob Vault — Tilted</span>
+  </div>
+
+  <!-- 3. Stacked + Divider -->
+  <div class="logo-card logo-3">
+    <span class="number">03</span>
+    <div class="logo">
+      <div class="top">Vaulty</div>
+      <div class="divider"></div>
+      <div class="bottom">Exclusive</div>
+    </div>
+    <span class="label">Stacked — Divider</span>
+  </div>
+
+  <!-- 4. V in Circle Outline -->
+  <div class="logo-card logo-4">
+    <span class="number">04</span>
+    <div class="logo">
+      <div class="icon">
+        <span class="v">V</span>
+      </div>
+      <div class="wordmark">aulty</div>
+    </div>
+    <span class="label">V Monogram — Circle</span>
+  </div>
+
+  <!-- 5. Split Color -->
+  <div class="logo-card logo-5">
+    <span class="number">05</span>
+    <div class="logo">
+      <span class="part1">vaul</span><span class="part2">ty</span>
+    </div>
+    <span class="label">Split Color — Duo</span>
+  </div>
+
+  <!-- 6. App Icon + Type -->
+  <div class="logo-card logo-6">
+    <span class="number">06</span>
+    <div class="logo">
+      <div class="app-icon">
+        <svg width="32" height="36" viewBox="0 0 32 36" fill="none">
+          <path d="M4 6L16 30L28 6" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="wordmark">vaulty</div>
+    </div>
+    <span class="label">App Icon — V Mark</span>
+  </div>
+
+  <!-- 7. Outline V + Bold -->
+  <div class="logo-card logo-7">
+    <span class="number">07</span>
+    <div class="logo">
+      <span class="v-outline">V</span><span class="rest">aulty</span>
+    </div>
+    <span class="label">Outline V — Impact</span>
+  </div>
+
+  <!-- 8. Rounded Square Vault -->
+  <div class="logo-card logo-8">
+    <span class="number">08</span>
+    <div class="logo">
+      <div class="icon">
+        <div class="spoke"></div>
+        <div class="spoke"></div>
+        <div class="spoke"></div>
+      </div>
+      <div class="wordmark">vaulty</div>
+    </div>
+    <span class="label">Square Vault — Nunito</span>
+  </div>
+
+  <!-- 9. Tilted Playful -->
+  <div class="logo-card logo-9">
+    <span class="number">09</span>
+    <div class="logo">
+      <div class="blob">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <rect x="4" y="11" width="18" height="13" rx="3" stroke="#fff" stroke-width="2"/>
+          <path d="M8 11V8a5 5 0 0 1 10 0v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="13" cy="17.5" r="1.5" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="wordmark">vaulty</div>
+    </div>
+    <span class="label">Tilted — Playful Lock</span>
+  </div>
+
+  <!-- 10. Heavy Underline -->
+  <div class="logo-card logo-10">
+    <span class="number">10</span>
+    <div class="logo">
+      <div class="main">vaulty</div>
+      <div class="sub">Your vault, your rules</div>
+    </div>
+    <span class="label">Heavy — Gradient Underline</span>
+  </div>
+
+  <!-- 11. Double Ring V -->
+  <div class="logo-card logo-11">
+    <span class="number">11</span>
+    <div class="logo">
+      <div class="rings">
+        <div class="outer"></div>
+        <div class="inner"></div>
+        <span class="v">V</span>
+      </div>
+      <div class="wordmark">vaulty</div>
+    </div>
+    <span class="label">Double Ring — Vault V</span>
+  </div>
+
+  <!-- 12. Lock Dot on Y -->
+  <div class="logo-card logo-12">
+    <span class="number">12</span>
+    <div class="logo">
+      <div class="wordmark">
+        vault<span style="position:relative;display:inline-block;">y<svg class="lock-dot" width="14" height="18" viewBox="0 0 14 18" fill="none" style="position:absolute;top:-16px;left:2px;"><rect x="1" y="8" width="12" height="9" rx="2.5" fill="#f43f8e"/><path d="M4 8V5.5a3 3 0 0 1 6 0V8" stroke="#f43f8e" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></span>
+      </div>
+    </div>
+    <span class="label">Lock Dot — Hidden Detail</span>
+  </div>
+
+  <!-- 13. Pill Icon + Stacked -->
+  <div class="logo-card logo-13">
+    <span class="number">13</span>
+    <div class="logo">
+      <div class="pill">V</div>
+      <div class="text">
+        <div class="wordmark">vaulty</div>
+        <div class="tagline">Secure content</div>
+      </div>
+    </div>
+    <span class="label">Pill V — With Tagline</span>
+  </div>
+
+  <!-- 14. Abstract V Shield -->
+  <div class="logo-card logo-14">
+    <span class="number">14</span>
+    <div class="logo">
+      <svg width="56" height="62" viewBox="0 0 56 62" fill="none">
+        <defs>
+          <linearGradient id="g14" x1="0" y1="0" x2="56" y2="62" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#f43f8e"/>
+            <stop offset="100%" stop-color="#8b5cf6"/>
+          </linearGradient>
+        </defs>
+        <path d="M28 4L50 16V34C50 48 40 56 28 60C16 56 6 48 6 34V16L28 4Z" stroke="url(#g14)" stroke-width="3" fill="none"/>
+        <path d="M18 28L26 36L40 22" stroke="url(#g14)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="wordmark">vaulty</div>
+    </div>
+    <span class="label">Gradient Shield — Check</span>
+  </div>
+
+  <!-- 15. Vault Box + Stacked Right -->
+  <div class="logo-card logo-15">
+    <span class="number">15</span>
+    <div class="logo">
+      <div class="icon-wrap">
+        <div class="inner-vault">
+          <div class="s"></div>
+          <div class="s"></div>
+          <div class="s"></div>
+          <div class="s"></div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="wordmark">Vaulty</div>
+        <div class="sub">vaulty.com</div>
+      </div>
+    </div>
+    <span class="label">Vault Box — Structured</span>
+  </div>
+
+  <!-- 16. Pure Gradient Wordmark -->
+  <div class="logo-card logo-16">
+    <span class="number">16</span>
+    <div class="logo">
+      <div class="main">Vaulty</div>
+      <div class="dot">vaulty.com</div>
+    </div>
+    <span class="label">Pure Gradient — Statement</span>
+  </div>
+
+</div>
+
+</body>
+</html>

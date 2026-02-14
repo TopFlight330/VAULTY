@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaulty — Creator Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Unbounded:wght@400;700;800;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0e0b14;
+            --card: #16131e;
+            --card-hover: #1c1826;
+            --border: #231f2e;
+            --text: #f0edf5;
+            --dim: #8b84a0;
+            --muted: #524d63;
+            --pink: #f43f8e;
+            --pink-dim: rgba(244,63,142,0.1);
+            --pink-glow: rgba(244,63,142,0.25);
+            --purple: #8b5cf6;
+            --purple-dim: rgba(139,92,246,0.1);
+            --grad: linear-gradient(135deg, #f43f8e, #8b5cf6);
+            --input-bg: #1a1622;
+            --sidebar-w: 260px;
+            --topbar-h: 64px;
+            --danger: #ef4444;
+            --danger-dim: rgba(239,68,68,0.1);
+            --success: #22c55e;
+            --success-dim: rgba(34,197,94,0.1);
+            --warning: #f5c542;
+            --warning-dim: rgba(245,197,66,0.1);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59,130,246,0.1);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ══════ TOPBAR ══════ */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: var(--topbar-h);
+            background: rgba(14,11,20,0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.5rem;
+        }
+
+        .topbar-logo {
+            display: flex; align-items: center; gap: 12px;
+            text-decoration: none; color: var(--text);
+        }
+        .topbar-logo-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, rgba(244,63,142,0.1), rgba(139,92,246,0.06));
+            border: 1px solid rgba(244,63,142,0.2);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .topbar-logo-vault {
+            width: 22px; height: 22px;
+            border: 2px solid var(--pink);
+            border-radius: 50%;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .topbar-logo-vault::before {
+            content: '';
+            width: 4px; height: 4px;
+            background: var(--pink);
+            border-radius: 50%;
+            position: absolute;
+        }
+        .topbar-logo-vault .sp {
+            position: absolute;
+            width: 1.5px; height: 7px;
+            background: var(--pink);
+            border-radius: 1px;
+        }
+        .topbar-logo-vault .sp:nth-child(1) { transform: rotate(0deg); }
+        .topbar-logo-vault .sp:nth-child(2) { transform: rotate(90deg); }
+        .topbar-logo-vault .sp:nth-child(3) { transform: rotate(45deg); }
+        .topbar-logo-vault .sp:nth-child(4) { transform: rotate(135deg); }
+        .topbar-logo-text {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.1rem; font-weight: 900;
+            color: #fff; letter-spacing: 1px;
+        }
+
+        .topbar-right {
+            display: flex; align-items: center; gap: 1rem;
+        }
+
+        .balance-pill {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--grad);
+            border: none;
+            border-radius: 12px;
+            padding: 0.45rem 1rem;
+            font-size: 0.82rem; font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #fff;
+        }
+        .balance-pill:hover {
+            box-shadow: 0 4px 20px var(--pink-glow);
+            transform: translateY(-1px);
+        }
+        .balance-pill svg { width: 16px; height: 16px; }
+
+        .notif-btn {
+            position: relative;
+            width: 38px; height: 38px;
+            border-radius: 12px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--dim);
+        }
+        .notif-btn:hover {
+            border-color: var(--muted);
+            background: var(--card-hover);
+            color: var(--text);
+        }
+        .notif-btn svg { width: 18px; height: 18px; }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            width: 18px; height: 18px;
+            background: var(--pink);
+            border-radius: 50%;
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--bg);
+        }
+
+        .user-menu {
+            position: relative;
+        }
+        .user-menu-btn {
+            display: flex; align-items: center; gap: 10px;
+            background: none; border: none;
+            cursor: pointer; padding: 4px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .user-menu-btn:hover { background: var(--input-bg); }
+        .user-avatar-btn {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: var(--grad);
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900; font-size: 0.8rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .user-name-topbar {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .user-dropdown {
+            position: absolute; top: calc(100% + 8px); right: 0;
+            width: 220px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 0.5rem;
+            display: none;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+            z-index: 200;
+        }
+        .user-dropdown.open { display: block; }
+
+        .user-dropdown-header {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 0.25rem;
+        }
+        .user-dropdown-header .name {
+            font-weight: 800; font-size: 0.9rem;
+        }
+        .user-dropdown-header .handle {
+            font-size: 0.78rem; color: var(--dim);
+        }
+        .user-dropdown-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0.6rem 0.75rem;
+            border-radius: 10px;
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--dim);
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none; background: none; width: 100%;
+            font-family: inherit;
+            text-align: left;
+        }
+        .user-dropdown-item:hover {
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        .user-dropdown-item svg { width: 16px; height: 16px; opacity: 0.6; }
+        .user-dropdown-item.danger { color: var(--danger); }
+        .user-dropdown-item.danger:hover { background: var(--danger-dim); }
+        .user-dropdown-sep {
+            height: 1px; background: var(--border); margin: 0.25rem 0.5rem;
+        }
+
+        /* ══════ SIDEBAR ══════ */
+        .sidebar {
+            position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 1.25rem 0.75rem;
+            display: flex; flex-direction: column;
+            z-index: 50;
+        }
+
+        .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+        .sidebar-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 0.7rem 0.85rem;
+            border-radius: 12px;
+            font-size: 0.88rem; font-weight: 700;
+            color: var(--dim);
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none; background: none;
+            font-family: inherit; width: 100%;
+            text-align: left;
+            position: relative;
+        }
+        .sidebar-item:hover {
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        .sidebar-item.active {
+            background: var(--pink-dim);
+            color: var(--pink);
+        }
+        .sidebar-item.active svg { color: var(--pink); }
+        .sidebar-item svg {
+            width: 20px; height: 20px;
+            color: var(--muted);
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .sidebar-item:hover svg { color: var(--dim); }
+        .sidebar-item .sidebar-badge {
+            margin-left: auto;
+            background: var(--grad);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
+            line-height: 1.4;
+        }
+
+        .sidebar-section-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 1.25rem 0.85rem 0.5rem;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border);
+            padding-top: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* ══════ MAIN CONTENT ══════ */
+        .main {
+            margin-left: var(--sidebar-w);
+            margin-top: var(--topbar-h);
+            height: calc(100vh - var(--topbar-h));
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .main::-webkit-scrollbar { width: 6px; }
+        .main::-webkit-scrollbar-track { background: transparent; }
+        .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .main::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .view-header {
+            margin-bottom: 2rem;
+        }
+        .view-header h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 0.3rem;
+        }
+        .view-header p {
+            color: var(--dim);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* ══════ DASHBOARD VIEW ══════ */
+        .welcome-msg {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 0.3rem;
+        }
+        .welcome-sub {
+            color: var(--dim);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .grad-text {
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:hover {
+            border-color: var(--muted);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .stat-card-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .stat-card-icon svg { width: 20px; height: 20px; }
+        .stat-card-icon.pink { background: var(--pink-dim); color: var(--pink); }
+        .stat-card-icon.purple { background: var(--purple-dim); color: var(--purple); }
+        .stat-card-icon.green { background: var(--success-dim); color: var(--success); }
+        .stat-card-icon.blue { background: var(--blue-dim); color: var(--blue); }
+        .stat-card-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.5rem;
+        }
+        .stat-card-value {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+        }
+        .stat-card-change {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .stat-card-change.up { color: var(--success); }
+        .stat-card-change.down { color: var(--danger); }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        .activity-card, .actions-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+        }
+        .card-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+        }
+
+        .activity-list { list-style: none; }
+        .activity-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 0.75rem 0;
+        }
+        .activity-item:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+        .activity-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .activity-dot.subscriber { background: var(--success); }
+        .activity-dot.tip { background: var(--purple); }
+        .activity-dot.message { background: var(--blue); }
+        .activity-dot.like { background: var(--pink); }
+        .activity-dot.ppv { background: var(--warning); }
+        .activity-text {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .activity-text strong { font-weight: 800; }
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .quick-actions {
+            display: flex; flex-direction: column; gap: 0.75rem;
+        }
+        .action-btn {
+            display: flex; align-items: center; gap: 12px;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+        .action-btn:hover {
+            border-color: var(--muted);
+            background: var(--card-hover);
+            transform: translateX(4px);
+        }
+        .action-btn svg { width: 20px; height: 20px; color: var(--dim); flex-shrink: 0; }
+        .action-btn.primary {
+            background: var(--grad);
+            border-color: transparent;
+            color: #fff;
+        }
+        .action-btn.primary:hover {
+            box-shadow: 0 4px 20px var(--pink-glow);
+            transform: translateX(4px);
+        }
+        .action-btn.primary svg { color: #fff; }
+        .action-btn-arrow {
+            margin-left: auto;
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        /* ══════ CONTENT VIEW ══════ */
+        .content-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .btn-grad {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 0.65rem 1.5rem;
+            background: var(--grad);
+            border: none; border-radius: 12px;
+            color: #fff; font-family: inherit;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-grad:hover {
+            box-shadow: 0 4px 20px var(--pink-glow);
+            transform: translateY(-1px);
+        }
+        .btn-grad svg { width: 18px; height: 18px; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        .content-post {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .content-post:hover {
+            border-color: var(--muted);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .content-thumb {
+            width: 100%;
+            height: 180px;
+            background: var(--input-bg);
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .content-thumb svg { width: 48px; height: 48px; color: var(--muted); opacity: 0.3; }
+        .content-visibility {
+            position: absolute;
+            top: 10px; right: 10px;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .content-visibility.free { background: var(--success-dim); color: var(--success); }
+        .content-visibility.premium { background: var(--pink-dim); color: var(--pink); }
+        .content-visibility.ppv { background: var(--warning-dim); color: var(--warning); }
+        .content-body {
+            padding: 1.15rem;
+        }
+        .content-title {
+            font-weight: 800;
+            font-size: 0.92rem;
+            margin-bottom: 0.4rem;
+        }
+        .content-date {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 0.85rem;
+        }
+        .content-stats {
+            display: flex; align-items: center; gap: 1rem;
+            margin-bottom: 0.85rem;
+        }
+        .content-stat {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 0.78rem;
+            color: var(--dim);
+            font-weight: 600;
+        }
+        .content-stat svg { width: 14px; height: 14px; }
+        .content-actions {
+            display: flex; gap: 0.5rem;
+        }
+        .content-action-btn {
+            flex: 1;
+            padding: 0.45rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--dim);
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .content-action-btn:hover {
+            border-color: var(--muted);
+            color: var(--text);
+            background: var(--card-hover);
+        }
+        .content-action-btn.delete:hover {
+            border-color: rgba(239,68,68,0.3);
+            color: var(--danger);
+            background: var(--danger-dim);
+        }
+        .content-action-btn svg { width: 13px; height: 13px; }
+
+        /* ══════ SUBSCRIBERS VIEW ══════ */
+        .subs-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .subs-count {
+            font-family: 'Sora', sans-serif;
+            font-weight: 800;
+        }
+        .subs-count span {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.4rem;
+        }
+        .subs-search {
+            position: relative;
+            flex: 1;
+            max-width: 320px;
+        }
+        .subs-search input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.6rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .subs-search input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px var(--pink-dim);
+        }
+        .subs-search input::placeholder { color: var(--muted); }
+        .subs-search svg {
+            position: absolute;
+            left: 0.85rem; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        .subs-table-wrap {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .subs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .subs-table th {
+            text-align: left;
+            padding: 0.85rem 1.25rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-bottom: 1px solid var(--border);
+            background: var(--input-bg);
+        }
+        .subs-table td {
+            padding: 0.85rem 1.25rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        .subs-table tr:last-child td { border-bottom: none; }
+        .subs-table tr:hover td { background: rgba(26,22,34,0.5); }
+
+        .sub-user {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sub-avatar-sm {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: var(--grad);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900; font-size: 0.6rem; color: #fff;
+            flex-shrink: 0;
+        }
+        .sub-user-name { font-weight: 800; font-size: 0.85rem; }
+        .sub-user-handle { font-size: 0.75rem; color: var(--dim); }
+
+        .tier-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+        .tier-badge.basic { background: var(--purple-dim); color: var(--purple); }
+        .tier-badge.premium { background: var(--pink-dim); color: var(--pink); }
+        .tier-badge.vip { background: var(--warning-dim); color: var(--warning); }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.72rem; font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+        .status-badge.active { background: var(--success-dim); color: var(--success); }
+        .status-badge.expired { background: var(--danger-dim); color: var(--danger); }
+
+        /* ══════ EARNINGS VIEW ══════ */
+        .earnings-big-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .earnings-big-card::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, var(--pink-dim) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .earnings-big-label {
+            font-size: 0.78rem; font-weight: 700;
+            color: var(--dim); text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.75rem;
+        }
+        .earnings-big-value {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.3rem;
+        }
+        .earnings-big-sub {
+            font-size: 0.88rem; color: var(--dim);
+        }
+        .earnings-big-sub span { color: var(--success); font-weight: 700; }
+
+        .period-tabs {
+            display: flex; gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .period-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--dim);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .period-tab:hover {
+            border-color: var(--muted);
+            color: var(--text);
+        }
+        .period-tab.active {
+            background: var(--pink-dim);
+            border-color: rgba(244,63,142,0.3);
+            color: var(--pink);
+        }
+
+        .earnings-breakdown {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .breakdown-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+        }
+        .breakdown-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.5rem;
+        }
+        .breakdown-value {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 0.3rem;
+        }
+        .breakdown-pct {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        /* Bar chart */
+        .chart-section {
+            margin-bottom: 2rem;
+        }
+        .chart-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        .chart-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 180px;
+            gap: 1rem;
+            padding: 0 0.5rem;
+        }
+        .bar-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .bar {
+            width: 100%;
+            max-width: 48px;
+            border-radius: 8px 8px 4px 4px;
+            background: var(--grad);
+            transition: all 0.3s;
+            min-height: 8px;
+            position: relative;
+        }
+        .bar:hover {
+            box-shadow: 0 0 20px var(--pink-glow);
+        }
+        .bar-value {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .bar-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .withdraw-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .withdraw-info .withdraw-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.3rem;
+        }
+        .withdraw-info .withdraw-amount {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+
+        .payout-table-wrap {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .payout-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .payout-table th {
+            text-align: left;
+            padding: 0.85rem 1.25rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-bottom: 1px solid var(--border);
+            background: var(--input-bg);
+        }
+        .payout-table td {
+            padding: 0.85rem 1.25rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        .payout-table tr:last-child td { border-bottom: none; }
+        .payout-table tr:hover td { background: rgba(26,22,34,0.5); }
+        .payout-status {
+            display: inline-flex; align-items: center;
+            padding: 3px 10px; border-radius: 8px;
+            font-size: 0.72rem; font-weight: 700;
+        }
+        .payout-status.completed { background: var(--success-dim); color: var(--success); }
+        .payout-status.pending { background: var(--warning-dim); color: var(--warning); }
+        .payout-status.processing { background: var(--blue-dim); color: var(--blue); }
+
+        /* ══════ MY PAGE VIEW ══════ */
+        .page-preview-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .page-banner {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, rgba(244,63,142,0.15), rgba(139,92,246,0.15));
+            position: relative;
+        }
+        .page-banner-label {
+            position: absolute;
+            bottom: 12px; right: 12px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.5);
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--dim);
+            backdrop-filter: blur(10px);
+        }
+        .page-profile-section {
+            padding: 0 2rem 2rem;
+            position: relative;
+        }
+        .page-avatar {
+            width: 96px; height: 96px;
+            border-radius: 50%;
+            background: var(--grad);
+            border: 4px solid var(--card);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900; font-size: 1.6rem; color: #fff;
+            margin-top: -48px;
+            margin-bottom: 1rem;
+        }
+        .page-display-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+        }
+        .page-username {
+            font-size: 0.88rem;
+            color: var(--dim);
+            margin-bottom: 0.75rem;
+        }
+        .page-bio {
+            font-size: 0.9rem;
+            color: var(--dim);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            max-width: 500px;
+        }
+        .page-meta {
+            display: flex; gap: 1.5rem;
+        }
+        .page-meta-item {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .page-meta-item span {
+            color: var(--dim);
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .tiers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .tier-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .tier-card:hover {
+            border-color: var(--muted);
+        }
+        .tier-card.featured {
+            border-color: var(--pink);
+        }
+        .tier-featured-badge {
+            position: absolute;
+            top: -10px; left: 50%; transform: translateX(-50%);
+            background: var(--grad);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 12px;
+            border-radius: 20px;
+        }
+        .tier-name {
+            font-family: 'Sora', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+        }
+        .tier-price {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 0.2rem;
+        }
+        .tier-price-unit {
+            font-size: 0.78rem;
+            color: var(--dim);
+            font-weight: 600;
+            margin-bottom: 0.85rem;
+        }
+        .tier-desc {
+            font-size: 0.85rem;
+            color: var(--dim);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+        .tier-edit-btn {
+            width: 100%;
+            padding: 0.55rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--dim);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tier-edit-btn:hover {
+            border-color: var(--muted);
+            color: var(--text);
+            background: var(--card-hover);
+        }
+        .tier-add-card {
+            background: var(--card);
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 200px;
+        }
+        .tier-add-card:hover {
+            border-color: var(--muted);
+            background: var(--card-hover);
+        }
+        .tier-add-card svg { width: 32px; height: 32px; color: var(--muted); }
+        .tier-add-card span {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--dim);
+        }
+
+        .profile-link-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .profile-link-url {
+            flex: 1;
+            padding: 0.65rem 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+        .copy-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 0.65rem 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .copy-btn:hover {
+            border-color: var(--pink);
+            background: var(--pink-dim);
+            color: var(--pink);
+        }
+        .copy-btn svg { width: 16px; height: 16px; }
+
+        /* ══════ SETTINGS VIEW ══════ */
+        .settings-sections { max-width: 640px; }
+
+        .settings-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .settings-section-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1rem; font-weight: 800;
+            margin-bottom: 0.3rem;
+        }
+        .settings-section-desc {
+            font-size: 0.82rem; color: var(--dim);
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-avatar-row {
+            display: flex; align-items: center; gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .settings-avatar {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: var(--grad);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900; font-size: 1.4rem; color: #fff;
+            flex-shrink: 0;
+        }
+        .settings-avatar-actions { display: flex; flex-direction: column; gap: 6px; }
+        .settings-avatar-upload {
+            padding: 0.45rem 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit; font-size: 0.78rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .settings-avatar-upload:hover {
+            border-color: var(--muted);
+            background: var(--card-hover);
+        }
+        .settings-avatar-hint {
+            font-size: 0.72rem; color: var(--muted);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            display: block; font-size: 0.72rem; font-weight: 700;
+            color: var(--dim); margin-bottom: 0.4rem;
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .form-input {
+            width: 100%; padding: 0.7rem 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit; font-size: 0.88rem; font-weight: 600;
+            outline: none; transition: all 0.2s;
+        }
+        .form-input:focus { border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-dim); }
+        .form-input::placeholder { color: var(--muted); }
+        .form-input:disabled { opacity: 0.5; cursor: not-allowed; }
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+        select.form-input {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b84a0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 2.5rem;
+        }
+
+        .btn-save {
+            padding: 0.65rem 1.5rem;
+            background: var(--grad);
+            border: none; border-radius: 12px;
+            color: #fff; font-family: inherit;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-save:hover {
+            box-shadow: 0 4px 20px var(--pink-glow);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            padding: 0.65rem 1.5rem;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            border-color: var(--muted);
+            background: var(--card-hover);
+        }
+
+        .toggle-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.75rem 0;
+        }
+        .toggle-row:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+        .toggle-label {
+            font-size: 0.88rem; font-weight: 700;
+        }
+        .toggle-desc {
+            font-size: 0.78rem; color: var(--dim); margin-top: 2px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px; height: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .toggle-switch input {
+            opacity: 0; width: 0; height: 0;
+        }
+        .toggle-slider {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--border);
+            border-radius: 24px;
+            transition: 0.25s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            left: 3px; bottom: 3px;
+            width: 18px; height: 18px;
+            background: var(--text);
+            border-radius: 50%;
+            transition: 0.25s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--pink);
+        }
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        .payout-info-row {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.75rem 0;
+        }
+        .payout-info-row:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+        .payout-info-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .payout-info-icon.bank { background: var(--blue-dim); color: var(--blue); }
+        .payout-info-icon.crypto { background: var(--purple-dim); color: var(--purple); }
+        .payout-info-icon svg { width: 18px; height: 18px; }
+        .payout-info-details { flex: 1; }
+        .payout-info-label { font-size: 0.82rem; font-weight: 700; }
+        .payout-info-value { font-size: 0.78rem; color: var(--dim); }
+        .payout-info-edit {
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--dim);
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .payout-info-edit:hover {
+            border-color: var(--muted);
+            color: var(--text);
+        }
+
+        .danger-zone {
+            border-color: rgba(239,68,68,0.2);
+        }
+        .danger-zone .settings-section-title { color: var(--danger); }
+        .btn-danger {
+            padding: 0.65rem 1.5rem;
+            background: var(--danger-dim);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 12px;
+            color: var(--danger);
+            font-family: inherit;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-danger:hover {
+            background: rgba(239,68,68,0.15);
+            border-color: var(--danger);
+        }
+
+        /* ══════ TOAST ══════ */
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.5rem;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.88rem; font-weight: 700;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+            transform: translateY(120%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 300;
+        }
+        .toast.show { transform: translateY(0); }
+        .toast-icon {
+            width: 20px; height: 20px;
+            color: var(--success);
+        }
+
+        /* ══════ RESPONSIVE ══════ */
+        @media (max-width: 1100px) {
+            .stat-cards { grid-template-columns: repeat(2, 1fr); }
+            .earnings-breakdown { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .stat-cards { grid-template-columns: 1fr 1fr; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .content-grid { grid-template-columns: 1fr; }
+            .tiers-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .main { padding: 1.25rem; }
+            .stat-cards { grid-template-columns: 1fr; }
+            .bar-chart { gap: 0.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════ TOPBAR ══════ -->
+<div class="topbar">
+    <a href="index.html" class="topbar-logo">
+        <div class="topbar-logo-icon">
+            <div class="topbar-logo-vault">
+                <div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div>
+            </div>
+        </div>
+        <span class="topbar-logo-text">Vaulty</span>
+    </a>
+
+    <div class="topbar-right">
+        <div class="balance-pill" onclick="switchView('earnings')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"/><path d="M12 6v2m0 8v2"/></svg>
+            <span id="topbar-balance">$4,280.50</span>
+        </div>
+
+        <button class="notif-btn" onclick="showToast('Notifications coming soon')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-badge">5</span>
+        </button>
+
+        <div class="user-menu">
+            <button class="user-menu-btn" onclick="toggleDropdown()">
+                <div class="user-avatar-btn">SV</div>
+                <span class="user-name-topbar">Sophie</span>
+            </button>
+            <div class="user-dropdown" id="user-dropdown">
+                <div class="user-dropdown-header">
+                    <div class="name">Sophie Valentine</div>
+                    <div class="handle">@sophievalentine</div>
+                </div>
+                <button class="user-dropdown-item" onclick="switchView('mypage'); closeDropdown();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    My Page
+                </button>
+                <button class="user-dropdown-item" onclick="switchView('settings'); closeDropdown();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                    Settings
+                </button>
+                <div class="user-dropdown-sep"></div>
+                <button class="user-dropdown-item danger" onclick="closeDropdown();">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Log out
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ SIDEBAR ══════ -->
+<div class="sidebar">
+    <div class="sidebar-nav">
+        <div class="sidebar-section-label">Creator</div>
+
+        <button class="sidebar-item active" data-view="dashboard" onclick="switchView('dashboard')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+        </button>
+
+        <button class="sidebar-item" data-view="content" onclick="switchView('content')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            My Content
+            <span class="sidebar-badge">8</span>
+        </button>
+
+        <button class="sidebar-item" data-view="subscribers" onclick="switchView('subscribers')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            Subscribers
+        </button>
+
+        <button class="sidebar-item" data-view="earnings" onclick="switchView('earnings')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            Earnings
+        </button>
+
+        <div class="sidebar-section-label">Account</div>
+
+        <button class="sidebar-item" data-view="mypage" onclick="switchView('mypage')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            My Page
+        </button>
+
+        <button class="sidebar-item" data-view="settings" onclick="switchView('settings')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            Settings
+        </button>
+    </div>
+
+    <div class="sidebar-footer">
+        <button class="sidebar-item" style="color: var(--danger);" onclick="return false;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger);"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Log out
+        </button>
+    </div>
+</div>
+
+<!-- ══════ MAIN CONTENT ══════ -->
+<div class="main">
+
+    <!-- ═══ DASHBOARD VIEW ═══ -->
+    <div class="view active" id="view-dashboard">
+        <div class="view-header">
+            <h1 class="welcome-msg">Welcome back, <span class="grad-text">Sophie</span></h1>
+            <p class="welcome-sub">Here's what's happening with your page today.</p>
+        </div>
+
+        <div class="stat-cards">
+            <div class="stat-card">
+                <div class="stat-card-icon pink">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                </div>
+                <div class="stat-card-label">Total Earnings</div>
+                <div class="stat-card-value">$12,840</div>
+                <div class="stat-card-change up">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                    +18.2% this month
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div class="stat-card-label">Active Subscribers</div>
+                <div class="stat-card-value">1,247</div>
+                <div class="stat-card-change up">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                    +42 this week
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <div class="stat-card-label">Content Posts</div>
+                <div class="stat-card-value">186</div>
+                <div class="stat-card-change up">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                    +3 this week
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                </div>
+                <div class="stat-card-label">Tips Received</div>
+                <div class="stat-card-value">$2,140</div>
+                <div class="stat-card-change up">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                    +$320 this month
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="activity-card">
+                <div class="card-title">Recent Activity</div>
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <span class="activity-dot subscriber"></span>
+                        <span class="activity-text"><strong>@darknight99</strong> subscribed to your Premium tier</span>
+                        <span class="activity-time">2m ago</span>
+                    </li>
+                    <li class="activity-item">
+                        <span class="activity-dot tip"></span>
+                        <span class="activity-text"><strong>@luna_fan</strong> sent you a $25 tip</span>
+                        <span class="activity-time">18m ago</span>
+                    </li>
+                    <li class="activity-item">
+                        <span class="activity-dot message"></span>
+                        <span class="activity-text"><strong>@maxwellart</strong> sent you a message</span>
+                        <span class="activity-time">1h ago</span>
+                    </li>
+                    <li class="activity-item">
+                        <span class="activity-dot like"></span>
+                        <span class="activity-text"><strong>@cozygamer</strong> liked your post "BTS Shoot"</span>
+                        <span class="activity-time">3h ago</span>
+                    </li>
+                    <li class="activity-item">
+                        <span class="activity-dot ppv"></span>
+                        <span class="activity-text"><strong>@jess_xo</strong> purchased your PPV content</span>
+                        <span class="activity-time">5h ago</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="actions-card">
+                <div class="card-title">Quick Actions</div>
+                <div class="quick-actions">
+                    <button class="action-btn primary" onclick="switchView('content'); showToast('Create your new post');">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        New Post
+                        <span class="action-btn-arrow">&rarr;</span>
+                    </button>
+                    <button class="action-btn" onclick="switchView('mypage')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View Page
+                        <span class="action-btn-arrow">&rarr;</span>
+                    </button>
+                    <button class="action-btn" onclick="switchView('earnings'); showToast('Withdraw available balance');">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        Withdraw
+                        <span class="action-btn-arrow">&rarr;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ CONTENT VIEW ═══ -->
+    <div class="view" id="view-content">
+        <div class="content-header">
+            <div class="view-header" style="margin-bottom:0;">
+                <h1>My Content</h1>
+                <p>Manage your posts, photos, and videos.</p>
+            </div>
+            <button class="btn-grad" onclick="showToast('Post editor coming soon')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Post
+            </button>
+        </div>
+
+        <div class="content-grid" id="content-grid">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- ═══ SUBSCRIBERS VIEW ═══ -->
+    <div class="view" id="view-subscribers">
+        <div class="view-header">
+            <h1>Subscribers</h1>
+            <p>View and manage your subscriber base.</p>
+        </div>
+
+        <div class="subs-header">
+            <div class="subs-count">Total: <span class="grad-text">1,247</span> subscribers</div>
+            <div class="subs-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="sub-search-input" placeholder="Search subscribers..." oninput="filterSubscribers()">
+            </div>
+        </div>
+
+        <div class="subs-table-wrap">
+            <table class="subs-table">
+                <thead>
+                    <tr>
+                        <th>Subscriber</th>
+                        <th>Tier</th>
+                        <th>Subscribed Since</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="subs-tbody">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══ EARNINGS VIEW ═══ -->
+    <div class="view" id="view-earnings">
+        <div class="view-header">
+            <h1>Earnings</h1>
+            <p>Track your revenue and manage payouts.</p>
+        </div>
+
+        <div class="earnings-big-card">
+            <div class="earnings-big-label">Total Earnings (All Time)</div>
+            <div class="earnings-big-value" id="earnings-total">$12,840</div>
+            <div class="earnings-big-sub">You keep <span>99%</span> of every dollar earned</div>
+        </div>
+
+        <div class="period-tabs">
+            <button class="period-tab active" onclick="setPeriod(this, 'month')">This Month</button>
+            <button class="period-tab" onclick="setPeriod(this, 'last')">Last Month</button>
+            <button class="period-tab" onclick="setPeriod(this, 'all')">All Time</button>
+        </div>
+
+        <div class="earnings-breakdown" id="earnings-breakdown">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-title">Earnings - Last 6 Months</div>
+            <div class="chart-card">
+                <div class="bar-chart" id="bar-chart">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="withdraw-card">
+            <div class="withdraw-info">
+                <div class="withdraw-label">Available Balance</div>
+                <div class="withdraw-amount grad-text">$4,280.50</div>
+            </div>
+            <button class="btn-grad" onclick="showToast('Withdrawal of $4,280.50 initiated')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Withdraw
+            </button>
+        </div>
+
+        <div class="section-title">Payout History</div>
+        <div class="payout-table-wrap">
+            <table class="payout-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="payout-tbody">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══ MY PAGE VIEW ═══ -->
+    <div class="view" id="view-mypage">
+        <div class="view-header">
+            <h1>My Page</h1>
+            <p>Preview and customize how subscribers see your profile.</p>
+        </div>
+
+        <div class="page-preview-card">
+            <div class="page-banner">
+                <span class="page-banner-label">Click to change banner</span>
+            </div>
+            <div class="page-profile-section">
+                <div class="page-avatar">SV</div>
+                <div class="page-display-name">Sophie Valentine</div>
+                <div class="page-username">@sophievalentine</div>
+                <div class="page-bio">Digital artist & photographer sharing exclusive behind-the-scenes content, tutorials, and premium art collections. Join my creative journey.</div>
+                <div class="page-meta">
+                    <div class="page-meta-item">1,247 <span>subscribers</span></div>
+                    <div class="page-meta-item">186 <span>posts</span></div>
+                    <div class="page-meta-item">4.9 <span>rating</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Subscription Tiers</div>
+        <div class="tiers-grid" id="tiers-grid">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="section-title">Profile Link</div>
+        <div class="profile-link-card">
+            <input type="text" class="profile-link-url" value="vaulty.com/@sophievalentine" readonly id="profile-link">
+            <button class="copy-btn" onclick="copyProfileLink()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                Copy
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══ SETTINGS VIEW ═══ -->
+    <div class="view" id="view-settings">
+        <div class="view-header">
+            <h1>Settings</h1>
+            <p>Manage your account, payouts, and preferences.</p>
+        </div>
+
+        <div class="settings-sections">
+            <!-- Profile Info -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Profile Information</h3>
+                <p class="settings-section-desc">Update your creator profile details.</p>
+
+                <div class="settings-avatar-row">
+                    <div class="settings-avatar">SV</div>
+                    <div class="settings-avatar-actions">
+                        <button class="settings-avatar-upload" onclick="showToast('Avatar upload coming soon')">Upload Photo</button>
+                        <span class="settings-avatar-hint">JPG, PNG or GIF. Max 5MB.</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Display Name</label>
+                        <input type="text" class="form-input" value="Sophie Valentine">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Username</label>
+                        <input type="text" class="form-input" value="sophievalentine" disabled>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea class="form-input" rows="3">Digital artist & photographer sharing exclusive behind-the-scenes content, tutorials, and premium art collections. Join my creative journey.</textarea>
+                </div>
+                <div class="form-group" style="margin-bottom:1.5rem;">
+                    <label>Category</label>
+                    <select class="form-input">
+                        <option value="art" selected>Art & Photography</option>
+                        <option value="music">Music</option>
+                        <option value="fitness">Fitness & Wellness</option>
+                        <option value="cooking">Cooking & Recipes</option>
+                        <option value="education">Education</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="lifestyle">Lifestyle</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <button class="btn-save" onclick="showToast('Profile saved successfully')">Save Changes</button>
+            </div>
+
+            <!-- Payout Settings -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Payout Settings</h3>
+                <p class="settings-section-desc">Manage where your earnings are sent.</p>
+
+                <div class="payout-info-row">
+                    <div class="payout-info-icon bank">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                    <div class="payout-info-details">
+                        <div class="payout-info-label">Bank Account</div>
+                        <div class="payout-info-value">Chase **** 4829</div>
+                    </div>
+                    <button class="payout-info-edit" onclick="showToast('Bank edit coming soon')">Edit</button>
+                </div>
+                <div class="payout-info-row">
+                    <div class="payout-info-icon crypto">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div class="payout-info-details">
+                        <div class="payout-info-label">Crypto Wallet</div>
+                        <div class="payout-info-value">0x7a3b...f29d (USDC)</div>
+                    </div>
+                    <button class="payout-info-edit" onclick="showToast('Wallet edit coming soon')">Edit</button>
+                </div>
+            </div>
+
+            <!-- Privacy -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Privacy & Security</h3>
+                <p class="settings-section-desc">Control who can see your content and how it's protected.</p>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Geo-blocking</div>
+                        <div class="toggle-desc">Block specific countries from accessing your page.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Watermark content</div>
+                        <div class="toggle-desc">Automatically add watermark to photos and videos.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Two-factor authentication</div>
+                        <div class="toggle-desc">Add an extra layer of security to your account.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Notification Preferences</h3>
+                <p class="settings-section-desc">Choose which notifications you receive.</p>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">New subscriber alerts</div>
+                        <div class="toggle-desc">Get notified when someone subscribes to your page.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Tip notifications</div>
+                        <div class="toggle-desc">Get notified when you receive a tip.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Message alerts</div>
+                        <div class="toggle-desc">Get notified when subscribers send you a message.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Payout notifications</div>
+                        <div class="toggle-desc">Get notified when a payout is processed.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <div>
+                        <div class="toggle-label">Marketing emails</div>
+                        <div class="toggle-desc">Receive promotional content and feature announcements.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="settings-section danger-zone">
+                <h3 class="settings-section-title">Danger Zone</h3>
+                <p class="settings-section-desc">Irreversible account actions. Proceed with extreme caution.</p>
+
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button class="btn-danger" onclick="showToast('Deactivation request submitted')">Deactivate Page</button>
+                    <button class="btn-danger" onclick="confirmDelete()">Delete Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ══════ TOAST ══════ -->
+<div class="toast" id="toast">
+    <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span id="toast-msg">Saved!</span>
+</div>
+
+<script>
+    // ══════ MOCK DATA ══════
+
+    const mockPosts = [
+        { id: 1, title: 'Behind the Scenes - Studio Session', date: 'Feb 12, 2026', visibility: 'premium', likes: 342, views: 1820 },
+        { id: 2, title: 'New Art Print Collection Reveal', date: 'Feb 10, 2026', visibility: 'free', likes: 891, views: 4230 },
+        { id: 3, title: 'Exclusive Tutorial: Light & Shadow', date: 'Feb 8, 2026', visibility: 'ppv', likes: 156, views: 620 },
+        { id: 4, title: 'Q&A Answers - January Edition', date: 'Feb 5, 2026', visibility: 'premium', likes: 274, views: 1340 },
+        { id: 5, title: 'My Creative Process Explained', date: 'Feb 1, 2026', visibility: 'free', likes: 1203, views: 6100 },
+        { id: 6, title: 'Premium Wallpaper Pack #12', date: 'Jan 28, 2026', visibility: 'ppv', likes: 89, views: 410 },
+        { id: 7, title: 'Day in My Life - Artist Edition', date: 'Jan 24, 2026', visibility: 'premium', likes: 467, views: 2100 },
+        { id: 8, title: 'Fan Art Showcase & Reactions', date: 'Jan 20, 2026', visibility: 'free', likes: 738, views: 3500 },
+    ];
+
+    const mockSubscribers = [
+        { name: 'Alex Knight', handle: '@darknight99', initials: 'AK', tier: 'premium', since: 'Feb 12, 2026', status: 'active' },
+        { name: 'Luna Rivers', handle: '@luna_fan', initials: 'LR', tier: 'vip', since: 'Jan 30, 2026', status: 'active' },
+        { name: 'Maxwell Chen', handle: '@maxwellart', initials: 'MC', tier: 'basic', since: 'Jan 25, 2026', status: 'active' },
+        { name: 'Jessica Moore', handle: '@jess_xo', initials: 'JM', tier: 'premium', since: 'Jan 18, 2026', status: 'active' },
+        { name: 'Tyler Brooks', handle: '@cozygamer', initials: 'TB', tier: 'basic', since: 'Jan 10, 2026', status: 'active' },
+        { name: 'Mia Zhang', handle: '@miaz_design', initials: 'MZ', tier: 'vip', since: 'Dec 28, 2025', status: 'active' },
+        { name: 'Ryan Foster', handle: '@rfoster', initials: 'RF', tier: 'premium', since: 'Dec 15, 2025', status: 'active' },
+        { name: 'Natalie Dunn', handle: '@nat_dunn', initials: 'ND', tier: 'basic', since: 'Dec 2, 2025', status: 'expired' },
+        { name: 'Jake Williams', handle: '@jakew', initials: 'JW', tier: 'premium', since: 'Nov 20, 2025', status: 'expired' },
+        { name: 'Olivia Hart', handle: '@olivia_h', initials: 'OH', tier: 'basic', since: 'Nov 5, 2025', status: 'active' },
+    ];
+
+    const earningsData = {
+        month: { subs: 2180, tips: 620, ppv: 440, total: 3240 },
+        last: { subs: 1950, tips: 380, ppv: 310, total: 2640 },
+        all: { subs: 8420, tips: 2140, ppv: 2280, total: 12840 },
+    };
+
+    const chartData = [
+        { label: 'Sep', value: 1420 },
+        { label: 'Oct', value: 1780 },
+        { label: 'Nov', value: 2100 },
+        { label: 'Dec', value: 2340 },
+        { label: 'Jan', value: 2640 },
+        { label: 'Feb', value: 3240 },
+    ];
+
+    const mockPayouts = [
+        { date: 'Feb 1, 2026', amount: '$2,640.00', method: 'Bank (Chase **** 4829)', status: 'completed' },
+        { date: 'Jan 1, 2026', amount: '$2,100.00', method: 'Bank (Chase **** 4829)', status: 'completed' },
+        { date: 'Dec 1, 2025', amount: '$1,780.00', method: 'USDC Wallet', status: 'completed' },
+        { date: 'Nov 1, 2025', amount: '$1,420.00', method: 'Bank (Chase **** 4829)', status: 'completed' },
+        { date: 'Oct 1, 2025', amount: '$1,050.00', method: 'Bank (Chase **** 4829)', status: 'completed' },
+    ];
+
+    const mockTiers = [
+        { name: 'Basic', price: 50, unit: 'credits/mo', desc: 'Access to all free posts, community chat, and monthly Q&A sessions.', featured: false },
+        { name: 'Premium', price: 150, unit: 'credits/mo', desc: 'Everything in Basic plus exclusive behind-the-scenes content, tutorials, and early access to new releases.', featured: true },
+        { name: 'VIP', price: 350, unit: 'credits/mo', desc: 'Everything in Premium plus 1-on-1 messaging, custom art requests, and exclusive VIP-only drops.', featured: false },
+    ];
+
+    let currentPeriod = 'month';
+
+    // ══════ VIEW SWITCHING ══════
+    function switchView(viewName) {
+        document.querySelectorAll('.sidebar-item[data-view]').forEach(item => {
+            item.classList.toggle('active', item.dataset.view === viewName);
+        });
+
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        const target = document.getElementById('view-' + viewName);
+        if (target) target.classList.add('active');
+
+        closeDropdown();
+    }
+
+    // ══════ DROPDOWN ══════
+    function toggleDropdown() {
+        document.getElementById('user-dropdown').classList.toggle('open');
+    }
+    function closeDropdown() {
+        document.getElementById('user-dropdown').classList.remove('open');
+    }
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.user-menu')) closeDropdown();
+    });
+
+    // ══════ CONTENT GRID ══════
+    function renderContent() {
+        const grid = document.getElementById('content-grid');
+        grid.innerHTML = mockPosts.map(post => `
+            <div class="content-post">
+                <div class="content-thumb">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span class="content-visibility ${post.visibility}">${post.visibility === 'ppv' ? 'PPV' : post.visibility}</span>
+                </div>
+                <div class="content-body">
+                    <div class="content-title">${post.title}</div>
+                    <div class="content-date">${post.date}</div>
+                    <div class="content-stats">
+                        <span class="content-stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                            ${post.likes.toLocaleString()}
+                        </span>
+                        <span class="content-stat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            ${post.views.toLocaleString()}
+                        </span>
+                    </div>
+                    <div class="content-actions">
+                        <button class="content-action-btn" onclick="showToast('Editing: ${post.title}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit
+                        </button>
+                        <button class="content-action-btn delete" onclick="deletePost(${post.id}, '${post.title}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function deletePost(id, title) {
+        if (confirm('Delete "' + title + '"? This cannot be undone.')) {
+            const idx = mockPosts.findIndex(p => p.id === id);
+            if (idx > -1) {
+                mockPosts.splice(idx, 1);
+                renderContent();
+                showToast('Post deleted');
+            }
+        }
+    }
+
+    // ══════ SUBSCRIBERS TABLE ══════
+    function renderSubscribers(data) {
+        const list = data || mockSubscribers;
+        const tbody = document.getElementById('subs-tbody');
+        tbody.innerHTML = list.map(sub => `
+            <tr>
+                <td>
+                    <div class="sub-user">
+                        <div class="sub-avatar-sm">${sub.initials}</div>
+                        <div>
+                            <div class="sub-user-name">${sub.name}</div>
+                            <div class="sub-user-handle">${sub.handle}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="tier-badge ${sub.tier}">${sub.tier.charAt(0).toUpperCase() + sub.tier.slice(1)}</span></td>
+                <td style="color:var(--dim);">${sub.since}</td>
+                <td><span class="status-badge ${sub.status}">${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    function filterSubscribers() {
+        const query = document.getElementById('sub-search-input').value.trim().toLowerCase();
+        if (!query) {
+            renderSubscribers();
+            return;
+        }
+        const filtered = mockSubscribers.filter(s =>
+            s.name.toLowerCase().includes(query) ||
+            s.handle.toLowerCase().includes(query) ||
+            s.tier.toLowerCase().includes(query)
+        );
+        renderSubscribers(filtered);
+    }
+
+    // ══════ EARNINGS ══════
+    function setPeriod(btn, period) {
+        document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        currentPeriod = period;
+        renderEarningsBreakdown();
+    }
+
+    function renderEarningsBreakdown() {
+        const data = earningsData[currentPeriod];
+        const container = document.getElementById('earnings-breakdown');
+        const periodLabel = currentPeriod === 'month' ? 'This Month' : currentPeriod === 'last' ? 'Last Month' : 'All Time';
+
+        container.innerHTML = `
+            <div class="breakdown-card">
+                <div class="breakdown-label">Subscriptions</div>
+                <div class="breakdown-value">$${data.subs.toLocaleString()}</div>
+                <div class="breakdown-pct">${Math.round(data.subs / data.total * 100)}% of ${periodLabel.toLowerCase()} revenue</div>
+            </div>
+            <div class="breakdown-card">
+                <div class="breakdown-label">Tips</div>
+                <div class="breakdown-value">$${data.tips.toLocaleString()}</div>
+                <div class="breakdown-pct">${Math.round(data.tips / data.total * 100)}% of ${periodLabel.toLowerCase()} revenue</div>
+            </div>
+            <div class="breakdown-card">
+                <div class="breakdown-label">PPV Content</div>
+                <div class="breakdown-value">$${data.ppv.toLocaleString()}</div>
+                <div class="breakdown-pct">${Math.round(data.ppv / data.total * 100)}% of ${periodLabel.toLowerCase()} revenue</div>
+            </div>
+        `;
+    }
+
+    function renderChart() {
+        const container = document.getElementById('bar-chart');
+        const maxVal = Math.max(...chartData.map(d => d.value));
+
+        container.innerHTML = chartData.map(d => {
+            const pct = Math.round((d.value / maxVal) * 100);
+            return `
+                <div class="bar-col">
+                    <div class="bar-value">$${d.value.toLocaleString()}</div>
+                    <div class="bar" style="height: ${pct}%;" title="$${d.value.toLocaleString()}"></div>
+                    <div class="bar-label">${d.label}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderPayouts() {
+        const tbody = document.getElementById('payout-tbody');
+        tbody.innerHTML = mockPayouts.map(p => `
+            <tr>
+                <td style="color:var(--dim);">${p.date}</td>
+                <td style="font-weight:800;">${p.amount}</td>
+                <td>${p.method}</td>
+                <td><span class="payout-status ${p.status}">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    // ══════ MY PAGE - TIERS ══════
+    function renderTiers() {
+        const grid = document.getElementById('tiers-grid');
+        const tierCards = mockTiers.map(tier => `
+            <div class="tier-card ${tier.featured ? 'featured' : ''}">
+                ${tier.featured ? '<div class="tier-featured-badge">Most Popular</div>' : ''}
+                <div class="tier-name">${tier.name}</div>
+                <div class="tier-price">${tier.price}</div>
+                <div class="tier-price-unit">${tier.unit}</div>
+                <div class="tier-desc">${tier.desc}</div>
+                <button class="tier-edit-btn" onclick="showToast('Editing ${tier.name} tier')">Edit Tier</button>
+            </div>
+        `).join('');
+
+        const addCard = `
+            <div class="tier-add-card" onclick="showToast('Tier creation coming soon')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add New Tier</span>
+            </div>
+        `;
+
+        grid.innerHTML = tierCards + addCard;
+    }
+
+    // ══════ COPY PROFILE LINK ══════
+    function copyProfileLink() {
+        const link = document.getElementById('profile-link').value;
+        navigator.clipboard.writeText('https://' + link).then(() => {
+            showToast('Profile link copied to clipboard');
+        }).catch(() => {
+            showToast('Profile link: https://' + link);
+        });
+    }
+
+    // ══════ TOAST ══════
+    let toastTimer;
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-msg').textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ══════ DELETE ACCOUNT ══════
+    function confirmDelete() {
+        if (confirm('Are you sure you want to delete your account? This action cannot be undone. All your content, subscribers, and earnings data will be permanently removed.')) {
+            showToast('Account deletion request submitted');
+        }
+    }
+
+    // ══════ INIT ══════
+    renderContent();
+    renderSubscribers();
+    renderEarningsBreakdown();
+    renderChart();
+    renderPayouts();
+    renderTiers();
+</script>
+
+</body>
+</html>

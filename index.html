@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaulty — The Creator Platform Where You Keep 99%</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Unbounded:wght@400;700;800;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0e0b14;
+            --card: #16131e;
+            --border: #231f2e;
+            --text: #f0edf5;
+            --dim: #8b84a0;
+            --muted: #524d63;
+            --pink: #f43f8e;
+            --pink-dim: rgba(244,63,142,0.1);
+            --pink-glow: rgba(244,63,142,0.25);
+            --purple: #8b5cf6;
+            --purple-dim: rgba(139,92,246,0.1);
+            --gold: #f5c542;
+            --grad: linear-gradient(135deg, #f43f8e, #8b5cf6);
+        }
+
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(244,63,142,0.3) transparent;
+        }
+        html::-webkit-scrollbar { width: 6px; }
+        html::-webkit-scrollbar-track { background: transparent; }
+        html::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #f43f8e, #8b5cf6);
+            border-radius: 3px;
+        }
+        html::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #ff6b9d, #a855f7);
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* ══════ NAV ══════ */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.2rem 2rem; height: 72px;
+            background: rgba(14,11,20,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-logo {
+            display: flex; align-items: center; gap: 12px;
+            text-decoration: none; color: var(--text);
+        }
+        .nav-logo-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, rgba(244,63,142,0.1), rgba(139,92,246,0.06));
+            border: 1px solid rgba(244,63,142,0.2);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nav-logo-vault {
+            width: 22px; height: 22px;
+            border: 2px solid var(--pink);
+            border-radius: 50%;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nav-logo-vault::before {
+            content: '';
+            width: 4px; height: 4px;
+            background: var(--pink);
+            border-radius: 50%;
+            position: absolute;
+        }
+        .nav-logo-vault .sp {
+            position: absolute;
+            width: 1.5px; height: 7px;
+            background: var(--pink);
+            border-radius: 1px;
+        }
+        .nav-logo-vault .sp:nth-child(1) { transform: rotate(0deg); }
+        .nav-logo-vault .sp:nth-child(2) { transform: rotate(90deg); }
+        .nav-logo-vault .sp:nth-child(3) { transform: rotate(45deg); }
+        .nav-logo-vault .sp:nth-child(4) { transform: rotate(135deg); }
+        .nav-logo-text {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.15rem; font-weight: 900;
+            color: #fff; letter-spacing: 1px;
+        }
+        .nav-end { display: flex; gap: 0.5rem; align-items: center; }
+        .lang-toggle {
+            padding: 0.35rem 0.7rem; border-radius: 8px; font-family: 'Sora', sans-serif;
+            font-size: 0.7rem; font-weight: 700; cursor: pointer; letter-spacing: 0.05em;
+            background: rgba(244,63,142,0.08); color: var(--pink);
+            border: 1px solid rgba(244,63,142,0.2); transition: all 0.2s; margin-right: 0.3rem;
+        }
+        .lang-toggle:hover { background: rgba(244,63,142,0.15); border-color: rgba(244,63,142,0.35); }
+        .btn-s {
+            padding: 0.5rem 1.1rem; border-radius: 12px; font-family: inherit;
+            font-size: 0.82rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; text-decoration: none; border: none;
+        }
+        .btn-s.ghost { background: none; color: var(--dim); }
+        .btn-s.ghost:hover { color: var(--text); }
+        .btn-s.fill { background: var(--grad); color: #fff; }
+        .btn-s.fill:hover { box-shadow: 0 0 20px var(--pink-glow); transform: translateY(-1px); }
+
+        /* ══════ HERO ══════ */
+        .hero {
+            min-height: 100vh; position: relative; overflow: hidden;
+            display: flex; align-items: center;
+            padding: 4rem 2rem 6rem;
+        }
+        /* ══════ STAR FIELD BACKGROUND ══════ */
+        .star-field {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        }
+        .star-field canvas { width: 100%; height: 100%; }
+        .hero-inner {
+            width: 100%; max-width: 960px; margin: 0 auto; position: relative; z-index: 1;
+            text-align: center;
+        }
+        .hero-award {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 18px; border-radius: 10px; font-size: 0.8rem; font-weight: 700;
+            color: var(--gold); background: rgba(245,197,66,0.08);
+            border: 1px solid rgba(245,197,66,0.15); margin-bottom: 2rem;
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .hero-brand {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 7rem; font-weight: 900;
+            background: linear-gradient(135deg, #ff6b9d 0%, #f43f8e 25%, #a855f7 60%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px; line-height: 1;
+            filter: drop-shadow(0 4px 40px rgba(244,63,142,0.2));
+            margin-bottom: 0.6rem;
+        }
+        .hero-sub {
+            font-family: 'Sora', sans-serif;
+            font-size: 2rem; font-weight: 700;
+            color: #fff; line-height: 1.3; letter-spacing: -0.02em;
+        }
+        .hero-sub .gr {
+            background: var(--grad); -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-p {
+            font-size: 1.1rem; font-weight: 500; color: var(--dim);
+            line-height: 1.65; margin: 1.5rem auto 2.2rem; max-width: 520px;
+        }
+        .btn {
+            padding: 0.85rem 2.2rem; border-radius: 12px; font-family: inherit;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; text-decoration: none; border: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn.primary { background: var(--grad); color: #fff; }
+        .btn.primary:hover { box-shadow: 0 4px 25px var(--pink-glow); transform: translateY(-1px); }
+        .btn.ghost-btn {
+            background: none; color: var(--dim);
+            border: 1px solid var(--border);
+        }
+        .btn.ghost-btn:hover { color: var(--text); border-color: var(--muted); }
+        .btn svg { width: 16px; height: 16px; }
+
+        /* ══════ HERO PUNCH BAR ══════ */
+        .hero-punch {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            border-top: 1px solid var(--border);
+            background: linear-gradient(90deg, transparent, var(--pink-dim), transparent);
+            padding: 1.8rem 2rem;
+            text-align: center; z-index: 1;
+        }
+        .hero-punch-text {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 1.4rem; font-weight: 900;
+            background: linear-gradient(135deg, #ff6b9d 0%, #f43f8e 30%, #a855f7 70%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.5px;
+        }
+
+        /* ══════ COMPARE ══════ */
+        .compare {
+            display: flex; justify-content: center; gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .cmp {
+            flex: 1; min-width: 150px; text-align: center; padding: 1.3rem 1rem;
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+        }
+        .cmp-name { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); margin-bottom: 0.4rem; font-weight: 700; }
+        .cmp-fee { font-size: 2.2rem; font-weight: 900; }
+        .cmp-fee.red { color: #fff; }
+        .cmp-fee.yel { color: #fbbf24; } /* kept for compat */
+        .cmp-fee.pk { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .cmp-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+        .cmp-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.3rem; font-weight: 600; }
+        .cmp-highlight { border-color: rgba(244,63,142,0.25); background: linear-gradient(135deg, rgba(244,63,142,0.06), rgba(139,92,246,0.04)); }
+
+        /* ══════ SECTIONS ══════ */
+        .sec { padding: 4rem 2rem; max-width: 960px; margin: 0 auto; scroll-margin-top: 72px; }
+        #content { padding-top: 8rem; }
+        .sec-label {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.15em;
+            text-transform: uppercase; color: var(--pink); margin-bottom: 0.5rem;
+        }
+        .sec-title {
+            font-size: 1.8rem; font-weight: 900; letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+        }
+
+        /* ══════ FEATURES ══════ */
+        .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .feat {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.5rem;
+            display: flex; gap: 1rem; align-items: flex-start;
+            transition: all 0.3s;
+        }
+        .feat:hover { transform: translateY(-2px); border-color: rgba(244,63,142,0.12); }
+        .feat-ico {
+            width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .feat-ico svg { width: 18px; height: 18px; }
+        .feat-ico.a { background: var(--pink-dim); color: var(--pink); }
+        .feat-ico.b { background: var(--purple-dim); color: var(--purple); }
+        .feat h3 { font-size: 0.88rem; font-weight: 800; margin-bottom: 0.25rem; }
+        .feat p { font-size: 0.8rem; color: var(--dim); line-height: 1.55; }
+
+        /* ══════ FOOTER ══════ */
+        footer {
+            border-top: 1px solid var(--border); padding: 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 960px; margin: 0 auto; flex-wrap: wrap; gap: 1rem;
+        }
+        .ft-logo { display: flex; align-items: center; gap: 8px; }
+        .ft-logo-icon {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, rgba(244,63,142,0.1), rgba(139,92,246,0.06));
+            border: 1px solid rgba(244,63,142,0.2);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ft-logo-vault {
+            width: 16px; height: 16px;
+            border: 1.5px solid var(--pink);
+            border-radius: 50%;
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ft-logo-vault::before {
+            content: '';
+            width: 3px; height: 3px;
+            background: var(--pink);
+            border-radius: 50%;
+        }
+        .ft-logo-vault .sp {
+            position: absolute;
+            width: 1px; height: 5px;
+            background: var(--pink);
+            border-radius: 1px;
+        }
+        .ft-logo-vault .sp:nth-child(1) { transform: rotate(0deg); }
+        .ft-logo-vault .sp:nth-child(2) { transform: rotate(90deg); }
+        .ft-logo-vault .sp:nth-child(3) { transform: rotate(45deg); }
+        .ft-logo-vault .sp:nth-child(4) { transform: rotate(135deg); }
+        .ft-logo-text {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 900; font-size: 0.9rem;
+            color: #fff; letter-spacing: 1px;
+        }
+        .ft-links { display: flex; gap: 1.2rem; }
+        .ft-links a { font-size: 0.72rem; color: var(--muted); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+        .ft-links a:hover { color: var(--text); }
+        .ft-copy { font-size: 0.68rem; color: var(--muted); }
+
+        /* Scroll hint at bottom of hero */
+        .scroll-hint {
+            position: absolute;
+            bottom: 1.2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            color: var(--muted);
+            font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase;
+            animation: hintBounce 2s ease-in-out infinite;
+            cursor: pointer;
+        }
+        .scroll-hint svg {
+            width: 20px; height: 20px;
+            opacity: 0.5;
+        }
+        @keyframes hintBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(6px); }
+        }
+
+        @media (max-width: 800px) {
+            .hero-brand { font-size: 4rem; }
+            .hero-punch-text { font-size: 1.1rem; }
+            .feat-grid { grid-template-columns: 1fr; }
+            .compare { flex-wrap: wrap; }
+            footer { flex-direction: column; text-align: center; }
+            .ft-links { justify-content: center; flex-wrap: wrap; }
+        }
+        @media (max-width: 480px) {
+            .hero-brand { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav id="nav">
+    <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">
+            <div class="nav-logo-vault">
+                <div class="sp"></div>
+                <div class="sp"></div>
+                <div class="sp"></div>
+                <div class="sp"></div>
+            </div>
+        </div>
+        <span class="nav-logo-text">Vaulty</span>
+    </a>
+    <div class="nav-end">
+        <button class="lang-toggle" id="langToggle" onclick="toggleLang()">FR</button>
+        <a href="login.html" class="btn-s ghost" data-en="Log in" data-fr="Connexion">Log in</a>
+        <a href="signup.html" class="btn-s fill" data-en="Create an account" data-fr="Créer un compte">Create an account</a>
+    </div>
+</nav>
+
+<!-- ══════ HERO ══════ -->
+<div class="star-field"><canvas id="starCanvas"></canvas></div>
+
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-award" data-en="&#9733; 2026 Revelation" data-fr="&#9733; Révélation 2026">&#9733; 2026 Revelation</div>
+        <div class="hero-brand" data-en="Finally!" data-fr="Enfin!">Finally!</div>
+        <div class="hero-sub" data-en-html="Share exclusive content<br><span class='gr'>and keep 99%</span>" data-fr-html="Partagez du contenu exclusif<br><span class='gr'>et gardez 99%</span>">Share exclusive content<br><span class="gr">and keep 99%</span></div>
+        <p class="hero-p" data-en="Build your page, publish exclusive content, set your own price, share and earn directly from your fans." data-fr="Créez votre page, publiez du contenu exclusif, fixez votre prix, partagez et gagnez directement grâce à vos fans.">Build your page, publish exclusive content, set your own price, share and earn directly from your fans.</p>
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; justify-content:center;">
+            <a href="#" class="btn primary" data-en-html="Create an account <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5'><line x1='5' y1='12' x2='19' y2='12'/><polyline points='12 5 19 12 12 19'/></svg>" data-fr-html="Créer un compte <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5'><line x1='5' y1='12' x2='19' y2='12'/><polyline points='12 5 19 12 12 19'/></svg>">
+                Create an account
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <a href="#content" class="btn ghost-btn" data-en="Why Vaulty" data-fr="Pourquoi Vaulty">Why Vaulty</a>
+        </div>
+    </div>
+    <div class="hero-punch">
+        <div class="hero-punch-text" data-en="They take up to 30% of your hard earned income. We will never take more than 1%" data-fr="Ils prennent jusqu'à 30% de vos revenus durement gagnés. Nous ne prendrons jamais plus de 1%">They take up to 30% of your hard earned income. We will never take more than 1%</div>
+    </div>
+    <div class="scroll-hint" id="scrollHint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+</section>
+
+<!-- ══════ COMPARE ══════ -->
+<section class="sec" id="content">
+    <div class="sec-label" data-en="The competition" data-fr="La concurrence">The competition</div>
+    <div class="sec-title" data-en="What they charge you." data-fr="Ce qu'ils vous facturent.">What they charge you.</div>
+<div class="compare">
+    <div class="cmp cmp-highlight">
+        <div class="cmp-name" style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Vaulty</div>
+        <div class="cmp-label" data-en="Platform fees" data-fr="Frais plateforme">Platform fees</div>
+        <div class="cmp-fee pk">1%</div>
+    </div>
+    <div class="cmp">
+        <div class="cmp-name">Fansly</div>
+        <div class="cmp-label" data-en="Platform fees" data-fr="Frais plateforme">Platform fees</div>
+        <div class="cmp-fee red">10%</div>
+    </div>
+    <div class="cmp">
+        <div class="cmp-name">Patreon</div>
+        <div class="cmp-label" data-en="Platform fees" data-fr="Frais plateforme">Platform fees</div>
+        <div class="cmp-fee red">12%</div>
+    </div>
+    <div class="cmp">
+        <div class="cmp-name">OnlyFans</div>
+        <div class="cmp-label" data-en="Platform fees" data-fr="Frais plateforme">Platform fees</div>
+        <div class="cmp-fee red">20%</div>
+    </div>
+</div>
+</section>
+
+<!-- ══════ FEATURES ══════ -->
+<section class="sec" id="features">
+    <div class="sec-label" data-en="Platform features" data-fr="Fonctionnalités">Platform features</div>
+    <div class="sec-title" data-en="Everything creators need." data-fr="Tout ce dont les créateurs ont besoin.">Everything creators need.</div>
+    <div class="feat-grid">
+        <div class="feat">
+            <div class="feat-ico a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8"/><path d="M12 18V6"/></svg></div>
+            <div><h3 data-en="99% Revenue Split" data-fr="99% de revenus">99% Revenue Split</h3><p data-en="The lowest fee in the entire industry. No hidden charges, no surprise deductions — just a flat 1% and you keep everything else." data-fr="Les frais les plus bas de toute l'industrie. Aucun frais caché, aucune déduction surprise — juste 1% et vous gardez tout le reste.">The lowest fee in the entire industry. No hidden charges, no surprise deductions — just a flat 1% and you keep everything else.</p></div>
+        </div>
+        <div class="feat">
+            <div class="feat-ico b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+            <div><h3 data-en="Paywalled Content" data-fr="Contenu payant">Paywalled Content</h3><p data-en="Offer subscriptions, pay-per-view posts, and tips. Set your own prices and decide exactly what fans get access to." data-fr="Proposez des abonnements, du contenu à la vue et des pourboires. Fixez vos propres prix et décidez exactement ce que vos fans peuvent voir.">Offer subscriptions, pay-per-view posts, and tips. Set your own prices and decide exactly what fans get access to.</p></div>
+        </div>
+        <div class="feat">
+            <div class="feat-ico a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+            <div><h3 data-en="Paid DMs & Messages" data-fr="Messages privés payants">Paid DMs & Messages</h3><p data-en="Chat directly with your fans and sell exclusive content through private messages. Monetize every interaction on your terms." data-fr="Discutez directement avec vos fans et vendez du contenu exclusif par messages privés. Monétisez chaque interaction selon vos conditions.">Chat directly with your fans and sell exclusive content through private messages. Monetize every interaction on your terms.</p></div>
+        </div>
+        <div class="feat">
+            <div class="feat-ico b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+            <div><h3 data-en="Instant Payouts" data-fr="Paiements instantanés">Instant Payouts</h3><p data-en="Get paid within 24 hours — no waiting weeks for your money. Choose between bank transfer, crypto wallet, or other options." data-fr="Recevez vos paiements en 24h — plus besoin d'attendre des semaines. Choisissez entre virement bancaire, portefeuille crypto ou autres options.">Get paid within 24 hours — no waiting weeks for your money. Choose between bank transfer, crypto wallet, or other options.</p></div>
+        </div>
+        <div class="feat">
+            <div class="feat-ico a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div><h3 data-en="Privacy & Protection" data-fr="Confidentialité & Protection">Privacy & Protection</h3><p data-en="Automatic watermarks, DMCA takedown requests, and geo-blocking built in. Stay completely anonymous if you want — we protect your identity." data-fr="Filigranes automatiques, retraits DMCA et géo-blocage intégrés. Restez complètement anonyme si vous le souhaitez — nous protégeons votre identité.">Automatic watermarks, DMCA takedown requests, and geo-blocking built in. Stay completely anonymous if you want — we protect your identity.</p></div>
+        </div>
+        <div class="feat">
+            <div class="feat-ico b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+            <div><h3 data-en="Fan Management" data-fr="Gestion des fans">Fan Management</h3><p data-en="Built-in CRM, mass DMs, and detailed analytics to understand your audience. Everything you need to grow and engage your fanbase." data-fr="CRM intégré, DMs de masse et analytics détaillés pour comprendre votre audience. Tout ce qu'il faut pour développer et engager vos fans.">Built-in CRM, mass DMs, and detailed analytics to understand your audience. Everything you need to grow and engage your fanbase.</p></div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="ft-logo">
+        <div class="ft-logo-icon">
+            <div class="ft-logo-vault">
+                <div class="sp"></div>
+                <div class="sp"></div>
+                <div class="sp"></div>
+                <div class="sp"></div>
+            </div>
+        </div>
+        <span class="ft-logo-text">Vaulty</span>
+    </div>
+    <div class="ft-links"><a href="#" data-en="Terms" data-fr="Conditions">Terms</a><a href="#" data-en="Privacy" data-fr="Confidentialité">Privacy</a></div>
+    <div class="ft-copy">&copy; 2026 Vaulty Inc.</div>
+</footer>
+
+<script>
+let currentLang = 'en';
+function toggleLang() {
+    currentLang = currentLang === 'en' ? 'fr' : 'en';
+    document.getElementById('langToggle').textContent = currentLang === 'en' ? 'FR' : 'EN';
+    document.querySelectorAll('[data-en]').forEach(el => {
+        el.textContent = el.getAttribute('data-' + currentLang);
+    });
+    document.querySelectorAll('[data-en-html]').forEach(el => {
+        el.innerHTML = el.getAttribute('data-' + currentLang + '-html');
+    });
+    document.title = currentLang === 'en'
+        ? 'Vaulty — The Creator Platform Where You Keep 99%'
+        : 'Vaulty — La plateforme où vous gardez 99%';
+}
+
+const obs = new IntersectionObserver(e => e.forEach(x => { if (x.isIntersecting) { x.target.style.opacity='1'; x.target.style.transform='translateY(0)'; } }), { threshold: 0.08 });
+document.querySelectorAll('.feat,.cmp').forEach((el, i) => {
+    el.style.opacity='0'; el.style.transform='translateY(16px)';
+    el.style.transition=`all 0.4s ease ${i*0.05}s`; obs.observe(el);
+});
+
+document.getElementById('scrollHint').addEventListener('click', () => {
+    document.getElementById('content').scrollIntoView({ behavior: 'smooth' });
+});
+
+window.addEventListener('scroll', () => {
+    const hint = document.getElementById('scrollHint');
+    if (hint) hint.style.opacity = window.scrollY > 50 ? '0' : '1';
+});
+
+// ══════ STAR FIELD ══════
+(function() {
+    const canvas = document.getElementById('starCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, stars = [];
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', () => { resize(); init(); });
+
+    function init() {
+        stars = [];
+        const count = Math.floor((w * h) / 10000);
+        for (let i = 0; i < count; i++) {
+            const isPink = Math.random() > 0.8;
+            const isPurple = !isPink && Math.random() > 0.75;
+            let color;
+            if (isPink) color = `rgba(244,63,142,${0.3 + Math.random() * 0.5})`;
+            else if (isPurple) color = `rgba(139,92,246,${0.2 + Math.random() * 0.5})`;
+            else color = `rgba(255,255,255,${0.15 + Math.random() * 0.35})`;
+            stars.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: 0.8 + Math.random() * 2.2,
+                color: color,
+                pulse: Math.random() * Math.PI * 2,
+                speed: 0.003 + Math.random() * 0.008,
+                vx: (Math.random() - 0.5) * 0.15,
+                vy: (Math.random() - 0.5) * 0.15
+            });
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (const s of stars) {
+            s.pulse += s.speed;
+            s.x += s.vx;
+            s.y += s.vy;
+            if (s.x < -10) s.x = w + 10;
+            if (s.x > w + 10) s.x = -10;
+            if (s.y < -10) s.y = h + 10;
+            if (s.y > h + 10) s.y = -10;
+            const alpha = 0.5 + Math.sin(s.pulse) * 0.35;
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = s.color;
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+    }
+
+    init();
+    draw();
+})();
+
+</script>
+</body>
+</html>
