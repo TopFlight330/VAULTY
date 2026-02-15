@@ -1,6 +1,6 @@
 "use client";
 
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, useState } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -17,35 +17,78 @@ export function Input({
   ...props
 }: InputProps) {
   const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
+  const [focused, setFocused] = useState(false);
 
   return (
-    <div className="mb-[1.2rem]">
+    <div style={{ marginBottom: "1.2rem" }}>
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-[0.78rem] font-bold text-[var(--dim)] mb-[0.4rem] uppercase tracking-[0.06em]"
+          style={{
+            display: "block",
+            fontSize: "0.78rem",
+            fontWeight: 700,
+            color: "var(--dim)",
+            marginBottom: "0.4rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+          }}
         >
           {label}
         </label>
       )}
-      <div className={prefix ? "relative" : ""}>
+      <div style={{ position: prefix ? "relative" : undefined }}>
         {prefix && (
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--muted)] font-bold text-[0.92rem]">
+          <span
+            style={{
+              position: "absolute",
+              left: "1rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--muted)",
+              fontWeight: 700,
+              fontSize: "0.92rem",
+            }}
+          >
             {prefix}
           </span>
         )}
         <input
           id={inputId}
-          className={`w-full py-3 ${prefix ? "pl-8 pr-4" : "px-4"} bg-[var(--input-bg)] border ${
-            error
-              ? "border-[var(--danger)]"
-              : "border-[var(--border)] focus:border-[var(--pink)]"
-          } rounded-[10px] text-[var(--text)] text-[0.92rem] font-semibold outline-none transition-colors duration-200 placeholder:text-[var(--muted)] ${className}`}
+          className={className}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            width: "100%",
+            padding: prefix ? "0.75rem 1rem 0.75rem 2rem" : "0.75rem 1rem",
+            background: "var(--input-bg)",
+            border: `1px solid ${
+              error
+                ? "var(--danger)"
+                : focused
+                  ? "var(--pink)"
+                  : "var(--border)"
+            }`,
+            borderRadius: "10px",
+            color: "var(--text)",
+            fontFamily: "inherit",
+            fontSize: "0.92rem",
+            fontWeight: 600,
+            outline: "none",
+            transition: "border-color 0.2s",
+          }}
           {...props}
         />
       </div>
       {error && (
-        <p className="mt-1 text-[0.72rem] text-[var(--danger)] font-semibold">
+        <p
+          style={{
+            marginTop: "0.25rem",
+            fontSize: "0.72rem",
+            color: "var(--danger)",
+            fontWeight: 600,
+          }}
+        >
           {error}
         </p>
       )}

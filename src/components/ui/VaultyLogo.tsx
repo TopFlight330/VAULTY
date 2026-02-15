@@ -6,16 +6,73 @@ interface VaultyLogoProps {
 
 export function VaultyLogo({ href = "/" }: VaultyLogoProps) {
   const logo = (
-    <div className="flex items-center gap-3 mb-10">
-      <div className="w-[42px] h-[42px] bg-gradient-to-br from-[var(--pink-dim)] to-[var(--purple-dim)] border border-[rgba(244,63,142,0.2)] rounded-xl flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-[var(--pink)] rounded-full relative flex items-center justify-center">
-          <div className="w-1 h-1 bg-[var(--pink)] rounded-full" />
-          <span className="absolute w-[1.5px] h-[7px] bg-[var(--pink)] rounded-sm -top-[2px]" />
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        marginBottom: "2.5rem",
+        textDecoration: "none",
+        color: "var(--text)",
+      }}
+    >
+      <div
+        style={{
+          width: "42px",
+          height: "42px",
+          background:
+            "linear-gradient(135deg, rgba(244,63,142,0.1), rgba(139,92,246,0.06))",
+          border: "1px solid rgba(244,63,142,0.2)",
+          borderRadius: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "24px",
+            height: "24px",
+            border: "2px solid var(--pink)",
+            borderRadius: "50%",
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "4px",
+              height: "4px",
+              background: "var(--pink)",
+              borderRadius: "50%",
+              position: "absolute",
+            }}
+          />
+          {[0, 90, 45, 135].map((deg) => (
+            <span
+              key={deg}
+              style={{
+                position: "absolute",
+                width: "1.5px",
+                height: "7px",
+                background: "var(--pink)",
+                borderRadius: "1px",
+                transform: `rotate(${deg}deg)`,
+              }}
+            />
+          ))}
         </div>
       </div>
       <span
-        className="text-[1.3rem] font-black text-white tracking-[1px]"
-        style={{ fontFamily: "var(--font-unbounded), sans-serif" }}
+        style={{
+          fontFamily: "var(--font-unbounded), 'Unbounded', sans-serif",
+          fontSize: "1.3rem",
+          fontWeight: 900,
+          color: "#fff",
+          letterSpacing: "1px",
+        }}
       >
         Vaulty
       </span>
@@ -24,7 +81,7 @@ export function VaultyLogo({ href = "/" }: VaultyLogoProps) {
 
   if (href) {
     return (
-      <Link href={href} className="no-underline">
+      <Link href={href} style={{ textDecoration: "none" }}>
         {logo}
       </Link>
     );

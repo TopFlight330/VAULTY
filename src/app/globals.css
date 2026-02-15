@@ -71,3 +71,17 @@ html::-webkit-scrollbar-thumb:hover {
   from { width: 100%; }
   to { width: 0%; }
 }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Global input placeholder */
+input::placeholder {
+  color: var(--muted) !important;
+}
+
+/* Reset for all elements */
+*, *::before, *::after {
+  box-sizing: border-box;
+}

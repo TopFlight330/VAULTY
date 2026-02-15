@@ -6,14 +6,32 @@ interface AuthCardProps {
 
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
-    <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-10">
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--border)",
+        borderRadius: "16px",
+        padding: "2.5rem",
+      }}
+    >
       <h1
-        className="text-[1.5rem] font-extrabold mb-[0.4rem]"
-        style={{ fontFamily: "var(--font-sora), sans-serif" }}
+        style={{
+          fontFamily: "var(--font-sora), 'Sora', sans-serif",
+          fontSize: "1.5rem",
+          fontWeight: 800,
+          marginBottom: "0.4rem",
+        }}
       >
         {title}
       </h1>
-      <p className="text-[0.88rem] text-[var(--dim)] mb-8 leading-relaxed">
+      <p
+        style={{
+          fontSize: "0.88rem",
+          color: "var(--dim)",
+          marginBottom: "2rem",
+          lineHeight: 1.5,
+        }}
+      >
         {subtitle}
       </p>
       {children}
