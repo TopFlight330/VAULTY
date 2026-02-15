@@ -146,7 +146,7 @@
 .advSection {
   position: relative; overflow: hidden;
   padding: 6rem 2rem;
-  background: linear-gradient(180deg, transparent 0%, rgba(244,63,142,0.03) 30%, rgba(139,92,246,0.03) 70%, transparent 100%);
+  background: linear-gradient(180deg, rgba(244,63,142,0.05) 0%, rgba(139,92,246,0.03) 40%, transparent 100%);
   border-top: 1px solid var(--border);
   scroll-margin-top: 68px;
 }
