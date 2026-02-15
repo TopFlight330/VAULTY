@@ -142,15 +142,15 @@ export default function Home() {
           <div className={styles.heroBrand}>{t("Finally!", "Enfin!")}</div>
           <div className={styles.heroSub}>
             {lang === "en" ? (
-              <>Share exclusive content<br /><span className={styles.gr}>and keep 99%</span></>
+              <>Share exclusive content and<br /><span className={styles.gr}>keep 99% of your income</span></>
             ) : (
-              <>Partagez du contenu exclusif<br /><span className={styles.gr}>et gardez 99%</span></>
+              <>Partagez du contenu exclusif et<br /><span className={styles.gr}>gardez 99% de vos revenus</span></>
             )}
           </div>
           <p className={styles.heroP}>
             {t(
-              "Build your page, publish exclusive content, set your own price, share and earn directly from your fans.",
-              "Créez votre page, publiez du contenu exclusif, fixez votre prix, partagez et gagnez directement grâce à vos fans."
+              "Vaulty will never take more than 1% in fees. Ever.",
+              "Vaulty ne prendra jamais plus de 1% en frais. À vie."
             )}
           </p>
           <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
@@ -161,14 +161,6 @@ export default function Home() {
             <a href="#content" className={`${styles.btn} ${styles.ghostBtn}`}>
               {t("Why Vaulty", "Pourquoi Vaulty")}
             </a>
-          </div>
-        </div>
-        <div className={styles.heroPunch}>
-          <div className={styles.heroPunchText}>
-            {t(
-              "They take up to 30% of your hard earned income. We will never take more than 1%",
-              "Ils prennent jusqu'à 30% de vos revenus durement gagnés. Nous ne prendrons jamais plus de 1%"
-            )}
           </div>
         </div>
         <div
