@@ -175,13 +175,7 @@ export default function Home() {
       <section className={styles.advSection} id="content">
         <div className={styles.advInner}>
           <div className={styles.advLabel}>{t("Why Vaulty", "Pourquoi Vaulty")}</div>
-          <div className={styles.advTitle}>
-            {lang === "en" ? (
-              <>Built different. <span className={styles.gr}>Built to protect you.</span></>
-            ) : (
-              <>Conçu différemment. <span className={styles.gr}>Conçu pour vous protéger.</span></>
-            )}
-          </div>
+          <div className={styles.advSubtitle}>{t("Security and Privacy", "Sécurité et confidentialité")}</div>
 
           <div className={styles.advGrid}>
             {/* Swiss Privacy */}

@@ -157,13 +157,12 @@
 .advInner { max-width: 1100px; margin: 0 auto; }
 .advLabel {
   font-size: 0.85rem; font-weight: 800; letter-spacing: 0.15em;
-  text-transform: uppercase; color: var(--pink); margin-bottom: 0.8rem;
-  text-align: center;
+  text-transform: uppercase; color: var(--pink); margin-bottom: 0.4rem;
 }
-.advTitle {
+.advSubtitle {
   font-family: var(--font-sora), 'Sora', sans-serif;
-  font-size: 2.8rem; font-weight: 900; letter-spacing: -0.02em;
-  text-align: center; margin-bottom: 3.5rem; line-height: 1.2;
+  font-size: 2.4rem; font-weight: 900; letter-spacing: -0.02em;
+  color: #fff; margin-bottom: 3rem; line-height: 1.2;
 }
 .advGrid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
@@ -334,7 +333,7 @@
   .navUser svg { width: 18px; height: 18px; }
 
   .advSection { padding: 4.5rem 2rem; }
-  .advTitle { font-size: 2rem; margin-bottom: 2.5rem; }
+  .advSubtitle { font-size: 2rem; margin-bottom: 2rem; }
   .advGrid { gap: 1.5rem; }
   .advCard { padding: 2rem; border-radius: 16px; }
   .advCardIcon { width: 52px; height: 52px; border-radius: 14px; margin-bottom: 1.2rem; }
@@ -381,7 +380,7 @@
 
   .advSection { padding: 3rem 1.2rem; scroll-margin-top: 56px; }
   .advLabel { font-size: 0.7rem; }
-  .advTitle { font-size: 1.5rem; margin-bottom: 2rem; }
+  .advSubtitle { font-size: 1.5rem; margin-bottom: 1.5rem; }
   .advGrid { grid-template-columns: 1fr; gap: 1rem; }
   .advCard { padding: 1.5rem; border-radius: 14px; }
   .advCardIcon { width: 46px; height: 46px; border-radius: 12px; margin-bottom: 1rem; }
