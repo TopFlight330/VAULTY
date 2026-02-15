@@ -97,10 +97,10 @@ export async function forgotPassword(data: {
 
   const supabase = await createClient();
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
   const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL ? "" : ""}${
-      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-    }/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${siteUrl}/auth/callback?next=/auth/reset-password`,
   });
 
   if (error) {
