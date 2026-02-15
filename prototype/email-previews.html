@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vaulty — Email Templates Preview</title>
+    <title>Vaulty - Email Templates Preview</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Helvetica Neue', sans-serif; background: #0a0812; color: #f0edf5; padding: 2rem; }
@@ -21,10 +21,10 @@
         .section-desc { color: #8b84a0; font-size: 0.8rem; margin-bottom: 1.5rem; }
         .email-frame {
             border: 1px solid #231f2e; border-radius: 12px; overflow: hidden;
-            max-width: 620px; margin: 0 auto;
+            max-width: 580px; margin: 0 auto;
         }
-        .email-frame iframe { width: 100%; height: 640px; border: none; }
-        .divider { height: 1px; background: #231f2e; margin: 3rem 0; max-width: 620px; margin-left: auto; margin-right: auto; }
+        .email-frame iframe { width: 100%; height: 480px; border: none; }
+        .divider { height: 1px; background: #231f2e; margin: 3rem 0; max-width: 580px; margin-left: auto; margin-right: auto; }
     </style>
 </head>
 <body>
@@ -32,14 +32,14 @@
 <h1>Vaulty Email Templates</h1>
 <p class="desc">Preview all 3 email templates. Open this file in your browser to validate.</p>
 
-<!-- ═══════════════════════ 1. VERIFICATION ═══════════════════════ -->
+<!-- 1. VERIFICATION -->
 <div class="section">
-    <div style="max-width:620px;margin:0 auto;">
+    <div style="max-width:580px;margin:0 auto;">
         <div class="section-title">
             1. Email Verification
             <span class="badge badge-supabase">Supabase</span>
         </div>
-        <p class="section-desc">Sent when a user signs up. Paste the HTML into Supabase Dashboard → Auth → Email Templates → "Confirm signup"</p>
+        <p class="section-desc">Sent when a user signs up. Paste the HTML into Supabase Dashboard > Auth > Email Templates > "Confirm signup"</p>
     </div>
     <div class="email-frame">
         <iframe srcdoc='
@@ -47,19 +47,13 @@
 <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
 <body style="margin:0;padding:0;background:#0e0b14;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0e0b14;padding:40px 20px;"><tr><td align="center">
-<table width="520" cellpadding="0" cellspacing="0" style="background:#16131e;border:1px solid #231f2e;border-radius:16px;overflow:hidden;">
-<tr><td style="height:4px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"></td></tr>
-<tr><td style="padding:40px 40px 0;">
-<table cellpadding="0" cellspacing="0"><tr>
-<td style="width:42px;height:42px;background:linear-gradient(135deg,rgba(244,63,142,0.1),rgba(139,92,246,0.06));border:1px solid rgba(244,63,142,0.2);border-radius:12px;text-align:center;vertical-align:middle;"><span style="font-size:20px;color:#f43f8e;">&#9673;</span></td>
-<td style="padding-left:12px;"><span style="font-size:20px;font-weight:900;color:#fff;letter-spacing:1px;">Vaulty</span></td>
-</tr></table></td></tr>
-<tr><td style="padding:32px 40px 0;"><h1 style="margin:0;font-size:24px;font-weight:800;color:#f0edf5;">Verify your email</h1></td></tr>
-<tr><td style="padding:12px 40px 0;color:#8b84a0;font-size:15px;line-height:1.65;">Thanks for signing up for Vaulty! Click the button below to confirm your email address and activate your account.</td></tr>
-<tr><td style="padding:32px 40px;"><table cellpadding="0" cellspacing="0"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"><a href="#" style="display:inline-block;padding:14px 36px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">Confirm my email</a></td></tr></table></td></tr>
-<tr><td style="padding:0 40px;color:#524d63;font-size:13px;line-height:1.6;">If the button doesnt work, copy and paste this link:<br/><a href="#" style="color:#f43f8e;font-size:12px;word-break:break-all;text-decoration:none;">https://vaulty.com/auth/callback?token=abc123...</a></td></tr>
-<tr><td style="padding:32px 40px 0;"><div style="height:1px;background:#231f2e;"></div></td></tr>
-<tr><td style="padding:20px 40px 32px;color:#524d63;font-size:12px;">If you didnt create a Vaulty account, you can ignore this email.<br/>&copy; 2026 Vaulty Inc.</td></tr>
+<table width="480" cellpadding="0" cellspacing="0" style="background:#16131e;border:1px solid #231f2e;border-radius:16px;overflow:hidden;">
+<tr><td style="height:3px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"></td></tr>
+<tr><td style="padding:36px 36px 0;"><span style="font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;">Vaulty</span></td></tr>
+<tr><td style="padding:28px 36px 0;"><h1 style="margin:0;font-size:22px;font-weight:800;color:#f0edf5;">Verify your email</h1></td></tr>
+<tr><td style="padding:12px 36px 0;color:#8b84a0;font-size:14px;line-height:1.7;">Click the button below to confirm your email address and activate your account.</td></tr>
+<tr><td style="padding:28px 36px;"><table cellpadding="0" cellspacing="0"><tr><td style="border-radius:10px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"><a href="#" style="display:inline-block;padding:12px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;">Confirm my email</a></td></tr></table></td></tr>
+<tr><td style="padding:0 36px 28px;color:#524d63;font-size:11px;line-height:1.5;">If you didn&apos;t create a Vaulty account, you can ignore this email.<br/>&copy; 2026 Vaulty Inc.</td></tr>
 </table></td></tr></table>
 </body></html>
         '></iframe>
@@ -68,9 +62,9 @@
 
 <div class="divider"></div>
 
-<!-- ═══════════════════════ 2. WELCOME ═══════════════════════ -->
+<!-- 2. WELCOME -->
 <div class="section">
-    <div style="max-width:620px;margin:0 auto;">
+    <div style="max-width:580px;margin:0 auto;">
         <div class="section-title">
             2. Welcome Email
             <span class="badge badge-resend">Resend</span>
@@ -83,24 +77,13 @@
 <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
 <body style="margin:0;padding:0;background:#0e0b14;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0e0b14;padding:40px 20px;"><tr><td align="center">
-<table width="520" cellpadding="0" cellspacing="0" style="background:#16131e;border:1px solid #231f2e;border-radius:16px;overflow:hidden;">
-<tr><td style="height:4px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"></td></tr>
-<tr><td style="padding:40px 40px 0;">
-<table cellpadding="0" cellspacing="0"><tr>
-<td style="width:42px;height:42px;background:linear-gradient(135deg,rgba(244,63,142,0.1),rgba(139,92,246,0.06));border:1px solid rgba(244,63,142,0.2);border-radius:12px;text-align:center;vertical-align:middle;"><span style="font-size:20px;color:#f43f8e;">&#9673;</span></td>
-<td style="padding-left:12px;"><span style="font-size:20px;font-weight:900;color:#fff;letter-spacing:1px;">Vaulty</span></td>
-</tr></table></td></tr>
-<tr><td style="padding:32px 40px 0;"><h1 style="margin:0;font-size:24px;font-weight:800;color:#f0edf5;">Welcome to Vaulty, Sophie!</h1></td></tr>
-<tr><td style="padding:12px 40px 0;color:#8b84a0;font-size:15px;line-height:1.65;">Your account is ready. Youve joined the platform built for creator independence.</td></tr>
-<tr><td style="padding:24px 40px 0;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(244,63,142,0.06);border:1px solid rgba(244,63,142,0.15);border-radius:12px;"><tr><td style="padding:20px 24px;">
-<table width="100%" cellpadding="0" cellspacing="0">
-<tr><td style="color:#f0edf5;font-size:14px;font-weight:700;padding-bottom:8px;">What makes Vaulty different:</td></tr>
-<tr><td style="color:#8b84a0;font-size:13px;line-height:1.7;">&#10003; &nbsp;Only 1% platform fee — keep 99% of everything<br/>&#10003; &nbsp;Instant payouts within 24 hours<br/>&#10003; &nbsp;Built-in privacy protection &amp; DMCA tools<br/>&#10003; &nbsp;Zero algorithm — your content, your rules</td></tr>
-</table></td></tr></table></td></tr>
-<tr><td style="padding:32px 40px;"><table cellpadding="0" cellspacing="0"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"><a href="#" style="display:inline-block;padding:14px 36px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">Go to my dashboard</a></td></tr></table></td></tr>
-<tr><td style="padding:0 40px;"><div style="height:1px;background:#231f2e;"></div></td></tr>
-<tr><td style="padding:20px 40px 32px;color:#524d63;font-size:12px;">Questions? Just reply to this email — were here to help.<br/>&copy; 2026 Vaulty Inc.</td></tr>
+<table width="480" cellpadding="0" cellspacing="0" style="background:#16131e;border:1px solid #231f2e;border-radius:16px;overflow:hidden;">
+<tr><td style="height:3px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"></td></tr>
+<tr><td style="padding:36px 36px 0;"><span style="font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;">Vaulty</span></td></tr>
+<tr><td style="padding:28px 36px 0;"><h1 style="margin:0;font-size:22px;font-weight:800;color:#f0edf5;">Welcome, Sophie!</h1></td></tr>
+<tr><td style="padding:12px 36px 0;color:#8b84a0;font-size:14px;line-height:1.7;">Your account is ready. You&apos;ve joined the platform that lets creators keep 99% of their income.</td></tr>
+<tr><td style="padding:28px 36px;"><table cellpadding="0" cellspacing="0"><tr><td style="border-radius:10px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"><a href="#" style="display:inline-block;padding:12px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;">Go to my dashboard</a></td></tr></table></td></tr>
+<tr><td style="padding:0 36px 28px;color:#524d63;font-size:11px;line-height:1.5;">&copy; 2026 Vaulty Inc.</td></tr>
 </table></td></tr></table>
 </body></html>
         '></iframe>
@@ -109,14 +92,14 @@
 
 <div class="divider"></div>
 
-<!-- ═══════════════════════ 3. RESET PASSWORD ═══════════════════════ -->
+<!-- 3. PASSWORD RESET -->
 <div class="section">
-    <div style="max-width:620px;margin:0 auto;">
+    <div style="max-width:580px;margin:0 auto;">
         <div class="section-title">
             3. Password Reset
             <span class="badge badge-supabase">Supabase</span>
         </div>
-        <p class="section-desc">Sent when a user requests a password reset. Paste the HTML into Supabase Dashboard → Auth → Email Templates → "Reset password"</p>
+        <p class="section-desc">Sent when a user requests a password reset. Paste the HTML into Supabase Dashboard > Auth > Email Templates > "Reset password"</p>
     </div>
     <div class="email-frame">
         <iframe srcdoc='
@@ -124,20 +107,14 @@
 <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
 <body style="margin:0;padding:0;background:#0e0b14;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0e0b14;padding:40px 20px;"><tr><td align="center">
-<table width="520" cellpadding="0" cellspacing="0" style="background:#16131e;border:1px solid #231f2e;border-radius:16px;overflow:hidden;">
-<tr><td style="height:4px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"></td></tr>
-<tr><td style="padding:40px 40px 0;">
-<table cellpadding="0" cellspacing="0"><tr>
-<td style="width:42px;height:42px;background:linear-gradient(135deg,rgba(244,63,142,0.1),rgba(139,92,246,0.06));border:1px solid rgba(244,63,142,0.2);border-radius:12px;text-align:center;vertical-align:middle;"><span style="font-size:20px;color:#f43f8e;">&#9673;</span></td>
-<td style="padding-left:12px;"><span style="font-size:20px;font-weight:900;color:#fff;letter-spacing:1px;">Vaulty</span></td>
-</tr></table></td></tr>
-<tr><td style="padding:32px 40px 0;"><h1 style="margin:0;font-size:24px;font-weight:800;color:#f0edf5;">Reset your password</h1></td></tr>
-<tr><td style="padding:12px 40px 0;color:#8b84a0;font-size:15px;line-height:1.65;">We received a request to reset your Vaulty password. Click the button below to choose a new one.</td></tr>
-<tr><td style="padding:32px 40px;"><table cellpadding="0" cellspacing="0"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"><a href="#" style="display:inline-block;padding:14px 36px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;">Reset my password</a></td></tr></table></td></tr>
-<tr><td style="padding:0 40px;color:#524d63;font-size:13px;line-height:1.6;">If the button doesnt work, copy and paste this link:<br/><a href="#" style="color:#f43f8e;font-size:12px;word-break:break-all;text-decoration:none;">https://vaulty.com/auth/callback?token=xyz789...</a></td></tr>
-<tr><td style="padding:24px 40px 0;"><table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;"><tr><td style="padding:12px 16px;color:#ef4444;font-size:12px;font-weight:600;line-height:1.5;">&#9888; This link expires in 1 hour. If you didnt request this, ignore this email.</td></tr></table></td></tr>
-<tr><td style="padding:32px 40px 0;"><div style="height:1px;background:#231f2e;"></div></td></tr>
-<tr><td style="padding:20px 40px 32px;color:#524d63;font-size:12px;">Need help? Reply to this email.<br/>&copy; 2026 Vaulty Inc.</td></tr>
+<table width="480" cellpadding="0" cellspacing="0" style="background:#16131e;border:1px solid #231f2e;border-radius:16px;overflow:hidden;">
+<tr><td style="height:3px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"></td></tr>
+<tr><td style="padding:36px 36px 0;"><span style="font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;">Vaulty</span></td></tr>
+<tr><td style="padding:28px 36px 0;"><h1 style="margin:0;font-size:22px;font-weight:800;color:#f0edf5;">Reset your password</h1></td></tr>
+<tr><td style="padding:12px 36px 0;color:#8b84a0;font-size:14px;line-height:1.7;">Click the button below to choose a new password for your account.</td></tr>
+<tr><td style="padding:28px 36px;"><table cellpadding="0" cellspacing="0"><tr><td style="border-radius:10px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"><a href="#" style="display:inline-block;padding:12px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;">Reset my password</a></td></tr></table></td></tr>
+<tr><td style="padding:0 36px;color:#8b84a0;font-size:12px;line-height:1.5;">This link expires in 1 hour. If you didn&apos;t request this, you can ignore this email.</td></tr>
+<tr><td style="padding:20px 36px 28px;color:#524d63;font-size:11px;line-height:1.5;">&copy; 2026 Vaulty Inc.</td></tr>
 </table></td></tr></table>
 </body></html>
         '></iframe>
