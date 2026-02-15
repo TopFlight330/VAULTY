@@ -304,8 +304,8 @@
   .secLabel { font-size: 0.65rem; }
   .secTitle { font-size: 1.4rem; margin-bottom: 1.5rem; }
 
-  .compare { flex-wrap: wrap; gap: 0.8rem; }
-  .cmp { min-width: 130px; padding: 1.1rem 0.8rem; border-radius: 12px; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .cmp { min-width: unset; padding: 1.1rem 0.8rem; border-radius: 12px; }
   .cmpName { font-size: 0.62rem; }
   .cmpLabel { font-size: 0.55rem; }
   .cmpFee { font-size: 1.8rem; }
