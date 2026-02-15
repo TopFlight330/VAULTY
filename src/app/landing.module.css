@@ -43,7 +43,7 @@
   font-size: 1.3rem; font-weight: 900;
   color: #fff; letter-spacing: 1px;
 }
-.navEnd { display: flex; gap: 0.5rem; align-items: center; }
+.navEnd { display: flex; gap: 0.75rem; align-items: center; }
 .langToggle {
   width: 40px; height: 40px; border-radius: 12px;
   font-family: var(--font-sora), 'Sora', sans-serif;
@@ -145,19 +145,14 @@
 /* ══════ ADVANTAGES ══════ */
 .advSection {
   position: relative; overflow: hidden;
-  padding: 7rem 2rem 6rem;
+  padding: 6rem 2rem;
   background: linear-gradient(180deg, transparent 0%, rgba(244,63,142,0.03) 30%, rgba(139,92,246,0.03) 70%, transparent 100%);
   border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
   scroll-margin-top: 68px;
 }
 .advSection::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
   background: linear-gradient(90deg, transparent, #f43f8e, #8b5cf6, transparent);
-}
-.advSection::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, #8b5cf6, #f43f8e, transparent);
 }
 .advInner { max-width: 1100px; margin: 0 auto; }
 .advLabel {
@@ -224,8 +219,7 @@
 }
 
 /* ══════ SECTIONS ══════ */
-.sec { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; scroll-margin-top: 68px; }
-.sec:first-of-type { padding-top: 9rem; }
+.sec { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; scroll-margin-top: 68px; }
 .secLabel {
   font-size: 0.78rem; font-weight: 800; letter-spacing: 0.15em;
   text-transform: uppercase; color: var(--pink); margin-bottom: 0.6rem;
@@ -339,7 +333,7 @@
   .navUser { width: 36px; height: 36px; }
   .navUser svg { width: 18px; height: 18px; }
 
-  .advSection { padding: 5rem 2rem 4rem; }
+  .advSection { padding: 4.5rem 2rem; }
   .advTitle { font-size: 2rem; margin-bottom: 2.5rem; }
   .advGrid { gap: 1.5rem; }
   .advCard { padding: 2rem; border-radius: 16px; }
@@ -357,8 +351,7 @@
   .btn { padding: 0.85rem 2.2rem; font-size: 1rem; border-radius: 12px; }
   .btn svg { width: 16px; height: 16px; }
 
-  .sec { max-width: 800px; padding: 4rem 2rem; }
-  .sec:first-of-type { padding-top: 7rem; }
+  .sec { max-width: 800px; padding: 4.5rem 2rem; }
   .secLabel { font-size: 0.7rem; }
   .secTitle { font-size: 1.8rem; margin-bottom: 2rem; }
 
@@ -386,7 +379,7 @@
   .navUser { width: 34px; height: 34px; border-radius: 10px; }
   .navUser svg { width: 16px; height: 16px; }
 
-  .advSection { padding: 3.5rem 1.2rem 3rem; scroll-margin-top: 56px; }
+  .advSection { padding: 3rem 1.2rem; scroll-margin-top: 56px; }
   .advLabel { font-size: 0.7rem; }
   .advTitle { font-size: 1.5rem; margin-bottom: 2rem; }
   .advGrid { grid-template-columns: 1fr; gap: 1rem; }
@@ -409,7 +402,6 @@
   .scrollHint svg { width: 18px; height: 18px; }
 
   .sec { padding: 3rem 1.2rem; scroll-margin-top: 60px; }
-  .sec:first-of-type { padding-top: 5rem; }
   .secLabel { font-size: 0.65rem; }
   .secTitle { font-size: 1.4rem; margin-bottom: 1.5rem; }
 
