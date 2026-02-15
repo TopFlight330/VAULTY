@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0e0b14;
+  --card: #16131e;
+  --card-hover: #1c1826;
+  --border: #231f2e;
+  --text: #f0edf5;
+  --dim: #8b84a0;
+  --muted: #524d63;
+  --pink: #f43f8e;
+  --pink-dim: rgba(244, 63, 142, 0.1);
+  --pink-glow: rgba(244, 63, 142, 0.25);
+  --purple: #8b5cf6;
+  --purple-dim: rgba(139, 92, 246, 0.1);
+  --input-bg: #1a1622;
+  --danger: #ef4444;
+  --danger-dim: rgba(239, 68, 68, 0.1);
+  --success: #22c55e;
+  --success-dim: rgba(34, 197, 94, 0.1);
+  --warning: #f5c542;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-nunito), "Nunito", sans-serif;
+}
+
+/* Scrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(244, 63, 142, 0.3) transparent;
+}
+html::-webkit-scrollbar {
+  width: 6px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f43f8e, #8b5cf6);
+  border-radius: 3px;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff6b9d, #a855f7);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
