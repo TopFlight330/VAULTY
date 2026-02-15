@@ -124,8 +124,7 @@ export default function Home() {
             {lang === "en" ? "FR" : "EN"}
           </button>
           <Link href="/login" className={styles.navUser}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="url(#navGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <defs><linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#f43f8e" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
             </svg>
           </Link>
