@@ -198,7 +198,7 @@
 .featIco svg { width: 24px; height: 24px; }
 .icoA { background: var(--pink-dim); color: var(--pink); }
 .icoB { background: var(--purple-dim); color: var(--purple); }
-.featBody { padding: 1.5rem 1.5rem 1.5rem 0; }
+.featBody { padding: 1.5rem; }
 .feat h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.35rem; }
 .feat p { font-size: 0.9rem; color: var(--dim); line-height: 1.6; }
 
@@ -321,7 +321,7 @@
   .featGrid { grid-template-columns: 1fr; gap: 0.8rem; }
   .feat { border-radius: 12px; }
   .featIco { width: 54px; }
-  .featBody { padding: 1.2rem 1.2rem 1.2rem 0; }
+  .featBody { padding: 1.2rem; }
   .featIco svg { width: 16px; height: 16px; }
   .feat h3 { font-size: 0.85rem; }
   .feat p { font-size: 0.78rem; }
