@@ -293,8 +293,8 @@
   .heroAward { font-size: 0.68rem; padding: 5px 12px; margin-bottom: 1.5rem; border-radius: 8px; }
   .heroBrand { font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 0.5rem; }
   .heroSub { font-size: 1.35rem; line-height: 1.35; }
-  .heroP { font-size: 0.9rem; margin: 1rem auto 1.8rem; max-width: 100%; }
-  .btn { padding: 0.75rem 1.8rem; font-size: 0.9rem; border-radius: 12px; gap: 6px; }
+  .heroP { font-size: 1.05rem; margin: 1rem auto 1.8rem; max-width: 100%; }
+  .btn { padding: 0.75rem 1.8rem; font-size: 0.85rem; border-radius: 12px; gap: 6px; }
   .btn svg { width: 14px; height: 14px; }
   .scrollHint { bottom: 0.8rem; }
   .scrollHint svg { width: 18px; height: 18px; }
@@ -328,8 +328,8 @@
 @media (max-width: 420px) {
   .heroBrand { font-size: 2.6rem; letter-spacing: 1px; }
   .heroSub { font-size: 1.15rem; }
-  .heroP { font-size: 0.82rem; }
-  .btn { padding: 0.7rem 1.4rem; font-size: 0.85rem; }
+  .heroP { font-size: 0.95rem; }
+  .btn { padding: 0.7rem 1.4rem; font-size: 0.8rem; }
   .cmp { min-width: 110px; padding: 0.9rem 0.6rem; }
   .cmpFee { font-size: 1.5rem; }
 }
