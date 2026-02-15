@@ -171,8 +171,69 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ADVANTAGES */}
+      <section className={styles.advSection} id="content">
+        <div className={styles.advInner}>
+          <div className={styles.advLabel}>{t("Why Vaulty", "Pourquoi Vaulty")}</div>
+          <div className={styles.advTitle}>
+            {lang === "en" ? (
+              <>Built different. <span className={styles.gr}>Built to protect you.</span></>
+            ) : (
+              <>Conçu différemment. <span className={styles.gr}>Conçu pour vous protéger.</span></>
+            )}
+          </div>
+
+          <div className={styles.advGrid}>
+            {/* Swiss Privacy */}
+            <div className={`${styles.advCard} ${styles.advCardPink}`}>
+              <div className={styles.advCardIcon}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+              </div>
+              <div className={styles.advCardBadge}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                  <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                {t("Swiss-Based", "Basé en Suisse")}
+              </div>
+              <h3>{t("Protected by Swiss privacy law", "Protégé par le droit suisse de la vie privée")}</h3>
+              <p>
+                {t(
+                  "Vaulty is headquartered in Switzerland — home to the world's strictest data protection laws. Your personal information, content, and financial data are shielded by regulations that prioritize your privacy above all else.",
+                  "Vaulty a son siège en Suisse — pays ayant les lois de protection des données les plus strictes au monde. Vos informations personnelles, votre contenu et vos données financières sont protégés par des réglementations qui priorisent votre vie privée avant tout."
+                )}
+              </p>
+            </div>
+
+            {/* Crypto */}
+            <div className={`${styles.advCard} ${styles.advCardPurple}`}>
+              <div className={styles.advCardIcon}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><circle cx="12" cy="17" r="0.5" fill="currentColor" />
+                </svg>
+              </div>
+              <div className={styles.advCardBadge}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                  <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                </svg>
+                {t("Crypto-Friendly", "Compatible Crypto")}
+              </div>
+              <h3>{t("Pay and get paid in crypto", "Payez et soyez payé en crypto")}</h3>
+              <p>
+                {t(
+                  "Subscribers can pay with cryptocurrency for total anonymity. Creators can choose crypto payouts — keeping their income completely private. No bank statements, no paper trail, full financial discretion.",
+                  "Les abonnés peuvent payer en cryptomonnaie pour un anonymat total. Les créateurs peuvent choisir des versements en crypto — gardant leurs revenus entièrement privés. Aucun relevé bancaire, aucune trace, discrétion financière complète."
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* COMPARE */}
-      <section className={styles.sec} id="content">
+      <section className={styles.sec}>
         <div className={styles.secLabel}>{t("The competition", "La concurrence")}</div>
         <div className={styles.secTitle}>{t("What they charge you.", "Ce qu'ils vous facturent.")}</div>
         <div className={styles.compare}>

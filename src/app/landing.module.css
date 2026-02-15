@@ -142,6 +142,87 @@
   50% { transform: translateX(-50%) translateY(6px); }
 }
 
+/* ══════ ADVANTAGES ══════ */
+.advSection {
+  position: relative; overflow: hidden;
+  padding: 7rem 2rem 6rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(244,63,142,0.03) 30%, rgba(139,92,246,0.03) 70%, transparent 100%);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 68px;
+}
+.advSection::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #f43f8e, #8b5cf6, transparent);
+}
+.advSection::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #8b5cf6, #f43f8e, transparent);
+}
+.advInner { max-width: 1100px; margin: 0 auto; }
+.advLabel {
+  font-size: 0.85rem; font-weight: 800; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--pink); margin-bottom: 0.8rem;
+  text-align: center;
+}
+.advTitle {
+  font-family: var(--font-sora), 'Sora', sans-serif;
+  font-size: 2.8rem; font-weight: 900; letter-spacing: -0.02em;
+  text-align: center; margin-bottom: 3.5rem; line-height: 1.2;
+}
+.advGrid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+}
+.advCard {
+  position: relative; padding: 2.5rem;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid rgba(244,63,142,0.15);
+  transition: all 0.3s;
+}
+.advCard:hover { transform: translateY(-4px); }
+.advCardPink {
+  background: linear-gradient(160deg, rgba(244,63,142,0.08) 0%, rgba(244,63,142,0.02) 50%, var(--card) 100%);
+}
+.advCardPink:hover { border-color: rgba(244,63,142,0.3); box-shadow: 0 8px 40px rgba(244,63,142,0.1); }
+.advCardPurple {
+  background: linear-gradient(160deg, rgba(139,92,246,0.08) 0%, rgba(139,92,246,0.02) 50%, var(--card) 100%);
+  border-color: rgba(139,92,246,0.15);
+}
+.advCardPurple:hover { border-color: rgba(139,92,246,0.3); box-shadow: 0 8px 40px rgba(139,92,246,0.1); }
+.advCardIcon {
+  width: 64px; height: 64px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.advCardIcon svg { width: 32px; height: 32px; }
+.advCardPink .advCardIcon {
+  background: linear-gradient(135deg, rgba(244,63,142,0.15), rgba(244,63,142,0.05));
+  border: 1px solid rgba(244,63,142,0.2); color: var(--pink);
+}
+.advCardPurple .advCardIcon {
+  background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05));
+  border: 1px solid rgba(139,92,246,0.2); color: var(--purple);
+}
+.advCardBadge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 8px;
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 1.2rem;
+}
+.advCardPink .advCardBadge {
+  background: rgba(244,63,142,0.1); color: var(--pink); border: 1px solid rgba(244,63,142,0.2);
+}
+.advCardPurple .advCardBadge {
+  background: rgba(139,92,246,0.1); color: var(--purple); border: 1px solid rgba(139,92,246,0.2);
+}
+.advCard h3 {
+  font-family: var(--font-sora), 'Sora', sans-serif;
+  font-size: 1.4rem; font-weight: 800; margin-bottom: 0.8rem; line-height: 1.3;
+}
+.advCard p {
+  font-size: 1rem; color: var(--dim); line-height: 1.7;
+}
+
 /* ══════ SECTIONS ══════ */
 .sec { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; scroll-margin-top: 68px; }
 .sec:first-of-type { padding-top: 9rem; }
@@ -258,6 +339,15 @@
   .navUser { width: 36px; height: 36px; }
   .navUser svg { width: 18px; height: 18px; }
 
+  .advSection { padding: 5rem 2rem 4rem; }
+  .advTitle { font-size: 2rem; margin-bottom: 2.5rem; }
+  .advGrid { gap: 1.5rem; }
+  .advCard { padding: 2rem; border-radius: 16px; }
+  .advCardIcon { width: 52px; height: 52px; border-radius: 14px; margin-bottom: 1.2rem; }
+  .advCardIcon svg { width: 26px; height: 26px; }
+  .advCard h3 { font-size: 1.15rem; }
+  .advCard p { font-size: 0.88rem; }
+
   .hero { padding: 4rem 2rem 6rem; }
   .heroInner { max-width: 800px; }
   .heroAward { font-size: 0.78rem; padding: 7px 16px; margin-bottom: 2rem; }
@@ -295,6 +385,17 @@
   .langToggle { width: 34px; height: 34px; font-size: 0.6rem; border-radius: 10px; }
   .navUser { width: 34px; height: 34px; border-radius: 10px; }
   .navUser svg { width: 16px; height: 16px; }
+
+  .advSection { padding: 3.5rem 1.2rem 3rem; scroll-margin-top: 56px; }
+  .advLabel { font-size: 0.7rem; }
+  .advTitle { font-size: 1.5rem; margin-bottom: 2rem; }
+  .advGrid { grid-template-columns: 1fr; gap: 1rem; }
+  .advCard { padding: 1.5rem; border-radius: 14px; }
+  .advCardIcon { width: 46px; height: 46px; border-radius: 12px; margin-bottom: 1rem; }
+  .advCardIcon svg { width: 22px; height: 22px; }
+  .advCardBadge { font-size: 0.62rem; padding: 4px 10px; }
+  .advCard h3 { font-size: 1.1rem; margin-bottom: 0.6rem; }
+  .advCard p { font-size: 0.85rem; line-height: 1.6; }
 
   .hero { padding: 3rem 1.2rem 4rem; }
   .heroInner { max-width: 100%; }
