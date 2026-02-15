@@ -19,12 +19,16 @@
   --success: #22c55e;
   --success-dim: rgba(34, 197, 94, 0.1);
   --warning: #f5c542;
+  --gold: #f5c542;
+  --grad: linear-gradient(135deg, #f43f8e, #8b5cf6);
 }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-nunito), "Nunito", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /* Scrollbar */
@@ -83,5 +87,7 @@ input::placeholder {
 
 /* Reset for all elements */
 *, *::before, *::after {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
