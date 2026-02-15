@@ -59,7 +59,7 @@
 }
 .ghost { background: none; color: var(--dim); }
 .ghost:hover { color: var(--text); }
-.fill { background: var(--grad); color: #fff; }
+.fill { background: linear-gradient(135deg, #f43f8e, #8b5cf6); color: #fff; }
 .fill:hover { box-shadow: 0 0 20px var(--pink-glow); transform: translateY(-1px); }
 
 /* ══════ HERO ══════ */
@@ -99,8 +99,8 @@
   color: #fff; line-height: 1.3; letter-spacing: -0.02em;
 }
 .gr {
-  background: var(--grad); -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: linear-gradient(135deg, #f43f8e, #8b5cf6); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text;
 }
 .heroP {
   font-size: 1.1rem; font-weight: 500; color: var(--dim);
@@ -113,7 +113,7 @@
   display: inline-flex; align-items: center; gap: 6px;
 }
 .btn svg { width: 16px; height: 16px; }
-.primary { background: var(--grad); color: #fff; }
+.primary { background: linear-gradient(135deg, #f43f8e, #8b5cf6); color: #fff; }
 .primary:hover { box-shadow: 0 4px 25px var(--pink-glow); transform: translateY(-1px); }
 .ghostBtn {
   background: none; color: var(--dim);
@@ -189,8 +189,8 @@
 .cmpFee { font-size: 2.2rem; font-weight: 900; }
 .red { color: #fff; }
 .pk {
-  background: var(--grad); -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: linear-gradient(135deg, #f43f8e, #8b5cf6); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text;
 }
 .cmpSub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
 

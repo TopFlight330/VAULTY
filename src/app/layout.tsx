@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${nunito.variable} ${sora.variable} ${unbounded.variable} antialiased`}
+        className={`${nunito.variable} ${sora.variable} ${unbounded.variable}`}
       >
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>

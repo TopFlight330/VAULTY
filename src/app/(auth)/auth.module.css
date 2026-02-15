@@ -111,7 +111,7 @@
 /* Submit button */
 .authSubmit {
     width: 100%; padding: 0.85rem;
-    background: var(--grad);
+    background: linear-gradient(135deg, #f43f8e, #8b5cf6);
     border: none; border-radius: 12px;
     color: #fff; font-family: inherit;
     font-size: 0.95rem; font-weight: 700;

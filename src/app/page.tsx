@@ -186,7 +186,7 @@ export default function Home() {
         <div className={styles.secTitle}>{t("What they charge you.", "Ce qu'ils vous facturent.")}</div>
         <div className={styles.compare}>
           <div className={`${styles.cmp} ${styles.cmpHighlight}`}>
-            <div className={styles.cmpName} style={{ background: "var(--grad)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Vaulty</div>
+            <div className={styles.cmpName} style={{ background: "linear-gradient(135deg, #f43f8e, #8b5cf6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Vaulty</div>
             <div className={styles.cmpLabel}>{t("Platform fees", "Frais plateforme")}</div>
             <div className={`${styles.cmpFee} ${styles.pk}`}>1%</div>
           </div>
