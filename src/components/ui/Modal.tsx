@@ -14,9 +14,9 @@ interface ModalProps {
 }
 
 const sizeMap = {
-  sm: "max-w-[360px]",
-  md: "max-w-[420px]",
-  lg: "max-w-[520px]",
+  sm: "360px",
+  md: "420px",
+  lg: "520px",
 };
 
 export function Modal({
@@ -53,25 +53,63 @@ export function Modal({
   const modal = (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ animation: "fadeIn 200ms ease-out" }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        animation: "fadeIn 200ms ease-out",
+      }}
       onClick={(e) => {
         if (closeOnOverlayClick && e.target === overlayRef.current)
           onClose();
       }}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.6)",
+          backdropFilter: "blur(4px)",
+        }}
+      />
 
       {/* Content */}
       <div
-        className={`relative w-full ${sizeMap[size]} bg-[var(--card)] border border-[var(--border)] rounded-2xl p-10`}
-        style={{ animation: "slideUp 200ms ease-out" }}
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: sizeMap[size],
+          background: "var(--card)",
+          border: "1px solid var(--border)",
+          borderRadius: "16px",
+          padding: "2.5rem",
+          animation: "slideUp 200ms ease-out",
+        }}
       >
         {showCloseButton && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] transition-colors rounded-lg hover:bg-[var(--input-bg)]"
+            style={{
+              position: "absolute",
+              top: "1rem",
+              right: "1rem",
+              width: "32px",
+              height: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--muted)",
+              background: "none",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              transition: "color 0.2s",
+            }}
           >
             <svg
               width="16"
@@ -89,8 +127,13 @@ export function Modal({
 
         {title && (
           <h2
-            className="text-[1.25rem] font-extrabold text-[var(--text)] mb-2"
-            style={{ fontFamily: "var(--font-sora), sans-serif" }}
+            style={{
+              fontFamily: "var(--font-sora), 'Sora', sans-serif",
+              fontSize: "1.25rem",
+              fontWeight: 800,
+              color: "var(--text)",
+              marginBottom: "0.5rem",
+            }}
           >
             {title}
           </h2>

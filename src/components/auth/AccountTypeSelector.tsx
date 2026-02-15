@@ -10,13 +10,13 @@ interface AccountTypeSelectorProps {
 const types = [
   {
     value: "subscriber" as const,
-    icon: "👤",
+    icon: "\u{1F464}",
     label: "Subscriber",
     desc: "Support creators",
   },
   {
     value: "creator" as const,
-    icon: "⭐",
+    icon: "\u2B50",
     label: "Creator",
     desc: "Sell your content",
   },
@@ -27,35 +27,52 @@ export function AccountTypeSelector({
   onChange,
 }: AccountTypeSelectorProps) {
   return (
-    <div className="flex gap-3 mb-[1.8rem]">
-      {types.map((type) => (
-        <button
-          key={type.value}
-          type="button"
-          onClick={() => onChange(type.value)}
-          className={`flex-1 p-4 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer ${
-            value === type.value
-              ? "border-[var(--pink)] bg-[var(--pink-dim)]"
-              : "border-[var(--border)] bg-[var(--input-bg)] hover:border-[var(--muted)]"
-          }`}
-        >
-          <span className="text-[1.5rem] block mb-[0.4rem]">
-            {type.icon}
-          </span>
-          <span
-            className={`text-[0.82rem] font-bold block ${
-              value === type.value
-                ? "text-[var(--pink)]"
-                : "text-[var(--text)]"
-            }`}
+    <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.8rem" }}>
+      {types.map((type) => {
+        const isSelected = value === type.value;
+        return (
+          <button
+            key={type.value}
+            type="button"
+            onClick={() => onChange(type.value)}
+            style={{
+              flex: 1,
+              padding: "1rem",
+              borderRadius: "12px",
+              border: `2px solid ${isSelected ? "var(--pink)" : "var(--border)"}`,
+              background: isSelected ? "var(--pink-dim)" : "var(--input-bg)",
+              textAlign: "center",
+              transition: "all 0.2s",
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
           >
-            {type.label}
-          </span>
-          <span className="text-[0.68rem] text-[var(--dim)] mt-[2px] block">
-            {type.desc}
-          </span>
-        </button>
-      ))}
+            <span style={{ fontSize: "1.5rem", display: "block", marginBottom: "0.4rem" }}>
+              {type.icon}
+            </span>
+            <span
+              style={{
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                display: "block",
+                color: isSelected ? "var(--pink)" : "var(--text)",
+              }}
+            >
+              {type.label}
+            </span>
+            <span
+              style={{
+                fontSize: "0.68rem",
+                color: "var(--dim)",
+                marginTop: "2px",
+                display: "block",
+              }}
+            >
+              {type.desc}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

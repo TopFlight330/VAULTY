@@ -34,10 +34,17 @@ export function ConfirmDialog({
       size="sm"
       closeOnOverlayClick={!isLoading}
     >
-      <p className="text-[0.88rem] text-[var(--dim)] leading-relaxed mb-8">
+      <p
+        style={{
+          fontSize: "0.88rem",
+          color: "var(--dim)",
+          lineHeight: 1.5,
+          marginBottom: "2rem",
+        }}
+      >
         {message}
       </p>
-      <div className="flex gap-3">
+      <div style={{ display: "flex", gap: "0.75rem" }}>
         <Button
           variant="ghost"
           fullWidth

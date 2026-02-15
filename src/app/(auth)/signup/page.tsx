@@ -101,7 +101,7 @@ export default function SignupPage() {
             variant="primary"
             fullWidth
             isLoading={isLoading}
-            className="mt-2"
+            style={{ marginTop: "0.5rem" }}
           >
             {accountType === "creator"
               ? "Create creator account"
@@ -112,13 +112,21 @@ export default function SignupPage() {
         <SocialLoginButtons />
 
         {/* Terms */}
-        <p className="text-[0.68rem] text-[var(--muted)] text-center mt-[1.2rem] leading-relaxed">
+        <p
+          style={{
+            fontSize: "0.68rem",
+            color: "var(--muted)",
+            textAlign: "center",
+            marginTop: "1.2rem",
+            lineHeight: 1.6,
+          }}
+        >
           By creating an account, you agree to Vaulty&apos;s{" "}
-          <a href="#" className="text-[var(--dim)] underline">
+          <a href="#" style={{ color: "var(--dim)", textDecoration: "underline" }}>
             Terms of Service
           </a>{" "}
           and{" "}
-          <a href="#" className="text-[var(--dim)] underline">
+          <a href="#" style={{ color: "var(--dim)", textDecoration: "underline" }}>
             Privacy Policy
           </a>
           .
@@ -126,11 +134,22 @@ export default function SignupPage() {
       </AuthCard>
 
       {/* Footer */}
-      <p className="text-center mt-6 text-[0.82rem] text-[var(--dim)]">
+      <p
+        style={{
+          textAlign: "center",
+          marginTop: "1.5rem",
+          fontSize: "0.82rem",
+          color: "var(--dim)",
+        }}
+      >
         Already have an account?{" "}
         <Link
           href="/login"
-          className="text-[var(--pink)] font-bold hover:underline"
+          style={{
+            color: "var(--pink)",
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
         >
           Log in
         </Link>

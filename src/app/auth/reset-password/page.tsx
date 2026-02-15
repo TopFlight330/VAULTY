@@ -29,7 +29,6 @@ export default function ResetPasswordPage() {
 
     const result = await resetPassword({ password });
 
-    // If we get here, it means reset failed (success would redirect)
     if (result && !result.success) {
       showToast(result.message, "error");
     }
@@ -38,24 +37,67 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden">
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "2rem",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
       <div
-        className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
         style={{
+          position: "absolute",
+          top: "-200px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "800px",
+          height: "800px",
+          borderRadius: "50%",
+          pointerEvents: "none",
           background:
             "radial-gradient(circle, rgba(244,63,142,0.05) 0%, rgba(139,92,246,0.03) 40%, transparent 60%)",
         }}
       />
-      <div className="relative z-10 w-full max-w-[420px]">
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          width: "100%",
+          maxWidth: "420px",
+        }}
+      >
         <VaultyLogo />
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-10">
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--border)",
+            borderRadius: "16px",
+            padding: "2.5rem",
+          }}
+        >
           <h1
-            className="text-[1.5rem] font-extrabold mb-[0.4rem]"
-            style={{ fontFamily: "var(--font-sora), sans-serif" }}
+            style={{
+              fontFamily: "var(--font-sora), 'Sora', sans-serif",
+              fontSize: "1.5rem",
+              fontWeight: 800,
+              marginBottom: "0.4rem",
+            }}
           >
             Reset your password
           </h1>
-          <p className="text-[0.88rem] text-[var(--dim)] mb-8 leading-relaxed">
+          <p
+            style={{
+              fontSize: "0.88rem",
+              color: "var(--dim)",
+              marginBottom: "2rem",
+              lineHeight: 1.5,
+            }}
+          >
             Enter your new password below.
           </p>
 

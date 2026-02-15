@@ -13,8 +13,8 @@ const variantStyles: Record<
   ToastVariant,
   { border: string; icon: string }
 > = {
-  success: { border: "var(--success)", icon: "✓" },
-  error: { border: "var(--danger)", icon: "✕" },
+  success: { border: "var(--success)", icon: "\u2713" },
+  error: { border: "var(--danger)", icon: "\u2715" },
   info: { border: "var(--purple)", icon: "i" },
   warning: { border: "var(--warning)", icon: "!" },
 };
@@ -25,34 +25,72 @@ interface ToastItemProps {
 }
 
 export function ToastItem({ toast, onDismiss }: ToastItemProps) {
-  const style = variantStyles[toast.variant];
+  const vs = variantStyles[toast.variant];
 
   return (
     <div
-      className="relative flex items-start gap-3 bg-[var(--card)] border border-[var(--border)] rounded-xl py-[0.85rem] px-[1.2rem] shadow-[0_16px_48px_rgba(0,0,0,0.4)] min-w-[300px] max-w-[400px]"
       style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "0.75rem",
+        background: "var(--card)",
+        border: "1px solid var(--border)",
+        borderRadius: "12px",
+        padding: "0.85rem 1.2rem",
+        boxShadow: "0 16px 48px rgba(0,0,0,0.4)",
+        minWidth: "300px",
+        maxWidth: "400px",
         animation: "slideInRight 200ms ease-out",
         borderLeftWidth: "4px",
-        borderLeftColor: style.border,
+        borderLeftColor: vs.border,
       }}
     >
       {/* Icon */}
       <span
-        className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[0.7rem] font-bold text-white mt-px"
-        style={{ background: style.border }}
+        style={{
+          flexShrink: 0,
+          width: "20px",
+          height: "20px",
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "0.7rem",
+          fontWeight: 700,
+          color: "#fff",
+          marginTop: "1px",
+          background: vs.border,
+        }}
       >
-        {style.icon}
+        {vs.icon}
       </span>
 
       {/* Message */}
-      <p className="text-[0.85rem] font-semibold text-[var(--text)] leading-snug flex-1">
+      <p
+        style={{
+          fontSize: "0.85rem",
+          fontWeight: 600,
+          color: "var(--text)",
+          lineHeight: 1.4,
+          flex: 1,
+        }}
+      >
         {toast.message}
       </p>
 
       {/* Close */}
       <button
         onClick={() => onDismiss(toast.id)}
-        className="flex-shrink-0 text-[var(--muted)] hover:text-[var(--text)] transition-colors mt-px"
+        style={{
+          flexShrink: 0,
+          color: "var(--muted)",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          marginTop: "1px",
+          transition: "color 0.2s",
+        }}
       >
         <svg
           width="14"
@@ -68,11 +106,22 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
       </button>
 
       {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden rounded-b-xl">
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "2px",
+          overflow: "hidden",
+          borderRadius: "0 0 12px 12px",
+        }}
+      >
         <div
-          className="h-full rounded-b-xl"
           style={{
-            background: style.border,
+            height: "100%",
+            borderRadius: "0 0 12px 12px",
+            background: vs.border,
             animation: `shrink ${toast.duration}ms linear forwards`,
           }}
         />

@@ -39,7 +39,14 @@ export function ForgotPasswordModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Forgot password?" size="sm">
-      <p className="text-[0.88rem] text-[var(--dim)] leading-relaxed mb-6">
+      <p
+        style={{
+          fontSize: "0.88rem",
+          color: "var(--dim)",
+          lineHeight: 1.5,
+          marginBottom: "1.5rem",
+        }}
+      >
         Enter your email and we&apos;ll send you a reset link.
       </p>
       <form onSubmit={handleSubmit}>
@@ -62,7 +69,19 @@ export function ForgotPasswordModal({
       </form>
       <button
         onClick={onClose}
-        className="block w-full text-center mt-4 text-[0.82rem] text-[var(--dim)] hover:text-[var(--text)] transition-colors"
+        style={{
+          display: "block",
+          width: "100%",
+          textAlign: "center",
+          marginTop: "1rem",
+          fontSize: "0.82rem",
+          color: "var(--dim)",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          transition: "color 0.2s",
+        }}
       >
         Back to login
       </button>

@@ -24,7 +24,6 @@ export default function LoginPage() {
 
     const result = await login({ email, password });
 
-    // If we get here, it means login failed (success would redirect)
     if (result && !result.success) {
       showToast(result.message, "error");
     }
@@ -55,18 +54,42 @@ export default function LoginPage() {
           />
 
           {/* Remember me + Forgot */}
-          <div className="flex justify-between items-center mb-[1.2rem]">
-            <label className="flex items-center gap-[6px] text-[0.78rem] text-[var(--dim)] cursor-pointer">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1.2rem",
+            }}
+          >
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "0.78rem",
+                color: "var(--dim)",
+                cursor: "pointer",
+              }}
+            >
               <input
                 type="checkbox"
-                className="accent-[var(--pink)]"
+                style={{ accentColor: "var(--pink)" }}
               />
               Remember me
             </label>
             <button
               type="button"
               onClick={() => setShowForgot(true)}
-              className="text-[0.78rem] text-[var(--pink)] font-bold hover:underline"
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "0.78rem",
+                color: "var(--pink)",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
             >
               Forgot password?
             </button>
@@ -86,11 +109,22 @@ export default function LoginPage() {
       </AuthCard>
 
       {/* Footer */}
-      <p className="text-center mt-6 text-[0.82rem] text-[var(--dim)]">
+      <p
+        style={{
+          textAlign: "center",
+          marginTop: "1.5rem",
+          fontSize: "0.82rem",
+          color: "var(--dim)",
+        }}
+      >
         Don&apos;t have an account?{" "}
         <Link
           href="/signup"
-          className="text-[var(--pink)] font-bold hover:underline"
+          style={{
+            color: "var(--pink)",
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
         >
           Create one
         </Link>

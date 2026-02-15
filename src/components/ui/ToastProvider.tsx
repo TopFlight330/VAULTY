@@ -65,7 +65,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       {mounted &&
         createPortal(
-          <div className="fixed top-6 right-6 z-[60] flex flex-col gap-2">
+          <div
+            style={{
+              position: "fixed",
+              top: "1.5rem",
+              right: "1.5rem",
+              zIndex: 60,
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+            }}
+          >
             {toasts.map((toast) => (
               <ToastItem
                 key={toast.id}

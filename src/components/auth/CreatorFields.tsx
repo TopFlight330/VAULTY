@@ -19,65 +19,119 @@ export function CreatorFields({
   return (
     <div>
       {/* Category selector */}
-      <label className="block text-[0.78rem] font-bold text-[var(--dim)] mb-[0.4rem] uppercase tracking-[0.06em]">
+      <label
+        style={{
+          display: "block",
+          fontSize: "0.78rem",
+          fontWeight: 700,
+          color: "var(--dim)",
+          marginBottom: "0.4rem",
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+        }}
+      >
         Content category
       </label>
-      <div className="flex gap-3 mb-[1.2rem]">
-        {CREATOR_CATEGORIES.map((cat) => (
-          <button
-            key={cat.value}
-            type="button"
-            onClick={() => onCategoryChange(cat.value as CreatorCategory)}
-            className={`flex-1 p-3 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer ${
-              category === cat.value
-                ? "border-[var(--pink)] bg-[var(--pink-dim)]"
-                : "border-[var(--border)] bg-[var(--input-bg)] hover:border-[var(--muted)]"
-            }`}
-          >
-            <span className="text-lg block mb-1">{cat.icon}</span>
-            <span
-              className={`text-[0.82rem] font-bold ${
-                category === cat.value
-                  ? "text-[var(--pink)]"
-                  : "text-[var(--text)]"
-              }`}
+      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.2rem" }}>
+        {CREATOR_CATEGORIES.map((cat) => {
+          const isSelected = category === cat.value;
+          return (
+            <button
+              key={cat.value}
+              type="button"
+              onClick={() => onCategoryChange(cat.value as CreatorCategory)}
+              style={{
+                flex: 1,
+                padding: "0.75rem",
+                borderRadius: "12px",
+                border: `2px solid ${isSelected ? "var(--pink)" : "var(--border)"}`,
+                background: isSelected ? "var(--pink-dim)" : "var(--input-bg)",
+                textAlign: "center",
+                transition: "all 0.2s",
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
             >
-              {cat.label}
-            </span>
-          </button>
-        ))}
+              <span style={{ fontSize: "1.125rem", display: "block", marginBottom: "0.25rem" }}>
+                {cat.icon}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: isSelected ? "var(--pink)" : "var(--text)",
+                }}
+              >
+                {cat.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Social reach */}
-      <label className="block text-[0.78rem] font-bold text-[var(--dim)] mb-[0.4rem] uppercase tracking-[0.06em]">
+      <label
+        style={{
+          display: "block",
+          fontSize: "0.78rem",
+          fontWeight: 700,
+          color: "var(--dim)",
+          marginBottom: "0.4rem",
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+        }}
+      >
         Social reach
       </label>
-      <div className="grid grid-cols-2 gap-3 mb-[1.2rem]">
-        {SOCIAL_REACH_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onSocialReachChange(opt.value as SocialReach)}
-            className={`p-[0.8rem] rounded-[10px] text-center transition-all duration-200 cursor-pointer border ${
-              socialReach === opt.value
-                ? "border-[var(--pink)] bg-[var(--pink-dim)]"
-                : "border-[var(--border)] bg-[var(--input-bg)] hover:border-[var(--muted)]"
-            }`}
-          >
-            <span
-              className={`text-[0.82rem] font-bold block ${
-                socialReach === opt.value
-                  ? "text-[var(--pink)]"
-                  : "text-[var(--text)]"
-              }`}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "0.75rem",
+          marginBottom: "1.2rem",
+        }}
+      >
+        {SOCIAL_REACH_OPTIONS.map((opt) => {
+          const isSelected = socialReach === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onSocialReachChange(opt.value as SocialReach)}
+              style={{
+                padding: "0.8rem",
+                borderRadius: "10px",
+                textAlign: "center",
+                transition: "all 0.2s",
+                cursor: "pointer",
+                border: `1px solid ${isSelected ? "var(--pink)" : "var(--border)"}`,
+                background: isSelected ? "var(--pink-dim)" : "var(--input-bg)",
+                fontFamily: "inherit",
+              }}
             >
-              {opt.label}
-            </span>
-            <span className="text-[0.68rem] text-[var(--dim)] mt-[2px] block">
-              {opt.sub}
-            </span>
-          </button>
-        ))}
+              <span
+                style={{
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  display: "block",
+                  color: isSelected ? "var(--pink)" : "var(--text)",
+                }}
+              >
+                {opt.label}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.68rem",
+                  color: "var(--dim)",
+                  marginTop: "2px",
+                  display: "block",
+                }}
+              >
+                {opt.sub}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
