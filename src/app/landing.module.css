@@ -185,18 +185,19 @@
 .featGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
 .feat {
   background: var(--card); border: 1px solid var(--border);
-  border-radius: 16px; padding: 2rem;
-  display: flex; gap: 1.2rem; align-items: flex-start;
+  border-radius: 16px; overflow: hidden;
+  display: flex; align-items: stretch;
   transition: all 0.3s;
 }
 .feat:hover { transform: translateY(-3px); border-color: rgba(244,63,142,0.12); }
 .featIco {
-  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+  width: 72px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-.featIco svg { width: 22px; height: 22px; }
+.featIco svg { width: 24px; height: 24px; }
 .icoA { background: var(--pink-dim); color: var(--pink); }
 .icoB { background: var(--purple-dim); color: var(--purple); }
+.featBody { padding: 1.5rem 1.5rem 1.5rem 0; }
 .feat h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.35rem; }
 .feat p { font-size: 0.9rem; color: var(--dim); line-height: 1.6; }
 
@@ -274,8 +275,8 @@
   .cmpFee { font-size: 2.2rem; }
 
   .featGrid { gap: 1rem; }
-  .feat { padding: 1.5rem; gap: 1rem; border-radius: 14px; }
-  .featIco { width: 40px; height: 40px; }
+  .feat { border-radius: 14px; }
+  .featIco { width: 60px; }
   .featIco svg { width: 18px; height: 18px; }
   .feat h3 { font-size: 0.92rem; }
   .feat p { font-size: 0.82rem; }
@@ -316,8 +317,9 @@
   .cmpFee { font-size: 1.8rem; }
 
   .featGrid { grid-template-columns: 1fr; gap: 0.8rem; }
-  .feat { padding: 1.2rem; gap: 0.8rem; border-radius: 12px; }
-  .featIco { width: 36px; height: 36px; border-radius: 9px; }
+  .feat { border-radius: 12px; }
+  .featIco { width: 54px; }
+  .featBody { padding: 1.2rem 1.2rem 1.2rem 0; }
   .featIco svg { width: 16px; height: 16px; }
   .feat h3 { font-size: 0.85rem; }
   .feat p { font-size: 0.78rem; }

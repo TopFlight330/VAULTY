@@ -249,7 +249,7 @@ export default function Home() {
               <div className={`${styles.featIco} ${f.ico === "a" ? styles.icoA : styles.icoB}`}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{f.svg}</svg>
               </div>
-              <div>
+              <div className={styles.featBody}>
                 <h3>{t(f.en, f.fr)}</h3>
                 <p>{t(f.enP, f.frP)}</p>
               </div>
