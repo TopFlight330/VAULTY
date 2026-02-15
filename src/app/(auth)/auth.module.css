@@ -1,0 +1,278 @@
+/* ══════ SHARED AUTH STYLES — copied 1:1 from prototypes ══════ */
+
+/* Logo */
+.authLogo {
+    display: flex; align-items: center; gap: 12px;
+    text-decoration: none; color: var(--text);
+    margin-bottom: 2.5rem;
+}
+.authLogoIcon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, rgba(244,63,142,0.1), rgba(139,92,246,0.06));
+    border: 1px solid rgba(244,63,142,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+}
+.authLogoVault {
+    width: 24px; height: 24px;
+    border: 2px solid var(--pink);
+    border-radius: 50%;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+}
+.authLogoVault::before {
+    content: ''; width: 4px; height: 4px;
+    background: var(--pink); border-radius: 50%; position: absolute;
+}
+.sp {
+    position: absolute; width: 1.5px; height: 7px;
+    background: var(--pink); border-radius: 1px;
+}
+.authLogoText {
+    font-family: var(--font-unbounded), 'Unbounded', sans-serif;
+    font-size: 1.3rem; font-weight: 900;
+    color: #fff; letter-spacing: 1px;
+}
+
+/* Card */
+.authCard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+}
+.authCard h1 {
+    font-family: var(--font-sora), 'Sora', sans-serif;
+    font-size: 1.5rem; font-weight: 800;
+    margin-bottom: 0.4rem;
+}
+.subtitle {
+    font-size: 0.88rem; color: var(--dim);
+    margin-bottom: 2rem; line-height: 1.5;
+}
+
+/* Form */
+.formGroup { margin-bottom: 1.2rem; }
+.formGroup label {
+    display: block; font-size: 0.78rem; font-weight: 700;
+    color: var(--dim); margin-bottom: 0.4rem;
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+.formInput {
+    width: 100%; padding: 0.75rem 1rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text); font-family: inherit;
+    font-size: 0.92rem; font-weight: 600;
+    outline: none; transition: border-color 0.2s;
+}
+.formInput:focus { border-color: var(--pink); }
+.formInput::placeholder { color: var(--muted); }
+
+/* Error state */
+.formInputError {
+    composes: formInput;
+    border-color: var(--danger);
+}
+.errorText {
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    color: var(--danger);
+    font-weight: 600;
+}
+
+/* Username with @ prefix */
+.inputPrefix { position: relative; }
+.prefix {
+    position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-weight: 700; font-size: 0.92rem;
+}
+.inputPrefix .formInput { padding-left: 2rem; }
+
+/* Remember + Forgot row */
+.formRowBetween {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.2rem;
+}
+.remember {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.78rem; color: var(--dim); cursor: pointer;
+}
+.remember input { accent-color: var(--pink); }
+.forgot {
+    font-size: 0.78rem; color: var(--pink);
+    text-decoration: none; font-weight: 700;
+    background: none; border: none; cursor: pointer;
+    font-family: inherit;
+}
+.forgot:hover { text-decoration: underline; }
+
+/* Submit button */
+.authSubmit {
+    width: 100%; padding: 0.85rem;
+    background: var(--grad);
+    border: none; border-radius: 12px;
+    color: #fff; font-family: inherit;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+}
+.authSubmit:hover {
+    box-shadow: 0 4px 25px var(--pink-glow);
+    transform: translateY(-1px);
+}
+.authSubmit:disabled {
+    opacity: 0.5; cursor: not-allowed;
+}
+.authSubmitMargin {
+    composes: authSubmit;
+    margin-top: 0.5rem;
+}
+
+/* Loading spinner inside button */
+.spinner {
+    animation: spin 1s linear infinite;
+    width: 16px; height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Divider */
+.authDivider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.5rem 0;
+}
+.authDivider::before, .authDivider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.dividerText {
+    font-size: 0.72rem; color: var(--muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+/* Social buttons */
+.socialBtns { display: flex; gap: 0.75rem; }
+.socialBtn {
+    flex: 1; padding: 0.7rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text); font-family: inherit;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.socialBtn:hover { border-color: var(--muted); background: var(--card-hover); }
+.socialBtn svg { width: 18px; height: 18px; }
+
+/* Footer */
+.authFooter {
+    text-align: center; margin-top: 1.5rem;
+    font-size: 0.82rem; color: var(--dim);
+}
+.authFooter a {
+    color: var(--pink); text-decoration: none; font-weight: 700;
+}
+.authFooter a:hover { text-decoration: underline; }
+
+/* Terms */
+.authTerms {
+    font-size: 0.68rem; color: var(--muted);
+    text-align: center; margin-top: 1.2rem; line-height: 1.6;
+}
+.authTerms a { color: var(--dim); text-decoration: underline; }
+
+/* ══════ SIGNUP-SPECIFIC ══════ */
+
+/* Account type selector */
+.typeSelector {
+    display: flex; gap: 0.75rem; margin-bottom: 1.8rem;
+}
+.typeOpt {
+    flex: 1; padding: 1rem;
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer; text-align: center;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.typeOpt:hover { border-color: var(--muted); }
+.typeOptActive {
+    composes: typeOpt;
+    border-color: var(--pink);
+    background: var(--pink-dim);
+}
+.typeIcon {
+    font-size: 1.5rem; margin-bottom: 0.4rem;
+    display: block;
+}
+.typeLabel {
+    font-size: 0.82rem; font-weight: 700;
+    display: block;
+}
+.typeOptActive .typeLabel { color: var(--pink); }
+.typeDesc {
+    font-size: 0.68rem; color: var(--dim);
+    margin-top: 2px; display: block;
+}
+
+/* Category selector (reuses typeSelector layout) */
+.catSelector {
+    display: flex; gap: 0.75rem; margin-bottom: 1.5rem;
+}
+.catOpt {
+    flex: 1; padding: 0.75rem;
+    background: var(--input-bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer; text-align: center;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.catOpt:hover { border-color: var(--muted); }
+.catOptActive {
+    composes: catOpt;
+    border-color: var(--pink);
+    background: var(--pink-dim);
+}
+.catOptActive .typeLabel { color: var(--pink); }
+
+/* Social reach boxes */
+.socialReach {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.75rem; margin-bottom: 1.2rem;
+}
+.reachBox {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem; text-align: center;
+    cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+}
+.reachBox:hover { border-color: var(--muted); }
+.reachBoxActive {
+    composes: reachBox;
+    border-color: var(--pink);
+    background: var(--pink-dim);
+}
+.reachName {
+    font-size: 0.82rem; font-weight: 700; display: block;
+}
+.reachBoxActive .reachName { color: var(--pink); }
+.reachSub {
+    font-size: 0.68rem; color: var(--dim);
+    margin-top: 2px; display: block;
+}
+
+/* ══════ RESPONSIVE ══════ */
+@media (max-width: 480px) {
+    .authCard { padding: 1.5rem; }
+    .socialBtns { flex-direction: column; }
+}
