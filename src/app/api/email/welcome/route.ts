@@ -15,7 +15,7 @@ export async function POST(request: Request) {
           <p>You've joined the platform built for creator independence.</p>
           <p>Zero algorithm. Zero unfair cuts. Total control.</p>
           <br />
-          <p>— The Vaulty Team</p>
+          <p>- The Vaulty Team</p>
         </div>
       `,
     });

@@ -1,5 +1,5 @@
 /**
- * Welcome email template — sent via Resend when a new account is created
+ * Welcome email template, sent via Resend when a new account is created
  */
 export function getWelcomeEmailHtml(name: string): string {
   return `
@@ -62,10 +62,10 @@ export function getWelcomeEmailHtml(name: string): string {
                       </tr>
                       <tr>
                         <td style="color:#8b84a0;font-size:13px;line-height:1.7;">
-                          &#10003; &nbsp;Only 1% platform fee — keep 99% of everything<br/>
+                          &#10003; &nbsp;Only 1% platform fee. Keep 99% of everything<br/>
                           &#10003; &nbsp;Instant payouts within 24 hours<br/>
                           &#10003; &nbsp;Built-in privacy protection & DMCA tools<br/>
-                          &#10003; &nbsp;Zero algorithm — your content, your rules
+                          &#10003; &nbsp;Zero algorithm. Your content, your rules
                         </td>
                       </tr>
                     </table>
@@ -97,7 +97,7 @@ export function getWelcomeEmailHtml(name: string): string {
 
           <tr>
             <td style="padding:20px 40px 32px;color:#524d63;font-size:12px;line-height:1.5;">
-              Questions? Just reply to this email — we're here to help.<br/>
+              Questions? Just reply to this email, we're here to help.<br/>
               &copy; 2026 Vaulty Inc. All rights reserved.
             </td>
           </tr>

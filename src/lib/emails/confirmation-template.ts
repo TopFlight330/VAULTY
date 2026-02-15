@@ -1,5 +1,5 @@
 /**
- * Email verification template — used by Supabase Auth
+ * Email verification template - used by Supabase Auth
  *
  * To use: Copy the HTML output into Supabase Dashboard > Auth > Email Templates > "Confirm signup"
  * Supabase variables: {{ .ConfirmationURL }}, {{ .SiteURL }}

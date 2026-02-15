@@ -1,5 +1,5 @@
 /**
- * Password reset template — used by Supabase Auth
+ * Password reset template - used by Supabase Auth
  *
  * To use: Copy the HTML output into Supabase Dashboard > Auth > Email Templates > "Reset password"
  * Supabase variables: {{ .ConfirmationURL }}, {{ .SiteURL }}
@@ -86,7 +86,7 @@ export function getResetPasswordEmailHtml(): string {
               <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;">
                 <tr>
                   <td style="padding:12px 16px;color:#ef4444;font-size:12px;font-weight:600;line-height:1.5;">
-                    &#9888; This link expires in 1 hour. If you didn't request a password reset, you can ignore this email — your password won't change.
+                    &#9888; This link expires in 1 hour. If you didn't request a password reset, you can ignore this email. Your password won't change.
                   </td>
                 </tr>
               </table>

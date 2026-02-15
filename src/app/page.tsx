@@ -195,8 +195,8 @@ export default function Home() {
               <h3>{t("Protected by Swiss privacy law", "Protégé par le droit suisse de la vie privée")}</h3>
               <p>
                 {t(
-                  "Vaulty is headquartered in Switzerland — home to the world's strictest data protection laws. Your personal information, content, and financial data are shielded by regulations that prioritize your privacy above all else.",
-                  "Vaulty a son siège en Suisse — pays ayant les lois de protection des données les plus strictes au monde. Vos informations personnelles, votre contenu et vos données financières sont protégés par des réglementations qui priorisent votre vie privée avant tout."
+                  "Vaulty is headquartered in Switzerland, home to the world's strictest data protection laws. Your personal information, content, and financial data are shielded by regulations that prioritize your privacy above all else.",
+                  "Vaulty a son siège en Suisse, pays ayant les lois de protection des données les plus strictes au monde. Vos informations personnelles, votre contenu et vos données financières sont protégés par des réglementations qui priorisent votre vie privée avant tout."
                 )}
               </p>
             </div>
@@ -217,8 +217,8 @@ export default function Home() {
               <h3>{t("Pay and get paid in crypto", "Payez et soyez payé en crypto")}</h3>
               <p>
                 {t(
-                  "Subscribers can pay with cryptocurrency for total anonymity. Creators can choose crypto payouts — keeping their income completely private. No bank statements, no paper trail, full financial discretion.",
-                  "Les abonnés peuvent payer en cryptomonnaie pour un anonymat total. Les créateurs peuvent choisir des versements en crypto — gardant leurs revenus entièrement privés. Aucun relevé bancaire, aucune trace, discrétion financière complète."
+                  "Subscribers can pay with cryptocurrency for total anonymity. Creators can choose crypto payouts, keeping their income completely private. No bank statements, no paper trail, full financial discretion.",
+                  "Les abonnés peuvent payer en cryptomonnaie pour un anonymat total. Les créateurs peuvent choisir des versements en crypto, gardant leurs revenus entièrement privés. Aucun relevé bancaire, aucune trace, discrétion financière complète."
                 )}
               </p>
             </div>
@@ -260,8 +260,8 @@ export default function Home() {
               ico: "a",
               svg: <><circle cx="12" cy="12" r="10" /><path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8" /><path d="M12 18V6" /></>,
               en: "99% Revenue Split", fr: "99% de revenus",
-              enP: "The lowest fee in the entire industry. No hidden charges, no surprise deductions — just a flat 1% and you keep everything else.",
-              frP: "Les frais les plus bas de toute l'industrie. Aucun frais caché, aucune déduction surprise — juste 1% et vous gardez tout le reste.",
+              enP: "The lowest fee in the entire industry. No hidden charges, no surprise deductions. Just a flat 1% and you keep everything else.",
+              frP: "Les frais les plus bas de toute l'industrie. Aucun frais caché, aucune déduction surprise. Juste 1% et vous gardez tout le reste.",
             },
             {
               ico: "b",
@@ -281,15 +281,15 @@ export default function Home() {
               ico: "b",
               svg: <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />,
               en: "Instant Payouts", fr: "Paiements instantanés",
-              enP: "Get paid within 24 hours — no waiting weeks for your money. Choose between bank transfer, crypto wallet, or other options.",
-              frP: "Recevez vos paiements en 24h — plus besoin d'attendre des semaines. Choisissez entre virement bancaire, portefeuille crypto ou autres options.",
+              enP: "Get paid within 24 hours. No waiting weeks for your money. Choose between bank transfer, crypto wallet, or other options.",
+              frP: "Recevez vos paiements en 24h. Plus besoin d'attendre des semaines. Choisissez entre virement bancaire, portefeuille crypto ou autres options.",
             },
             {
               ico: "a",
               svg: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
               en: "Privacy & Protection", fr: "Confidentialité & Protection",
-              enP: "Automatic watermarks, DMCA takedown requests, and geo-blocking built in. Stay completely anonymous if you want — we protect your identity.",
-              frP: "Filigranes automatiques, retraits DMCA et géo-blocage intégrés. Restez complètement anonyme si vous le souhaitez — nous protégeons votre identité.",
+              enP: "Automatic watermarks, DMCA takedown requests, and geo-blocking built in. Stay completely anonymous if you want. We protect your identity.",
+              frP: "Filigranes automatiques, retraits DMCA et géo-blocage intégrés. Restez complètement anonyme si vous le souhaitez. Nous protégeons votre identité.",
             },
             {
               ico: "b",
