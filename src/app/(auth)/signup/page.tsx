@@ -30,9 +30,10 @@ export default function SignupPage() {
     });
     if (result.success) {
       router.push(`/check-email?email=${encodeURIComponent(email)}`);
-    } else {
-      showToast(result.message, "error");
+      // Keep loader spinning until navigation completes
+      return;
     }
+    showToast(result.message, "error");
     setIsLoading(false);
   };
 
