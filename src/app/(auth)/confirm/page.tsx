@@ -174,7 +174,7 @@ export default async function ConfirmPage({ searchParams }: ConfirmPageProps) {
               lineHeight: 1.5,
             }}
           >
-            We sent you a confirmation link. Click it to verify your account.
+            We sent you a confirmation link. Click it to complete the creation of your account.
           </p>
           <p
             style={{
@@ -187,7 +187,7 @@ export default async function ConfirmPage({ searchParams }: ConfirmPageProps) {
             Don't see it? Check your spam or junk folder.
           </p>
           <Link href="/login">
-            <Button variant="secondary" fullWidth>
+            <Button variant="primary" fullWidth>
               Back to login
             </Button>
           </Link>
