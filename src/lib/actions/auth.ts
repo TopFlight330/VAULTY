@@ -22,7 +22,7 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
   if (nickErr) return { success: false, message: nickErr };
 
   const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vaulty.com";
 
   const { error } = await supabase.auth.signUp({
     email: data.email,
@@ -99,7 +99,7 @@ export async function forgotPassword(data: {
 
   const supabase = await createClient();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vaulty.com";
 
   const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
     redirectTo: `${siteUrl}/auth/callback?next=/auth/reset-password`,
