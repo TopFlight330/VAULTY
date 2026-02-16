@@ -31,8 +31,14 @@ export function uploadFileWithProgress(
     const supabase = createClient();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        console.error("Upload failed: no active session");
+        resolve(null);
+        return;
+      }
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const token = session?.access_token || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const token = session.access_token;
 
       const xhr = new XMLHttpRequest();
       const url = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
@@ -57,10 +63,19 @@ export function uploadFileWithProgress(
         resolve(null);
       });
 
+      xhr.addEventListener("abort", () => {
+        console.error("Upload aborted");
+        resolve(null);
+      });
+
       xhr.open("POST", url);
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
       xhr.setRequestHeader("x-upsert", "true");
       xhr.send(file);
+    }).catch((err) => {
+      console.error("Upload session error:", err);
+      resolve(null);
     });
   });
 }
