@@ -16,7 +16,8 @@
       "Bash(npm uninstall:*)",
       "Bash(be the same as base directory\". Setting publish = \".next\" fixes it.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "WebFetch(domain:127.0.0.1)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(npx vercel:*)"
     ]
   }
 }

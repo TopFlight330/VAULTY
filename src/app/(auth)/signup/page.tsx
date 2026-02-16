@@ -29,7 +29,8 @@ export default function SignupPage() {
       ...(accountType === "creator" && { category, socialReach }),
     });
     if (result.success) {
-      router.push("/confirm");
+      showToast(result.message, "success");
+      router.push("/login");
     } else {
       showToast(result.message, "error");
     }

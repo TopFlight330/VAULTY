@@ -7,34 +7,25 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/confirm";
+  const next = searchParams.get("next") ?? "/login";
 
   const supabase = await createClient();
 
-  // PKCE flow (OAuth, magic link)
+  // PKCE flow (OAuth)
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(
-        new URL(`${next}?success=true`, origin)
-      );
+      return NextResponse.redirect(new URL(next, origin));
     }
   }
 
-  // Email confirmation / password reset (token_hash flow)
+  // Token hash flow (password reset)
   if (token_hash && type) {
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash,
-      type,
-    });
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type });
     if (!error) {
-      return NextResponse.redirect(
-        new URL(`${next}?success=true`, origin)
-      );
+      return NextResponse.redirect(new URL(next, origin));
     }
   }
 
-  return NextResponse.redirect(
-    new URL("/confirm?error=true", origin)
-  );
+  return NextResponse.redirect(new URL("/login", origin));
 }

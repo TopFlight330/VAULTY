@@ -28,7 +28,6 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
   if (nickErr) return { success: false, message: nickErr };
 
   const supabase = await createClient();
-  const siteUrl = getSiteUrl();
 
   const { data: signUpData, error } = await supabase.auth.signUp({
     email: data.email,
@@ -40,7 +39,6 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
         category: data.category,
         social_reach: data.socialReach,
       },
-      emailRedirectTo: `${siteUrl}/auth/callback`,
     },
   });
 
@@ -67,7 +65,7 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
 
   return {
     success: true,
-    message: "Account created! Check your email to confirm.",
+    message: "Account created! You can now log in.",
   };
 }
 
