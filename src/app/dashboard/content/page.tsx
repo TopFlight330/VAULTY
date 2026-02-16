@@ -35,6 +35,7 @@ export default function ContentPage() {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [editorPpvPrice, setEditorPpvPrice] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const fetchPosts = useCallback(async () => {
@@ -110,9 +111,14 @@ export default function ContentPage() {
     }, 0);
   };
 
-  const insertEmoji = () => {
-    const emojis = ["😀","😍","🔥","❤️","👀","💰","🎉","✨","💎","🚀","👑","🎬"];
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+  const popularEmojis = [
+    "😀","😂","😍","🥰","😘","🤩","😎","🥳",
+    "🔥","❤️","💕","💖","👀","👅","💦","💋",
+    "🎉","✨","💎","🚀","👑","🎬","💰","🤑",
+    "😈","🍑","🍒","💪","🙈","😏",
+  ];
+
+  const insertEmoji = (emoji: string) => {
     const ta = bodyRef.current;
     if (!ta) {
       setEditorBody((prev) => prev + emoji);
@@ -121,6 +127,7 @@ export default function ContentPage() {
     const pos = ta.selectionStart;
     const text = editorBody;
     setEditorBody(text.substring(0, pos) + emoji + text.substring(pos));
+    setShowEmojiPicker(false);
     setTimeout(() => {
       ta.focus();
       ta.setSelectionRange(pos + emoji.length, pos + emoji.length);
@@ -180,6 +187,7 @@ export default function ContentPage() {
     setEditorVisibility("premium");
     setEditorPpvPrice("");
     setUploadedFiles([]);
+    setShowEmojiPicker(false);
   };
 
   const handleDeletePost = async () => {
@@ -292,38 +300,80 @@ export default function ContentPage() {
                 value={editorBody}
                 onChange={(e) => setEditorBody(e.target.value)}
               />
-              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                {[
-                  { label: "😀", action: () => insertEmoji(), title: "Emoji" },
-                  { label: "B", action: () => insertFormat("**", "**"), title: "Bold", fw: 800 },
-                  { label: "I", action: () => insertFormat("*", "*"), title: "Italic", fs: "italic" },
-                  { label: "U", action: () => insertFormat("<u>", "</u>"), title: "Underline", td: "underline" },
-                ].map((btn) => (
-                  <button
-                    key={btn.title}
-                    type="button"
-                    title={btn.title}
-                    onClick={btn.action}
+              <div style={{ position: "relative" }}>
+                <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+                  {[
+                    { label: "😀", action: () => setShowEmojiPicker((v) => !v), title: "Emoji" },
+                    { label: "B", action: () => insertFormat("**", "**"), title: "Bold", fw: 800 },
+                    { label: "i", action: () => insertFormat("*", "*"), title: "Italic", fs: "italic" },
+                    { label: "U", action: () => insertFormat("<u>", "</u>"), title: "Underline", td: "underline" },
+                  ].map((btn) => (
+                    <button
+                      key={btn.title}
+                      type="button"
+                      title={btn.title}
+                      onClick={btn.action}
+                      style={{
+                        flex: 1,
+                        height: 34,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "var(--input-bg)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 8,
+                        color: "var(--text)",
+                        cursor: "pointer",
+                        fontSize: "0.85rem",
+                        fontWeight: (btn as { fw?: number }).fw || 600,
+                        fontStyle: (btn as { fs?: string }).fs || "normal",
+                        textDecoration: (btn as { td?: string }).td || "none",
+                      }}
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+                {showEmojiPicker && (
+                  <div
                     style={{
-                      flex: 1,
-                      height: 34,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "var(--input-bg)",
+                      position: "absolute",
+                      bottom: "calc(100% + 8px)",
+                      left: 0,
+                      right: 0,
+                      background: "var(--card)",
                       border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      color: "var(--text)",
-                      cursor: "pointer",
-                      fontSize: "0.85rem",
-                      fontWeight: (btn as { fw?: number }).fw || 600,
-                      fontStyle: (btn as { fs?: string }).fs || "normal",
-                      textDecoration: (btn as { td?: string }).td || "none",
+                      borderRadius: 12,
+                      padding: "0.75rem",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(6, 1fr)",
+                      gap: 4,
+                      zIndex: 10,
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
                     }}
                   >
-                    {btn.label}
-                  </button>
-                ))}
+                    {popularEmojis.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => insertEmoji(emoji)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          fontSize: "1.3rem",
+                          cursor: "pointer",
+                          borderRadius: 8,
+                          padding: "0.35rem 0",
+                          transition: "background 0.15s",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--input-bg)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
