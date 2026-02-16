@@ -284,7 +284,15 @@ export default function ContentPage() {
 
             <div className={s.formGroup}>
               <label className={s.formGroup}>Description</label>
-              <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
+              <textarea
+                ref={bodyRef}
+                className={`${s.formInput} ${s.formInputTextarea}`}
+                rows={3}
+                placeholder="Write something..."
+                value={editorBody}
+                onChange={(e) => setEditorBody(e.target.value)}
+              />
+              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
                 {[
                   { label: "😀", action: () => insertEmoji(), title: "Emoji" },
                   { label: "B", action: () => insertFormat("**", "**"), title: "Bold", fw: 800 },
@@ -297,8 +305,8 @@ export default function ContentPage() {
                     title={btn.title}
                     onClick={btn.action}
                     style={{
-                      width: 32,
-                      height: 32,
+                      flex: 1,
+                      height: 34,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -317,14 +325,6 @@ export default function ContentPage() {
                   </button>
                 ))}
               </div>
-              <textarea
-                ref={bodyRef}
-                className={`${s.formInput} ${s.formInputTextarea}`}
-                rows={3}
-                placeholder="Write something..."
-                value={editorBody}
-                onChange={(e) => setEditorBody(e.target.value)}
-              />
             </div>
 
             <div className={s.formGroup}>
