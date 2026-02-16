@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
 import { getWelcomeEmailHtml } from "@/lib/emails/welcome-template";
+import { getConfirmEmailHtml } from "@/lib/emails/confirm-email-template";
 import { getResetPasswordEmailHtml } from "@/lib/emails/reset-password-template";
 import { redirect } from "next/navigation";
 import type { AuthActionResult, SignupFormData } from "@/types/auth";
@@ -24,6 +25,7 @@ function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
+// ─── SIGNUP ───────────────────────────────────────────────────────
 export async function signup(data: SignupFormData): Promise<AuthActionResult> {
   const emailErr = validateEmail(data.email);
   if (emailErr) return { success: false, message: emailErr };
@@ -58,24 +60,155 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
     return { success: false, message: "An account with this email already exists." };
   }
 
-  // Send welcome email via Resend (non-blocking, don't fail signup if this fails)
+  // Generate confirmation token
+  const admin = createAdminClient();
+  const rawToken = crypto.randomUUID();
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
+
+  await admin.from("email_confirmations").insert({
+    user_id: signUpData.user!.id,
+    token_hash: tokenHash,
+    expires_at: expiresAt,
+  });
+
+  // Send confirmation email via Resend
+  const siteUrl = getSiteUrl();
+  const confirmUrl = `${siteUrl}/confirm-email?token=${rawToken}`;
+
   try {
     await resend.emails.send({
       from: "Vaulty <onboarding@resend.dev>",
       to: data.email,
-      subject: "Welcome to Vaulty!",
-      html: getWelcomeEmailHtml(data.nickname),
+      subject: "Confirm your Vaulty email",
+      html: getConfirmEmailHtml(data.nickname, confirmUrl),
     });
   } catch {
-    // Welcome email failure shouldn't block signup
+    // Email failure shouldn't block signup
   }
 
   return {
     success: true,
-    message: "Account created! You can now log in.",
+    message: "Account created! Check your email to confirm.",
   };
 }
 
+// ─── CONFIRM EMAIL ────────────────────────────────────────────────
+export async function confirmEmail(token: string): Promise<AuthActionResult> {
+  if (!token) {
+    return { success: false, message: "Invalid confirmation link." };
+  }
+
+  const admin = createAdminClient();
+  const tokenHash = hashToken(token);
+
+  // Find the confirmation record
+  const { data: record, error: findErr } = await admin
+    .from("email_confirmations")
+    .select("*")
+    .eq("token_hash", tokenHash)
+    .single();
+
+  if (findErr || !record) {
+    return { success: false, message: "Invalid or expired confirmation link." };
+  }
+
+  // Check expiry
+  if (new Date(record.expires_at) < new Date()) {
+    await admin.from("email_confirmations").delete().eq("id", record.id);
+    return { success: false, message: "This link has expired. Please sign up again." };
+  }
+
+  // Mark email as confirmed in profiles
+  await admin
+    .from("profiles")
+    .update({ email_confirmed: true })
+    .eq("id", record.user_id);
+
+  // Clean up confirmation tokens for this user
+  await admin.from("email_confirmations").delete().eq("user_id", record.user_id);
+
+  // Send welcome email now that they're confirmed
+  const { data: userData } = await admin.auth.admin.getUserById(record.user_id);
+  if (userData?.user?.email) {
+    const name = userData.user.user_metadata?.nickname || userData.user.email.split("@")[0];
+    try {
+      await resend.emails.send({
+        from: "Vaulty <onboarding@resend.dev>",
+        to: userData.user.email,
+        subject: "Welcome to Vaulty!",
+        html: getWelcomeEmailHtml(name),
+      });
+    } catch {
+      // Non-critical
+    }
+  }
+
+  return {
+    success: true,
+    message: "Email confirmed! You can now log in.",
+  };
+}
+
+// ─── RESEND CONFIRMATION ─────────────────────────────────────────
+export async function resendConfirmation(email: string): Promise<AuthActionResult> {
+  const emailErr = validateEmail(email);
+  if (emailErr) return { success: false, message: emailErr };
+
+  const admin = createAdminClient();
+
+  // Find user by email
+  const { data: usersData } = await admin.auth.admin.listUsers();
+  const user = usersData?.users?.find((u) => u.email === email);
+
+  // Always return success to prevent enumeration
+  if (!user) {
+    return { success: true, message: "If an account exists, a new confirmation email has been sent." };
+  }
+
+  // Check if already confirmed
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("email_confirmed")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.email_confirmed) {
+    return { success: true, message: "Your email is already confirmed. You can log in." };
+  }
+
+  // Delete old tokens and create a new one
+  await admin.from("email_confirmations").delete().eq("user_id", user.id);
+
+  const rawToken = crypto.randomUUID();
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  await admin.from("email_confirmations").insert({
+    user_id: user.id,
+    token_hash: tokenHash,
+    expires_at: expiresAt,
+  });
+
+  const siteUrl = getSiteUrl();
+  const confirmUrl = `${siteUrl}/confirm-email?token=${rawToken}`;
+  const name = user.user_metadata?.nickname || email.split("@")[0];
+
+  try {
+    await resend.emails.send({
+      from: "Vaulty <onboarding@resend.dev>",
+      to: email,
+      subject: "Confirm your Vaulty email",
+      html: getConfirmEmailHtml(name, confirmUrl),
+    });
+  } catch {
+    return { success: false, message: "Failed to send email. Please try again." };
+  }
+
+  return { success: true, message: "A new confirmation email has been sent." };
+}
+
+// ─── LOGIN ────────────────────────────────────────────────────────
 export async function login(data: {
   email: string;
   password: string;
@@ -98,33 +231,43 @@ export async function login(data: {
     return { success: false, message: error.message };
   }
 
+  // Check profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, is_banned, email_confirmed")
+    .eq("id", signInData.user.id)
+    .single();
+
+  // Check if email is confirmed
+  if (profile && !profile.email_confirmed) {
+    await supabase.auth.signOut();
+    return {
+      success: false,
+      message: "Please confirm your email before logging in. Check your inbox.",
+    };
+  }
+
+  if (profile?.is_banned) {
+    await supabase.auth.signOut();
+    return { success: false, message: "Your account has been suspended." };
+  }
+
   // Route by profile role
   let destination = "/dashboard/client";
-  if (signInData.user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, is_banned")
-      .eq("id", signInData.user.id)
-      .single();
-
-    if (profile?.is_banned) {
-      await supabase.auth.signOut();
-      return { success: false, message: "Your account has been suspended." };
-    }
-
-    if (profile?.role === "creator") destination = "/dashboard";
-    else if (profile?.role === "admin") destination = "/admin";
-  }
+  if (profile?.role === "creator") destination = "/dashboard";
+  else if (profile?.role === "admin") destination = "/admin";
 
   redirect(destination);
 }
 
+// ─── LOGOUT ───────────────────────────────────────────────────────
 export async function logout(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
 }
 
+// ─── FORGOT PASSWORD ──────────────────────────────────────────────
 export async function forgotPassword(data: {
   email: string;
 }): Promise<AuthActionResult> {
@@ -182,6 +325,7 @@ export async function forgotPassword(data: {
   };
 }
 
+// ─── RESET PASSWORD ──────────────────────────────────────────────
 export async function resetPassword(data: {
   token: string;
   password: string;

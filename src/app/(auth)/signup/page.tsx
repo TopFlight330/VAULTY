@@ -29,8 +29,7 @@ export default function SignupPage() {
       ...(accountType === "creator" && { category, socialReach }),
     });
     if (result.success) {
-      showToast(result.message, "success");
-      router.push("/login");
+      router.push(`/check-email?email=${encodeURIComponent(email)}`);
     } else {
       showToast(result.message, "error");
     }
