@@ -8,6 +8,7 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [lang, setLang] = useState<"en" | "fr">("en");
   const [scrolled, setScrolled] = useState(false);
+  const [modal, setModal] = useState<"terms" | "privacy" | null>(null);
 
   // Star field
   useEffect(() => {
@@ -326,11 +327,156 @@ export default function Home() {
           <span className={styles.ftLogoText}>Vaulty</span>
         </div>
         <div className={styles.ftLinks}>
-          <a href="#">{t("Terms", "Conditions")}</a>
-          <a href="#">{t("Privacy", "Confidentialité")}</a>
+          <button onClick={() => setModal("terms")}>{t("Terms", "Conditions")}</button>
+          <button onClick={() => setModal("privacy")}>{t("Privacy", "Confidentialité")}</button>
         </div>
         <div className={styles.ftCopy}>&copy; 2026 Vaulty Inc.</div>
       </footer>
+
+      {/* MODAL */}
+      {modal && (
+        <div className={styles.modalOverlay} onClick={() => setModal(null)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.modalClose} onClick={() => setModal(null)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+
+            {modal === "terms" && (
+              <div className={styles.modalBody}>
+                <h2>{t("Terms of Service", "Conditions d'utilisation")}</h2>
+                <p className={styles.modalUpdated}>{t("Last updated: February 2026", "Derniere mise a jour : fevrier 2026")}</p>
+
+                <h3>{t("1. Acceptance of Terms", "1. Acceptation des conditions")}</h3>
+                <p>{t(
+                  "By accessing or using Vaulty, you agree to be bound by these Terms of Service. If you do not agree, you may not use the platform.",
+                  "En accedant ou en utilisant Vaulty, vous acceptez d'etre lie par ces conditions d'utilisation. Si vous n'acceptez pas, vous ne pouvez pas utiliser la plateforme."
+                )}</p>
+
+                <h3>{t("2. Eligibility", "2. Admissibilite")}</h3>
+                <p>{t(
+                  "You must be at least 18 years old to create an account or use Vaulty. By registering, you confirm that you meet this age requirement.",
+                  "Vous devez avoir au moins 18 ans pour creer un compte ou utiliser Vaulty. En vous inscrivant, vous confirmez que vous remplissez cette condition d'age."
+                )}</p>
+
+                <h3>{t("3. Account Responsibilities", "3. Responsabilites du compte")}</h3>
+                <p>{t(
+                  "You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use.",
+                  "Vous etes responsable du maintien de la confidentialite de vos identifiants de compte et de toutes les activites qui se produisent sous votre compte. Vous acceptez de nous informer immediatement de toute utilisation non autorisee."
+                )}</p>
+
+                <h3>{t("4. Creator Content", "4. Contenu des createurs")}</h3>
+                <p>{t(
+                  "Creators retain full ownership of the content they upload. By posting content, you grant Vaulty a limited license to host, display, and distribute your content solely for the purpose of operating the platform.",
+                  "Les createurs conservent la pleine propriete du contenu qu'ils telechargent. En publiant du contenu, vous accordez a Vaulty une licence limitee pour heberger, afficher et distribuer votre contenu uniquement dans le but d'exploiter la plateforme."
+                )}</p>
+
+                <h3>{t("5. Prohibited Content", "5. Contenu interdit")}</h3>
+                <p>{t(
+                  "You may not upload content that is illegal, involves minors, promotes violence, or infringes on third-party intellectual property rights. Vaulty reserves the right to remove any content that violates these terms.",
+                  "Vous ne pouvez pas telecharger de contenu illegal, impliquant des mineurs, faisant la promotion de la violence ou portant atteinte aux droits de propriete intellectuelle de tiers. Vaulty se reserve le droit de supprimer tout contenu enfreignant ces conditions."
+                )}</p>
+
+                <h3>{t("6. Fees and Payments", "6. Frais et paiements")}</h3>
+                <p>{t(
+                  "Vaulty charges a platform fee of 1% on all transactions. Payouts are processed within 24 hours. Payment processing fees from third-party providers may apply separately.",
+                  "Vaulty facture des frais de plateforme de 1% sur toutes les transactions. Les paiements sont traites dans les 24 heures. Des frais de traitement des paiements provenant de fournisseurs tiers peuvent s'appliquer separement."
+                )}</p>
+
+                <h3>{t("7. Termination", "7. Resiliation")}</h3>
+                <p>{t(
+                  "Vaulty may suspend or terminate your account at any time if you violate these terms. You may delete your account at any time through your account settings.",
+                  "Vaulty peut suspendre ou resilier votre compte a tout moment si vous enfreignez ces conditions. Vous pouvez supprimer votre compte a tout moment via les parametres de votre compte."
+                )}</p>
+
+                <h3>{t("8. Limitation of Liability", "8. Limitation de responsabilite")}</h3>
+                <p>{t(
+                  "Vaulty is provided \"as is\" without warranties of any kind. To the maximum extent permitted by law, Vaulty shall not be liable for any indirect, incidental, or consequential damages arising from your use of the platform.",
+                  "Vaulty est fourni \"tel quel\" sans garantie d'aucune sorte. Dans la mesure maximale permise par la loi, Vaulty ne sera pas responsable des dommages indirects, accessoires ou consecutifs decoulant de votre utilisation de la plateforme."
+                )}</p>
+
+                <h3>{t("9. Governing Law", "9. Loi applicable")}</h3>
+                <p>{t(
+                  "These terms are governed by the laws of Switzerland. Any disputes shall be resolved in the courts of Switzerland.",
+                  "Ces conditions sont regies par les lois de la Suisse. Tout litige sera resolu devant les tribunaux suisses."
+                )}</p>
+
+                <h3>{t("10. Contact", "10. Contact")}</h3>
+                <p>{t(
+                  "For questions about these terms, contact us at support@vaulty.com.",
+                  "Pour toute question concernant ces conditions, contactez-nous a support@vaulty.com."
+                )}</p>
+              </div>
+            )}
+
+            {modal === "privacy" && (
+              <div className={styles.modalBody}>
+                <h2>{t("Privacy Policy", "Politique de confidentialite")}</h2>
+                <p className={styles.modalUpdated}>{t("Last updated: February 2026", "Derniere mise a jour : fevrier 2026")}</p>
+
+                <h3>{t("1. Information We Collect", "1. Informations que nous collectons")}</h3>
+                <p>{t(
+                  "We collect information you provide when creating an account (email, display name) and usage data such as login times and feature interactions. We do not sell your personal data to third parties.",
+                  "Nous collectons les informations que vous fournissez lors de la creation d'un compte (email, nom d'affichage) et les donnees d'utilisation telles que les heures de connexion et les interactions avec les fonctionnalites. Nous ne vendons pas vos donnees personnelles a des tiers."
+                )}</p>
+
+                <h3>{t("2. How We Use Your Data", "2. Comment nous utilisons vos donnees")}</h3>
+                <p>{t(
+                  "Your data is used to operate the platform, process payments, send transactional emails, and improve our services. We never use your data for targeted advertising.",
+                  "Vos donnees sont utilisees pour exploiter la plateforme, traiter les paiements, envoyer des emails transactionnels et ameliorer nos services. Nous n'utilisons jamais vos donnees pour de la publicite ciblee."
+                )}</p>
+
+                <h3>{t("3. Data Storage and Security", "3. Stockage et securite des donnees")}</h3>
+                <p>{t(
+                  "All data is stored on secure servers and encrypted in transit and at rest. Vaulty is headquartered in Switzerland and subject to Swiss data protection laws (FADP), among the strictest in the world.",
+                  "Toutes les donnees sont stockees sur des serveurs securises et chiffrees en transit et au repos. Vaulty a son siege en Suisse et est soumis aux lois suisses sur la protection des donnees (LPD), parmi les plus strictes au monde."
+                )}</p>
+
+                <h3>{t("4. Cookies", "4. Cookies")}</h3>
+                <p>{t(
+                  "We use essential cookies to maintain your session and preferences. We do not use tracking cookies or third-party analytics that identify individual users.",
+                  "Nous utilisons des cookies essentiels pour maintenir votre session et vos preferences. Nous n'utilisons pas de cookies de suivi ni d'analyses tierces identifiant les utilisateurs individuels."
+                )}</p>
+
+                <h3>{t("5. Third-Party Services", "5. Services tiers")}</h3>
+                <p>{t(
+                  "We use trusted third-party services for payment processing and email delivery. These providers only receive the minimum data necessary to perform their function and are contractually bound to protect your information.",
+                  "Nous utilisons des services tiers de confiance pour le traitement des paiements et la livraison des emails. Ces fournisseurs ne recoivent que les donnees minimales necessaires pour remplir leur fonction et sont contractuellement tenus de proteger vos informations."
+                )}</p>
+
+                <h3>{t("6. Your Rights", "6. Vos droits")}</h3>
+                <p>{t(
+                  "You have the right to access, correct, or delete your personal data at any time. You can export your data or request account deletion through your account settings or by contacting support.",
+                  "Vous avez le droit d'acceder, de corriger ou de supprimer vos donnees personnelles a tout moment. Vous pouvez exporter vos donnees ou demander la suppression de votre compte via les parametres de votre compte ou en contactant le support."
+                )}</p>
+
+                <h3>{t("7. Creator and Subscriber Privacy", "7. Confidentialite des createurs et abonnes")}</h3>
+                <p>{t(
+                  "Creator identities are protected. Subscriber information is never shared with creators beyond what is necessary for the transaction. Payment details remain confidential and are never exposed to other users.",
+                  "L'identite des createurs est protegee. Les informations des abonnes ne sont jamais partagees avec les createurs au-dela de ce qui est necessaire pour la transaction. Les details de paiement restent confidentiels et ne sont jamais exposes aux autres utilisateurs."
+                )}</p>
+
+                <h3>{t("8. Data Retention", "8. Conservation des donnees")}</h3>
+                <p>{t(
+                  "We retain your data only as long as your account is active or as needed to provide services. Upon account deletion, your personal data is permanently removed within 30 days.",
+                  "Nous conservons vos donnees uniquement tant que votre compte est actif ou selon les besoins pour fournir des services. Apres la suppression du compte, vos donnees personnelles sont definitivement supprimees dans les 30 jours."
+                )}</p>
+
+                <h3>{t("9. Changes to This Policy", "9. Modifications de cette politique")}</h3>
+                <p>{t(
+                  "We may update this policy from time to time. We will notify you of significant changes via email or through the platform.",
+                  "Nous pouvons mettre a jour cette politique de temps a autre. Nous vous informerons des changements importants par email ou via la plateforme."
+                )}</p>
+
+                <h3>{t("10. Contact", "10. Contact")}</h3>
+                <p>{t(
+                  "For privacy-related questions, contact us at privacy@vaulty.com.",
+                  "Pour toute question relative a la confidentialite, contactez-nous a privacy@vaulty.com."
+                )}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
