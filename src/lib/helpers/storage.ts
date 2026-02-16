@@ -27,60 +27,37 @@ export async function uploadFileWithProgress(
   file: File,
   onProgress: (percent: number) => void
 ): Promise<string | null> {
-  // First do a quick SDK upload attempt to get the auth working,
-  // but use XHR for progress tracking with token from SDK
   const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  // Get token with timeout: if getSession hangs, fallback to anon key
-  let token = anonKey;
+  // Simulate progress while SDK upload runs
+  let progress = 0;
+  const estimatedMs = Math.max(1000, (file.size / 1024 / 1024) * 2000); // ~2s per MB
+  const interval = setInterval(() => {
+    progress = Math.min(progress + Math.random() * 15, 90);
+    onProgress(Math.round(progress));
+  }, estimatedMs / 10);
+
   try {
-    const sessionResult = await Promise.race([
-      supabase.auth.getSession(),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
-    ]);
-    if (sessionResult && "data" in sessionResult && sessionResult.data.session?.access_token) {
-      token = sessionResult.data.session.access_token;
-    }
-  } catch {
-    // fallback to anon key
-  }
-  console.log("[UPLOAD] Token type:", token === anonKey ? "anon" : "session");
-
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    const url = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
-
-    xhr.upload.addEventListener("progress", (e) => {
-      if (e.lengthComputable) {
-        onProgress(Math.round((e.loaded / e.total) * 100));
-      }
+    const { error } = await supabase.storage.from(bucket).upload(path, file, {
+      upsert: true,
     });
 
-    xhr.addEventListener("load", () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress(100);
-        resolve(path);
-      } else {
-        console.error("[UPLOAD] Failed:", xhr.status, xhr.responseText);
-        onProgress(0);
-        resolve(null);
-      }
-    });
+    clearInterval(interval);
 
-    xhr.addEventListener("error", () => {
-      console.error("[UPLOAD] Network error");
+    if (error) {
+      console.error("[UPLOAD] Failed:", error.message);
       onProgress(0);
-      resolve(null);
-    });
+      return null;
+    }
 
-    xhr.open("POST", url);
-    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-    xhr.setRequestHeader("apikey", anonKey);
-    xhr.setRequestHeader("x-upsert", "true");
-    xhr.send(file);
-  });
+    onProgress(100);
+    return path;
+  } catch (err) {
+    clearInterval(interval);
+    console.error("[UPLOAD] Exception:", err);
+    onProgress(0);
+    return null;
+  }
 }
 
 export async function deleteFile(
