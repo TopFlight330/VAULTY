@@ -78,7 +78,7 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
 
   try {
     await resend.emails.send({
-      from: "Vaulty <onboarding@resend.dev>",
+      from: "Vaulty <noreply@vaulty.com>",
       to: data.email,
       subject: "Confirm your Vaulty email",
       html: getConfirmEmailHtml(data.nickname, confirmUrl),
@@ -134,7 +134,7 @@ export async function confirmEmail(token: string): Promise<AuthActionResult> {
     const name = userData.user.user_metadata?.nickname || userData.user.email.split("@")[0];
     try {
       await resend.emails.send({
-        from: "Vaulty <onboarding@resend.dev>",
+        from: "Vaulty <noreply@vaulty.com>",
         to: userData.user.email,
         subject: "Welcome to Vaulty!",
         html: getWelcomeEmailHtml(name),
@@ -196,7 +196,7 @@ export async function resendConfirmation(email: string): Promise<AuthActionResul
 
   try {
     await resend.emails.send({
-      from: "Vaulty <onboarding@resend.dev>",
+      from: "Vaulty <noreply@vaulty.com>",
       to: email,
       subject: "Confirm your Vaulty email",
       html: getConfirmEmailHtml(name, confirmUrl),
@@ -310,7 +310,7 @@ export async function forgotPassword(data: {
   // Send email via Resend
   try {
     await resend.emails.send({
-      from: "Vaulty <onboarding@resend.dev>",
+      from: "Vaulty <noreply@vaulty.com>",
       to: data.email,
       subject: "Reset your Vaulty password",
       html: getResetPasswordEmailHtml(resetUrl),

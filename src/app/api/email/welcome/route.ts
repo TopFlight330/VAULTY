@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const { email, name } = await request.json();
 
     const { data, error } = await resend.emails.send({
-      from: "Vaulty <onboarding@resend.dev>",
+      from: "Vaulty <noreply@vaulty.com>",
       to: email,
       subject: "Welcome to Vaulty!",
       html: getWelcomeEmailHtml(name),
