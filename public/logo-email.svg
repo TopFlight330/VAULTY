@@ -1,21 +1,9 @@
-<svg width="160" height="36" viewBox="0 0 160 36" xmlns="http://www.w3.org/2000/svg">
+<svg width="110" height="30" viewBox="0 0 110 30" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="g" x1="46" y1="0" x2="160" y2="36" gradientUnits="userSpaceOnUse">
+    <linearGradient id="g" x1="0" y1="0" x2="110" y2="30" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#f43f8e"/>
       <stop offset="100%" stop-color="#8b5cf6"/>
     </linearGradient>
   </defs>
-  <!-- Icon box -->
-  <rect x="1" y="1" width="34" height="34" rx="10" fill="rgba(244,63,142,0.1)" stroke="rgba(244,63,142,0.35)" stroke-width="1.5"/>
-  <!-- Vault circle -->
-  <circle cx="18" cy="18" r="10" fill="none" stroke="#f43f8e" stroke-width="2"/>
-  <!-- Center dot -->
-  <circle cx="18" cy="18" r="2.5" fill="#f43f8e"/>
-  <!-- Spokes -->
-  <line x1="18" y1="13" x2="18" y2="23" stroke="#f43f8e" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="13" y1="18" x2="23" y2="18" stroke="#f43f8e" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="14.46" y1="14.46" x2="21.54" y2="21.54" stroke="#f43f8e" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="21.54" y1="14.46" x2="14.46" y2="21.54" stroke="#f43f8e" stroke-width="1.5" stroke-linecap="round"/>
-  <!-- Vaulty gradient text -->
-  <text x="46" y="26" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="22" font-weight="900" letter-spacing="1.5" fill="url(#g)">Vaulty</text>
+  <text x="0" y="24" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="26" font-weight="900" letter-spacing="1.5" fill="url(#g)">Vaulty</text>
 </svg>

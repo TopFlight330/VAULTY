@@ -17,7 +17,7 @@ export function getWelcomeEmailHtml(name: string): string {
           <tr><td style="height:3px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);"></td></tr>
           <tr>
             <td style="padding:36px 36px 0;">
-              <img src="${process.env.NEXT_PUBLIC_SITE_URL || 'https://vaulty.com'}/logo-email.svg" width="160" height="36" alt="Vaulty" style="display:block;" />
+              <img src="${process.env.NEXT_PUBLIC_SITE_URL || 'https://vaulty.com'}/logo-email.svg" width="110" height="30" alt="Vaulty" style="display:block;" />
             </td>
           </tr>
           <tr>
