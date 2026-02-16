@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { createClient } from "@/lib/supabase/client";
@@ -31,7 +31,8 @@ export default function ContentPage() {
   // Post editor state
   const [editorTitle, setEditorTitle] = useState("");
   const [editorBody, setEditorBody] = useState("");
-  const [editorVisibility, setEditorVisibility] = useState<Visibility>("free");
+  const [editorVisibility, setEditorVisibility] = useState<Visibility>("premium");
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [editorPpvPrice, setEditorPpvPrice] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [creating, setCreating] = useState(false);
@@ -93,6 +94,39 @@ export default function ContentPage() {
     }
   };
 
+  // Text formatting helpers
+  const insertFormat = (prefix: string, suffix: string) => {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = editorBody;
+    const selected = text.substring(start, end);
+    const newText = text.substring(0, start) + prefix + selected + suffix + text.substring(end);
+    setEditorBody(newText);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(start + prefix.length, end + prefix.length);
+    }, 0);
+  };
+
+  const insertEmoji = () => {
+    const emojis = ["😀","😍","🔥","❤️","👀","💰","🎉","✨","💎","🚀","👑","🎬"];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const ta = bodyRef.current;
+    if (!ta) {
+      setEditorBody((prev) => prev + emoji);
+      return;
+    }
+    const pos = ta.selectionStart;
+    const text = editorBody;
+    setEditorBody(text.substring(0, pos) + emoji + text.substring(pos));
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(pos + emoji.length, pos + emoji.length);
+    }, 0);
+  };
+
   const removeUploadedFile = (path: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.storagePath !== path));
     deleteFile("post-media", path);
@@ -143,7 +177,7 @@ export default function ContentPage() {
   const resetEditor = () => {
     setEditorTitle("");
     setEditorBody("");
-    setEditorVisibility("free");
+    setEditorVisibility("premium");
     setEditorPpvPrice("");
     setUploadedFiles([]);
   };
@@ -250,7 +284,41 @@ export default function ContentPage() {
 
             <div className={s.formGroup}>
               <label className={s.formGroup}>Description</label>
+              <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
+                {[
+                  { label: "😀", action: () => insertEmoji(), title: "Emoji" },
+                  { label: "B", action: () => insertFormat("**", "**"), title: "Bold", fw: 800 },
+                  { label: "I", action: () => insertFormat("*", "*"), title: "Italic", fs: "italic" },
+                  { label: "U", action: () => insertFormat("<u>", "</u>"), title: "Underline", td: "underline" },
+                ].map((btn) => (
+                  <button
+                    key={btn.title}
+                    type="button"
+                    title={btn.title}
+                    onClick={btn.action}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "var(--input-bg)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      color: "var(--text)",
+                      cursor: "pointer",
+                      fontSize: "0.85rem",
+                      fontWeight: (btn as { fw?: number }).fw || 600,
+                      fontStyle: (btn as { fs?: string }).fs || "normal",
+                      textDecoration: (btn as { td?: string }).td || "none",
+                    }}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
+              </div>
               <textarea
+                ref={bodyRef}
                 className={`${s.formInput} ${s.formInputTextarea}`}
                 rows={3}
                 placeholder="Write something..."
@@ -259,33 +327,50 @@ export default function ContentPage() {
               />
             </div>
 
-            <div className={s.formRow}>
-              <div className={s.formGroup} style={{ marginBottom: 0 }}>
-                <label className={s.formGroup}>Visibility</label>
-                <select
-                  className={`${s.formInput} ${s.formInputSelect}`}
-                  value={editorVisibility}
-                  onChange={(e) => setEditorVisibility(e.target.value as Visibility)}
-                >
-                  <option value="free">Free</option>
-                  <option value="premium">Premium (Subscribers only)</option>
-                  <option value="ppv">Pay-Per-View</option>
-                </select>
+            <div className={s.formGroup}>
+              <label className={s.formGroup}>Visibility</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {([
+                  { value: "free" as Visibility, label: "Free", color: "var(--success)" },
+                  { value: "premium" as Visibility, label: "Premium", color: "var(--purple)" },
+                  { value: "ppv" as Visibility, label: "Pay-Per-View", color: "var(--warning)" },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setEditorVisibility(opt.value)}
+                    style={{
+                      flex: 1,
+                      padding: "0.55rem 0.5rem",
+                      borderRadius: 10,
+                      border: editorVisibility === opt.value ? `2px solid ${opt.color}` : "2px solid var(--border)",
+                      background: editorVisibility === opt.value ? `${opt.color}15` : "var(--input-bg)",
+                      color: editorVisibility === opt.value ? opt.color : "var(--dim)",
+                      fontWeight: 700,
+                      fontSize: "0.78rem",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
-              {editorVisibility === "ppv" && (
-                <div className={s.formGroup} style={{ marginBottom: 0 }}>
-                  <label className={s.formGroup}>PPV Price (credits)</label>
-                  <input
-                    type="number"
-                    className={s.formInput}
-                    placeholder="e.g. 50"
-                    value={editorPpvPrice}
-                    onChange={(e) => setEditorPpvPrice(e.target.value)}
-                    min="1"
-                  />
-                </div>
-              )}
             </div>
+
+            {editorVisibility === "ppv" && (
+              <div className={s.formGroup}>
+                <label className={s.formGroup}>PPV Price (credits)</label>
+                <input
+                  type="number"
+                  className={s.formInput}
+                  placeholder="e.g. 50"
+                  value={editorPpvPrice}
+                  onChange={(e) => setEditorPpvPrice(e.target.value)}
+                  min="1"
+                />
+              </div>
+            )}
 
             <div style={{ marginBottom: "1.5rem" }}>
               <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "var(--dim)", marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
