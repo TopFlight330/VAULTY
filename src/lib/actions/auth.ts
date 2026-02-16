@@ -125,7 +125,7 @@ export async function forgotPassword(data: {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vaulty.com";
 
   const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-    redirectTo: `${siteUrl}/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
   });
 
   if (error) {
