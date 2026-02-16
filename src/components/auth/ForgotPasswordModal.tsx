@@ -38,7 +38,7 @@ export function ForgotPasswordModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Forgot password?" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title="Forgot password?">
       <p
         style={{
           fontSize: "0.88rem",

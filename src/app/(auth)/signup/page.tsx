@@ -112,11 +112,7 @@ export default function SignupPage() {
           {/* Creator-only fields */}
           {accountType === "creator" && (
             <>
-              <label className={s.formGroup} style={{ marginBottom: "0.6rem" }}>
-                <span style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--dim)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Category
-                </span>
-              </label>
+              <label className={s.fieldLabel}>Category</label>
               <div className={s.catSelector}>
                 {CREATOR_CATEGORIES.map((cat) => (
                   <button
@@ -131,9 +127,7 @@ export default function SignupPage() {
                 ))}
               </div>
 
-              <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--dim)", marginBottom: "0.6rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Your social reach
-              </label>
+              <label className={s.fieldLabel}>Your social reach</label>
               <div className={s.socialReach}>
                 {SOCIAL_REACH_OPTIONS.map((opt) => (
                   <button

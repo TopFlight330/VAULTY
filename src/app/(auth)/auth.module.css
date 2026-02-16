@@ -48,7 +48,7 @@
 }
 .subtitle {
     font-size: 0.88rem; color: var(--dim);
-    margin-bottom: 2rem; line-height: 1.5;
+    margin-bottom: 1.5rem; line-height: 1.5;
 }
 
 /* Form */
@@ -126,7 +126,7 @@
 }
 .authSubmitMargin {
     composes: authSubmit;
-    margin-top: 0.5rem;
+    margin-top: 0.8rem;
 }
 
 /* Loading spinner inside button */
@@ -191,7 +191,7 @@
 
 /* Account type selector */
 .typeSelector {
-    display: flex; gap: 0.75rem; margin-bottom: 1.8rem;
+    display: flex; gap: 0.75rem; margin-bottom: 1.5rem;
 }
 .typeOpt {
     flex: 1; padding: 1rem;
@@ -223,9 +223,16 @@
     margin-top: 2px; display: block;
 }
 
+/* Standalone field label (above selectors) */
+.fieldLabel {
+    display: block; font-size: 0.78rem; font-weight: 700;
+    color: var(--dim); margin-bottom: 0.5rem;
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+
 /* Category selector (reuses typeSelector layout) */
 .catSelector {
-    display: flex; gap: 0.75rem; margin-bottom: 1.5rem;
+    display: flex; gap: 0.75rem; margin-bottom: 1.2rem;
 }
 .catOpt {
     flex: 1; padding: 0.75rem;
