@@ -11,6 +11,12 @@ import {
   validateNickname,
 } from "@/lib/validations/auth";
 
+function getSiteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+}
+
 export async function signup(data: SignupFormData): Promise<AuthActionResult> {
   const emailErr = validateEmail(data.email);
   if (emailErr) return { success: false, message: emailErr };
@@ -22,7 +28,7 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
   if (nickErr) return { success: false, message: nickErr };
 
   const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vaulty.com";
+  const siteUrl = getSiteUrl();
 
   const { data: signUpData, error } = await supabase.auth.signUp({
     email: data.email,
@@ -122,7 +128,7 @@ export async function forgotPassword(data: {
 
   const supabase = await createClient();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vaulty.com";
+  const siteUrl = getSiteUrl();
 
   const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
     redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
