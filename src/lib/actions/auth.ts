@@ -24,7 +24,7 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
   const supabase = await createClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vaulty.com";
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signUpData, error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
@@ -40,6 +40,11 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
 
   if (error) {
     return { success: false, message: error.message };
+  }
+
+  // Supabase returns empty identities when the email already exists
+  if (signUpData.user?.identities?.length === 0) {
+    return { success: false, message: "An account with this email already exists." };
   }
 
   // Send welcome email via Resend (non-blocking, don't fail signup if this fails)
