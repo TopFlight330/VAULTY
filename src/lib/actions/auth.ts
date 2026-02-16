@@ -22,6 +22,7 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
   if (nickErr) return { success: false, message: nickErr };
 
   const supabase = await createClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const { error } = await supabase.auth.signUp({
     email: data.email,
@@ -33,6 +34,7 @@ export async function signup(data: SignupFormData): Promise<AuthActionResult> {
         category: data.category,
         social_reach: data.socialReach,
       },
+      emailRedirectTo: `${siteUrl}/auth/callback`,
     },
   });
 

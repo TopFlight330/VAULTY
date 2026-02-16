@@ -35,7 +35,7 @@ export function getWelcomeEmailHtml(name: string): string {
               <table cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="border-radius:10px;background:linear-gradient(135deg,#f43f8e,#8b5cf6);">
-                    <a href="\${process.env.NEXT_PUBLIC_SITE_URL || 'https://vaulty.com'}/login" style="display:inline-block;padding:12px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;">
+                    <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://vaulty.com'}/login" style="display:inline-block;padding:12px 32px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;">
                       Go to my dashboard
                     </a>
                   </td>
