@@ -27,27 +27,29 @@ export async function uploadFileWithProgress(
   file: File,
   onProgress: (percent: number) => void
 ): Promise<string | null> {
-  console.log("[UPLOAD] Starting upload:", { bucket, path, fileName: file.name, fileSize: file.size, fileType: file.type });
+  console.log("[UPLOAD] Starting:", file.name, file.size);
   const supabase = createClient();
-
-  const { data: { session } } = await supabase.auth.getSession();
-  console.log("[UPLOAD] Session:", session ? "active" : "NO SESSION");
-
   onProgress(10);
 
-  const { data, error } = await supabase.storage.from(bucket).upload(path, file, {
-    upsert: true,
-  });
+  try {
+    const { data, error } = await supabase.storage.from(bucket).upload(path, file, {
+      upsert: true,
+    });
 
-  if (error) {
-    console.error("[UPLOAD] Failed:", error.message, error);
+    if (error) {
+      console.error("[UPLOAD] Failed:", error.message);
+      onProgress(0);
+      return null;
+    }
+
+    console.log("[UPLOAD] Success:", data?.path);
+    onProgress(100);
+    return path;
+  } catch (err) {
+    console.error("[UPLOAD] Exception:", err);
     onProgress(0);
     return null;
   }
-
-  console.log("[UPLOAD] Success:", data);
-  onProgress(100);
-  return path;
 }
 
 export async function deleteFile(
