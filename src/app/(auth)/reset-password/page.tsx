@@ -1,18 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/hooks/useToast";
 import { resetPassword } from "@/lib/actions/auth";
 import { validatePasswordMatch } from "@/lib/validations/auth";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const token = searchParams.get("token");
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { showToast } = useToast();
+
+  // No token = invalid link
+  if (!token) {
+    return (
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--border)",
+          borderRadius: "16px",
+          padding: "2.5rem",
+          textAlign: "center",
+        }}
+      >
+        <h1
+          style={{
+            fontFamily: "var(--font-sora), 'Sora', sans-serif",
+            fontSize: "1.5rem",
+            fontWeight: 800,
+            marginBottom: "0.4rem",
+          }}
+        >
+          Invalid reset link
+        </h1>
+        <p
+          style={{
+            fontSize: "0.88rem",
+            color: "var(--dim)",
+            marginBottom: "2rem",
+            lineHeight: 1.5,
+          }}
+        >
+          This link is invalid or has expired. Please request a new one.
+        </p>
+        <Link href="/forgot-password">
+          <Button variant="primary" fullWidth>
+            Request new link
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +73,12 @@ export default function ResetPasswordPage() {
 
     setIsLoading(true);
 
-    const result = await resetPassword({ password });
+    const result = await resetPassword({ token, password });
 
-    if (result && !result.success) {
+    if (result.success) {
+      showToast(result.message, "success");
+      router.push("/login");
+    } else {
       showToast(result.message, "error");
     }
 
@@ -95,5 +145,13 @@ export default function ResetPasswordPage() {
         </Button>
       </form>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

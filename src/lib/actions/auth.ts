@@ -1,8 +1,11 @@
 "use server";
 
+import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { resend } from "@/lib/resend";
 import { getWelcomeEmailHtml } from "@/lib/emails/welcome-template";
+import { getResetPasswordEmailHtml } from "@/lib/emails/reset-password-template";
 import { redirect } from "next/navigation";
 import type { AuthActionResult, SignupFormData } from "@/types/auth";
 import {
@@ -15,6 +18,10 @@ function getSiteUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
   if (process.env.URL) return process.env.URL;
   return "https://vaulty.com";
+}
+
+function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
 export async function signup(data: SignupFormData): Promise<AuthActionResult> {
@@ -124,16 +131,49 @@ export async function forgotPassword(data: {
   const emailErr = validateEmail(data.email);
   if (emailErr) return { success: false, message: emailErr };
 
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
-  const siteUrl = getSiteUrl();
+  // Find user by email
+  const { data: usersData } = await admin.auth.admin.listUsers();
+  const user = usersData?.users?.find((u) => u.email === data.email);
 
-  const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-    redirectTo: `${siteUrl}/auth/callback?next=/reset-password`,
+  // Always return success to prevent email enumeration
+  if (!user) {
+    return {
+      success: true,
+      message: "If an account exists with this email, you'll receive a reset link.",
+    };
+  }
+
+  // Generate a random token and hash it for storage
+  const rawToken = crypto.randomUUID();
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+  // Invalidate any existing tokens for this user
+  await admin.from("password_resets").delete().eq("user_id", user.id);
+
+  // Store the hashed token
+  await admin.from("password_resets").insert({
+    user_id: user.id,
+    token_hash: tokenHash,
+    expires_at: expiresAt,
   });
 
-  if (error) {
-    return { success: false, message: error.message };
+  // Build reset URL with raw token
+  const siteUrl = getSiteUrl();
+  const resetUrl = `${siteUrl}/reset-password?token=${rawToken}`;
+
+  // Send email via Resend
+  try {
+    await resend.emails.send({
+      from: "Vaulty <onboarding@resend.dev>",
+      to: data.email,
+      subject: "Reset your Vaulty password",
+      html: getResetPasswordEmailHtml(resetUrl),
+    });
+  } catch {
+    return { success: false, message: "Failed to send reset email. Please try again." };
   }
 
   return {
@@ -143,20 +183,52 @@ export async function forgotPassword(data: {
 }
 
 export async function resetPassword(data: {
+  token: string;
   password: string;
 }): Promise<AuthActionResult> {
+  if (!data.token) {
+    return { success: false, message: "Invalid reset link." };
+  }
+
   const pwErr = validatePassword(data.password);
   if (pwErr) return { success: false, message: pwErr };
 
-  const supabase = await createClient();
+  const admin = createAdminClient();
+  const tokenHash = hashToken(data.token);
 
-  const { error } = await supabase.auth.updateUser({
-    password: data.password,
-  });
+  // Find the reset record
+  const { data: resetRecord, error: findErr } = await admin
+    .from("password_resets")
+    .select("*")
+    .eq("token_hash", tokenHash)
+    .eq("used", false)
+    .single();
 
-  if (error) {
-    return { success: false, message: error.message };
+  if (findErr || !resetRecord) {
+    return { success: false, message: "Invalid or expired reset link." };
   }
 
-  redirect("/login");
+  // Check expiry
+  if (new Date(resetRecord.expires_at) < new Date()) {
+    await admin.from("password_resets").delete().eq("id", resetRecord.id);
+    return { success: false, message: "This reset link has expired. Please request a new one." };
+  }
+
+  // Update password via admin API
+  const { error: updateErr } = await admin.auth.admin.updateUserById(
+    resetRecord.user_id,
+    { password: data.password }
+  );
+
+  if (updateErr) {
+    return { success: false, message: updateErr.message };
+  }
+
+  // Mark token as used
+  await admin.from("password_resets").update({ used: true }).eq("id", resetRecord.id);
+
+  return {
+    success: true,
+    message: "Password updated! You can now log in.",
+  };
 }
