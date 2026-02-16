@@ -19,6 +19,8 @@
   --warning: #f5c542;
   --gold: #f5c542;
   --grad: linear-gradient(135deg, #f43f8e, #8b5cf6);
+  --topbar-h: 64px;
+  --sidebar-w: 260px;
 }
 
 body {

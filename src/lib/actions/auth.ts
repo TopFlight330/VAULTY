@@ -78,7 +78,7 @@ export async function login(data: {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({
     email: data.email,
     password: data.password,
   });
@@ -87,7 +87,25 @@ export async function login(data: {
     return { success: false, message: error.message };
   }
 
-  redirect("/dashboard");
+  // Route by profile role
+  let destination = "/dashboard/client";
+  if (signInData.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, is_banned")
+      .eq("id", signInData.user.id)
+      .single();
+
+    if (profile?.is_banned) {
+      await supabase.auth.signOut();
+      return { success: false, message: "Your account has been suspended." };
+    }
+
+    if (profile?.role === "creator") destination = "/dashboard";
+    else if (profile?.role === "admin") destination = "/admin";
+  }
+
+  redirect(destination);
 }
 
 export async function logout(): Promise<void> {

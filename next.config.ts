@@ -5,6 +5,14 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: "/@:username",
+        destination: "/creator-page/:username",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

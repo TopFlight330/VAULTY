@@ -9,15 +9,73 @@ export interface ToastData {
   duration: number;
 }
 
-const variantStyles: Record<
+const variantConfig: Record<
   ToastVariant,
-  { border: string; icon: string }
+  { bg: string; border: string; color: string; glow: string }
 > = {
-  success: { border: "var(--success)", icon: "\u2713" },
-  error: { border: "var(--danger)", icon: "\u2715" },
-  info: { border: "var(--purple)", icon: "i" },
-  warning: { border: "var(--warning)", icon: "!" },
+  success: {
+    bg: "rgba(34, 197, 94, 0.08)",
+    border: "rgba(34, 197, 94, 0.25)",
+    color: "#22c55e",
+    glow: "0 0 20px rgba(34, 197, 94, 0.15)",
+  },
+  error: {
+    bg: "rgba(239, 68, 68, 0.08)",
+    border: "rgba(239, 68, 68, 0.25)",
+    color: "#ef4444",
+    glow: "0 0 20px rgba(239, 68, 68, 0.15)",
+  },
+  info: {
+    bg: "rgba(139, 92, 246, 0.08)",
+    border: "rgba(139, 92, 246, 0.25)",
+    color: "#8b5cf6",
+    glow: "0 0 20px rgba(139, 92, 246, 0.15)",
+  },
+  warning: {
+    bg: "rgba(245, 197, 66, 0.08)",
+    border: "rgba(245, 197, 66, 0.25)",
+    color: "#f5c542",
+    glow: "0 0 20px rgba(245, 197, 66, 0.15)",
+  },
 };
+
+function ToastIcon({ variant }: { variant: ToastVariant }) {
+  const color = variantConfig[variant].color;
+
+  if (variant === "success") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+      </svg>
+    );
+  }
+  if (variant === "error") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
+      </svg>
+    );
+  }
+  if (variant === "warning") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  );
+}
 
 interface ToastItemProps {
   toast: ToastData;
@@ -25,45 +83,31 @@ interface ToastItemProps {
 }
 
 export function ToastItem({ toast, onDismiss }: ToastItemProps) {
-  const vs = variantStyles[toast.variant];
+  const config = variantConfig[toast.variant];
 
   return (
     <div
       style={{
         position: "relative",
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "center",
         gap: "0.75rem",
-        background: "var(--card)",
-        border: "1px solid var(--border)",
-        borderRadius: "12px",
-        padding: "0.85rem 1.2rem",
-        boxShadow: "0 16px 48px rgba(0,0,0,0.4)",
-        minWidth: "300px",
-        maxWidth: "400px",
-        animation: "slideInRight 200ms ease-out",
-        borderLeftWidth: "4px",
-        borderLeftColor: vs.border,
+        background: config.bg,
+        backdropFilter: "blur(16px)",
+        border: `1px solid ${config.border}`,
+        borderRadius: "14px",
+        padding: "0.85rem 1.1rem",
+        boxShadow: `0 8px 32px rgba(0,0,0,0.3), ${config.glow}`,
+        minWidth: "320px",
+        maxWidth: "420px",
+        animation: "slideInRight 250ms cubic-bezier(0.16, 1, 0.3, 1)",
+        overflow: "hidden",
+        pointerEvents: "auto",
       }}
     >
       {/* Icon */}
-      <span
-        style={{
-          flexShrink: 0,
-          width: "20px",
-          height: "20px",
-          borderRadius: "50%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.7rem",
-          fontWeight: 700,
-          color: "#fff",
-          marginTop: "1px",
-          background: vs.border,
-        }}
-      >
-        {vs.icon}
+      <span style={{ flexShrink: 0, display: "flex" }}>
+        <ToastIcon variant={toast.variant} />
       </span>
 
       {/* Message */}
@@ -72,8 +116,9 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
           fontSize: "0.85rem",
           fontWeight: 600,
           color: "var(--text)",
-          lineHeight: 1.4,
+          lineHeight: 1.45,
           flex: 1,
+          margin: 0,
         }}
       >
         {toast.message}
@@ -88,8 +133,20 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
           background: "none",
           border: "none",
           cursor: "pointer",
-          marginTop: "1px",
-          transition: "color 0.2s",
+          padding: "2px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "6px",
+          transition: "all 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = "var(--text)";
+          e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = "var(--muted)";
+          e.currentTarget.style.background = "none";
         }}
       >
         <svg
@@ -114,14 +171,14 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
           right: 0,
           height: "2px",
           overflow: "hidden",
-          borderRadius: "0 0 12px 12px",
+          borderRadius: "0 0 14px 14px",
         }}
       >
         <div
           style={{
             height: "100%",
-            borderRadius: "0 0 12px 12px",
-            background: vs.border,
+            background: config.color,
+            opacity: 0.6,
             animation: `shrink ${toast.duration}ms linear forwards`,
           }}
         />
