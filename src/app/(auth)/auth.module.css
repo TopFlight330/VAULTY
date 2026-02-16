@@ -201,6 +201,7 @@
     cursor: pointer; text-align: center;
     transition: all 0.2s;
     font-family: inherit;
+    color: var(--text);
 }
 .typeOpt:hover { border-color: var(--muted); }
 .typeOptActive {
@@ -234,6 +235,7 @@
     cursor: pointer; text-align: center;
     transition: all 0.2s;
     font-family: inherit;
+    color: var(--text);
 }
 .catOpt:hover { border-color: var(--muted); }
 .catOptActive {
@@ -255,6 +257,7 @@
     padding: 0.8rem; text-align: center;
     cursor: pointer; transition: all 0.2s;
     font-family: inherit;
+    color: var(--text);
 }
 .reachBox:hover { border-color: var(--muted); }
 .reachBoxActive {

@@ -36,19 +36,6 @@ export default function LoginPage() {
 
   return (
     <>
-      {/* Logo */}
-      <Link href="/" className={s.authLogo}>
-        <div className={s.authLogoIcon}>
-          <div className={s.authLogoVault}>
-            <div className={s.sp} style={{ transform: "rotate(0deg)" }} />
-            <div className={s.sp} style={{ transform: "rotate(90deg)" }} />
-            <div className={s.sp} style={{ transform: "rotate(45deg)" }} />
-            <div className={s.sp} style={{ transform: "rotate(135deg)" }} />
-          </div>
-        </div>
-        <span className={s.authLogoText}>Vaulty</span>
-      </Link>
-
       {/* Card */}
       <div className={s.authCard}>
         <h1>Welcome back</h1>

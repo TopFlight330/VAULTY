@@ -48,19 +48,6 @@ export default function SignupPage() {
 
   return (
     <>
-      {/* Logo */}
-      <Link href="/" className={s.authLogo}>
-        <div className={s.authLogoIcon}>
-          <div className={s.authLogoVault}>
-            <div className={s.sp} style={{ transform: "rotate(0deg)" }} />
-            <div className={s.sp} style={{ transform: "rotate(90deg)" }} />
-            <div className={s.sp} style={{ transform: "rotate(45deg)" }} />
-            <div className={s.sp} style={{ transform: "rotate(135deg)" }} />
-          </div>
-        </div>
-        <span className={s.authLogoText}>Vaulty</span>
-      </Link>
-
       {/* Card */}
       <div className={s.authCard}>
         <h1>Create an account</h1>
@@ -73,7 +60,6 @@ export default function SignupPage() {
             className={accountType === "subscriber" ? s.typeOptActive : s.typeOpt}
             onClick={() => setAccountType("subscriber")}
           >
-            <span className={s.typeIcon}>&#128100;</span>
             <span className={s.typeLabel}>Subscriber</span>
             <span className={s.typeDesc}>Support creators</span>
           </button>
@@ -82,7 +68,6 @@ export default function SignupPage() {
             className={accountType === "creator" ? s.typeOptActive : s.typeOpt}
             onClick={() => setAccountType("creator")}
           >
-            <span className={s.typeIcon}>&#9733;</span>
             <span className={s.typeLabel}>Creator</span>
             <span className={s.typeDesc}>Sell your content</span>
           </button>
@@ -206,11 +191,6 @@ export default function SignupPage() {
         Already have an account? <Link href="/login">Log in</Link>
       </div>
 
-      {/* Terms */}
-      <div className={s.authTerms}>
-        By creating an account, you agree to Vaulty&apos;s{" "}
-        <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
-      </div>
     </>
   );
 }
