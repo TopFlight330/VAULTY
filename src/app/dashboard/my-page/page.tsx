@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { createClient } from "@/lib/supabase/client";
+import { getMyPageData } from "@/lib/actions/profile";
 import { createTier, updateTier, deleteTier } from "@/lib/actions/tiers";
-import type { Tier } from "@/types/database";
+import type { Tier, PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
 
 function getInitials(name: string): string {
@@ -21,6 +21,7 @@ export default function MyPagePage() {
   const { profile, user } = useAuth();
   const { showToast } = useToast();
   const [tiers, setTiers] = useState<Tier[]>([]);
+  const [posts, setPosts] = useState<PostWithMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [postCount, setPostCount] = useState(0);
   const [subCount, setSubCount] = useState(0);
@@ -36,29 +37,13 @@ export default function MyPagePage() {
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const supabase = createClient();
 
-    const [tiersResult, postsResult, subsResult] = await Promise.all([
-      supabase
-        .from("tiers")
-        .select("*")
-        .eq("creator_id", user.id)
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true }),
-      supabase
-        .from("posts")
-        .select("*", { count: "exact", head: true })
-        .eq("creator_id", user.id),
-      supabase
-        .from("subscriptions")
-        .select("*", { count: "exact", head: true })
-        .eq("creator_id", user.id)
-        .eq("status", "active"),
-    ]);
+    const { tiers: fetchedTiers, posts: fetchedPosts, postCount: fetchedPostCount, subCount: fetchedSubCount } = await getMyPageData();
 
-    setTiers(tiersResult.data ?? []);
-    setPostCount(postsResult.count ?? 0);
-    setSubCount(subsResult.count ?? 0);
+    setTiers(fetchedTiers);
+    setPosts(fetchedPosts);
+    setPostCount(fetchedPostCount);
+    setSubCount(fetchedSubCount);
     setLoading(false);
   }, [user]);
 
@@ -134,6 +119,25 @@ export default function MyPagePage() {
       .writeText(`https://${link}`)
       .then(() => showToast("Profile link copied to clipboard", "success"))
       .catch(() => showToast(`Profile link: https://${link}`, "info"));
+  };
+
+  const getThumbUrl = (post: PostWithMedia) => {
+    const img = post.media?.find((m) => m.media_type === "image");
+    if (!img) return null;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    return `${supabaseUrl}/storage/v1/object/public/post-media/${img.storage_path}`;
+  };
+
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+  const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+
+  const visibilityColor = (v: string) => {
+    if (v === "free") return "var(--success)";
+    if (v === "premium") return "var(--purple)";
+    if (v === "ppv") return "var(--warning)";
+    return "var(--dim)";
   };
 
   const displayName = profile?.display_name ?? "User";
@@ -352,6 +356,81 @@ export default function MyPagePage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      <div className={s.sectionTitle}>Posts</div>
+      {loading ? (
+        <div className={s.contentGrid}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={s.contentPost}>
+              <div className={s.contentThumb} />
+              <div className={s.contentBody}>
+                <div style={{ height: 16, width: "70%", background: "var(--input-bg)", borderRadius: 8, marginBottom: "0.5rem" }} />
+                <div style={{ height: 12, width: "40%", background: "var(--input-bg)", borderRadius: 8 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : posts.length === 0 ? (
+        <div style={{ padding: "2rem", textAlign: "center", color: "var(--dim)", fontSize: "0.9rem" }}>
+          No posts yet. Create your first post in the Content tab.
+        </div>
+      ) : (
+        <div className={s.contentGrid}>
+          {posts.map((post) => {
+            const thumbUrl = getThumbUrl(post);
+            return (
+              <div key={post.id} className={s.contentPost}>
+                <div className={s.contentThumb}>
+                  {thumbUrl ? (
+                    <img
+                      src={thumbUrl}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                  )}
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      padding: "0.2rem 0.55rem",
+                      borderRadius: 6,
+                      fontSize: "0.68rem",
+                      fontWeight: 700,
+                      background: `${visibilityColor(post.visibility)}20`,
+                      color: visibilityColor(post.visibility),
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {post.visibility === "ppv" ? "PPV" : capitalize(post.visibility)}
+                  </span>
+                </div>
+                <div className={s.contentBody}>
+                  <div className={s.contentTitle}>{post.title}</div>
+                  <div className={s.contentDate}>{formatDate(post.created_at)}</div>
+                  <div className={s.contentStats}>
+                    <span className={s.contentStat}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>
+                      {post.like_count.toLocaleString()}
+                    </span>
+                    <span className={s.contentStat}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                      {post.view_count.toLocaleString()}
+                    </span>
+                    {post.visibility === "ppv" && post.ppv_price && (
+                      <span className={s.contentStat} style={{ color: "var(--warning)" }}>
+                        {post.ppv_price} credits
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

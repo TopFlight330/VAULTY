@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { createPost, deletePost, addPostMedia, getMyPosts } from "@/lib/actions/posts";
+import { createPost, updatePost, deletePost, addPostMedia, getMyPosts } from "@/lib/actions/posts";
 import { uploadFileWithProgress, deleteFile } from "@/lib/helpers/storage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { MediaUploader } from "@/components/dashboard/shared/MediaUploader";
@@ -36,6 +36,7 @@ export default function ContentPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingPost, setEditingPost] = useState<PostWithMedia | null>(null);
 
   const fetchPosts = useCallback(async () => {
     const data = await getMyPosts();
@@ -132,7 +133,7 @@ export default function ContentPage() {
     deleteFile("post-media", path);
   };
 
-  const handleCreatePost = async () => {
+  const handleSavePost = async () => {
     const pendingUploads = uploadedFiles.some((f) => f.status === "uploading");
     if (pendingUploads) {
       showToast("Please wait for all files to finish uploading.", "error");
@@ -141,33 +142,63 @@ export default function ContentPage() {
 
     setCreating(true);
 
-    const result = await createPost({
-      title: editorTitle,
-      body: editorBody,
-      visibility: editorVisibility,
-      ppv_price: editorVisibility === "ppv" ? parseInt(editorPpvPrice) || 0 : undefined,
-    });
+    if (editingPost) {
+      // Update existing post
+      const result = await updatePost(editingPost.id, {
+        title: editorTitle,
+        body: editorBody,
+        visibility: editorVisibility,
+        ppv_price: editorVisibility === "ppv" ? parseInt(editorPpvPrice) || 0 : undefined,
+      });
 
-    if (!result.success) {
-      showToast(result.message, "error");
-      setCreating(false);
-      return;
-    }
+      if (!result.success) {
+        showToast(result.message, "error");
+        setCreating(false);
+        return;
+      }
 
-    // Link already-uploaded media to the post
-    if (result.postId) {
+      // Link any new uploaded media
       const successFiles = uploadedFiles.filter((f) => f.status === "done");
       for (let i = 0; i < successFiles.length; i++) {
         await addPostMedia({
-          postId: result.postId,
+          postId: editingPost.id,
           storagePath: successFiles[i].storagePath,
           mediaType: successFiles[i].mediaType,
-          sortOrder: i,
+          sortOrder: (editingPost.media?.length ?? 0) + i,
         });
       }
+
+      showToast("Post updated!", "success");
+    } else {
+      // Create new post
+      const result = await createPost({
+        title: editorTitle,
+        body: editorBody,
+        visibility: editorVisibility,
+        ppv_price: editorVisibility === "ppv" ? parseInt(editorPpvPrice) || 0 : undefined,
+      });
+
+      if (!result.success) {
+        showToast(result.message, "error");
+        setCreating(false);
+        return;
+      }
+
+      if (result.postId) {
+        const successFiles = uploadedFiles.filter((f) => f.status === "done");
+        for (let i = 0; i < successFiles.length; i++) {
+          await addPostMedia({
+            postId: result.postId,
+            storagePath: successFiles[i].storagePath,
+            mediaType: successFiles[i].mediaType,
+            sortOrder: i,
+          });
+        }
+      }
+
+      showToast("Post created!", "success");
     }
 
-    showToast("Post created!", "success");
     setShowEditor(false);
     resetEditor();
     setCreating(false);
@@ -181,6 +212,17 @@ export default function ContentPage() {
     setEditorPpvPrice("");
     setUploadedFiles([]);
     setShowEmojiPicker(false);
+    setEditingPost(null);
+  };
+
+  const openEditPost = (post: PostWithMedia) => {
+    setEditingPost(post);
+    setEditorTitle(post.title);
+    setEditorBody(post.body || "");
+    setEditorVisibility(post.visibility as Visibility);
+    setEditorPpvPrice(post.ppv_price?.toString() || "");
+    setUploadedFiles([]);
+    setShowEditor(true);
   };
 
   const handleDeletePost = async () => {
@@ -231,7 +273,7 @@ export default function ContentPage() {
           <h1>My Content</h1>
           <p>Manage your posts, photos, and videos.</p>
         </div>
-        <button className={s.btnGrad} onClick={() => setShowEditor(true)}>
+        <button className={s.btnGrad} onClick={() => { resetEditor(); setShowEditor(true); }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           New Post
         </button>
@@ -268,7 +310,7 @@ export default function ContentPage() {
             }}
           >
             <h2 style={{ fontFamily: "var(--font-sora)", fontWeight: 800, marginBottom: "1.5rem" }}>
-              Create New Post
+              {editingPost ? "Edit Post" : "Create New Post"}
             </h2>
 
             <div className={s.formGroup}>
@@ -497,11 +539,11 @@ export default function ContentPage() {
               </button>
               <button
                 className={s.btnSave}
-                onClick={handleCreatePost}
+                onClick={handleSavePost}
                 disabled={!canCreate}
                 style={{ flex: 1, opacity: canCreate ? 1 : 0.5 }}
               >
-                {creating ? "Creating..." : "Create Post"}
+                {creating ? "Saving..." : editingPost ? "Save Changes" : "Create Post"}
               </button>
             </div>
           </div>
@@ -530,7 +572,7 @@ export default function ContentPage() {
           <div style={{ fontSize: "0.88rem", color: "var(--dim)", marginBottom: "1.5rem", maxWidth: 320 }}>
             Create your first post to start sharing with your subscribers.
           </div>
-          <button className={s.btnGrad} onClick={() => setShowEditor(true)}>
+          <button className={s.btnGrad} onClick={() => { resetEditor(); setShowEditor(true); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Create First Post
           </button>
@@ -574,6 +616,13 @@ export default function ContentPage() {
                     )}
                   </div>
                   <div className={s.contentActions}>
+                    <button
+                      className={s.contentActionBtn}
+                      onClick={() => openEditPost(post)}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                      Edit
+                    </button>
                     <button
                       className={`${s.contentActionBtn} ${s.contentActionBtnDelete}`}
                       onClick={() => setDeleteTarget(post)}
