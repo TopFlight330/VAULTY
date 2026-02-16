@@ -27,29 +27,56 @@ export async function uploadFileWithProgress(
   file: File,
   onProgress: (percent: number) => void
 ): Promise<string | null> {
-  console.log("[UPLOAD] Starting:", file.name, file.size);
+  // First do a quick SDK upload attempt to get the auth working,
+  // but use XHR for progress tracking with token from SDK
   const supabase = createClient();
-  onProgress(10);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+  // Get token: try session, fallback to anon key
+  let token = anonKey;
   try {
-    const { data, error } = await supabase.storage.from(bucket).upload(path, file, {
-      upsert: true,
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.access_token) {
+      token = data.session.access_token;
+    }
+  } catch {
+    // fallback to anon key
+  }
+
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    const url = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
     });
 
-    if (error) {
-      console.error("[UPLOAD] Failed:", error.message);
-      onProgress(0);
-      return null;
-    }
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress(100);
+        resolve(path);
+      } else {
+        console.error("[UPLOAD] Failed:", xhr.status, xhr.responseText);
+        onProgress(0);
+        resolve(null);
+      }
+    });
 
-    console.log("[UPLOAD] Success:", data?.path);
-    onProgress(100);
-    return path;
-  } catch (err) {
-    console.error("[UPLOAD] Exception:", err);
-    onProgress(0);
-    return null;
-  }
+    xhr.addEventListener("error", () => {
+      console.error("[UPLOAD] Network error");
+      onProgress(0);
+      resolve(null);
+    });
+
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader("apikey", anonKey);
+    xhr.setRequestHeader("x-upsert", "true");
+    xhr.send(file);
+  });
 }
 
 export async function deleteFile(

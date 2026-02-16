@@ -463,7 +463,7 @@ export default function ContentPage() {
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           {f.status === "uploading" && (
                             <span style={{ fontSize: "0.75rem", color: "var(--purple)", fontWeight: 700 }}>
-                              Uploading...
+                              {f.progress}%
                             </span>
                           )}
                           <button
