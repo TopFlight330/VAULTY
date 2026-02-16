@@ -33,16 +33,20 @@ export async function uploadFileWithProgress(
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  // Get token: try session, fallback to anon key
+  // Get token with timeout: if getSession hangs, fallback to anon key
   let token = anonKey;
   try {
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.access_token) {
-      token = data.session.access_token;
+    const sessionResult = await Promise.race([
+      supabase.auth.getSession(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
+    ]);
+    if (sessionResult && "data" in sessionResult && sessionResult.data.session?.access_token) {
+      token = sessionResult.data.session.access_token;
     }
   } catch {
     // fallback to anon key
   }
+  console.log("[UPLOAD] Token type:", token === anonKey ? "anon" : "session");
 
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
