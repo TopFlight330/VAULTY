@@ -17,6 +17,54 @@ export async function uploadFile(
   return data.publicUrl;
 }
 
+/**
+ * Upload a file with real-time progress tracking via XMLHttpRequest.
+ * Returns the storage path on success, or null on failure.
+ */
+export function uploadFileWithProgress(
+  bucket: string,
+  path: string,
+  file: File,
+  onProgress: (percent: number) => void
+): Promise<string | null> {
+  return new Promise((resolve) => {
+    const supabase = createClient();
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const token = session?.access_token || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+      const xhr = new XMLHttpRequest();
+      const url = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      });
+
+      xhr.addEventListener("load", () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(path);
+        } else {
+          console.error("Upload failed:", xhr.status, xhr.responseText);
+          resolve(null);
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        console.error("Upload network error");
+        resolve(null);
+      });
+
+      xhr.open("POST", url);
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.setRequestHeader("x-upsert", "true");
+      xhr.send(file);
+    });
+  });
+}
+
 export async function deleteFile(
   bucket: string,
   path: string

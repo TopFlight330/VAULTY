@@ -4,16 +4,23 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { createClient } from "@/lib/supabase/client";
-import { createPost, deletePost } from "@/lib/actions/posts";
-import { uploadFile } from "@/lib/helpers/storage";
-import { addPostMedia } from "@/lib/actions/posts";
+import { createPost, deletePost, addPostMedia } from "@/lib/actions/posts";
+import { uploadFileWithProgress, deleteFile } from "@/lib/helpers/storage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { MediaUploader } from "@/components/dashboard/shared/MediaUploader";
 import type { PostWithMedia, Visibility } from "@/types/database";
 import s from "../dashboard.module.css";
 
+interface UploadedFile {
+  name: string;
+  storagePath: string;
+  mediaType: "image" | "video";
+  progress: number;
+  status: "uploading" | "done" | "error";
+}
+
 export default function ContentPage() {
-  const { profile, user } = useAuth();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [posts, setPosts] = useState<PostWithMedia[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +33,7 @@ export default function ContentPage() {
   const [editorBody, setEditorBody] = useState("");
   const [editorVisibility, setEditorVisibility] = useState<Visibility>("free");
   const [editorPpvPrice, setEditorPpvPrice] = useState("");
-  const [editorFiles, setEditorFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [creating, setCreating] = useState(false);
 
   const fetchPosts = useCallback(async () => {
@@ -45,8 +52,61 @@ export default function ContentPage() {
     fetchPosts();
   }, [fetchPosts]);
 
+  // Upload files immediately when selected
+  const handleFilesSelected = (files: File[]) => {
+    if (!user) return;
+
+    for (const file of files) {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/pending/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const mediaType: "image" | "video" = file.type.startsWith("video/") ? "video" : "image";
+
+      const entry: UploadedFile = {
+        name: file.name,
+        storagePath: path,
+        mediaType,
+        progress: 0,
+        status: "uploading",
+      };
+
+      setUploadedFiles((prev) => [...prev, entry]);
+
+      // Start upload immediately (no await — runs in parallel)
+      uploadFileWithProgress("post-media", path, file, (percent) => {
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.storagePath === path ? { ...f, progress: percent } : f
+          )
+        );
+      }).then((result) => {
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.storagePath === path
+              ? { ...f, status: result ? "done" : "error", progress: 100 }
+              : f
+          )
+        );
+        if (!result) {
+          showToast(`Failed to upload ${file.name}`, "error");
+        }
+      });
+    }
+  };
+
+  const removeUploadedFile = (path: string) => {
+    setUploadedFiles((prev) => prev.filter((f) => f.storagePath !== path));
+    deleteFile("post-media", path);
+  };
+
   const handleCreatePost = async () => {
+    const pendingUploads = uploadedFiles.some((f) => f.status === "uploading");
+    if (pendingUploads) {
+      showToast("Please wait for all files to finish uploading.", "error");
+      return;
+    }
+
     setCreating(true);
+
     const result = await createPost({
       title: editorTitle,
       body: editorBody,
@@ -60,21 +120,16 @@ export default function ContentPage() {
       return;
     }
 
-    // Upload media files if any
-    if (result.postId && editorFiles.length > 0) {
-      for (let i = 0; i < editorFiles.length; i++) {
-        const file = editorFiles[i];
-        const ext = file.name.split(".").pop();
-        const path = `${user!.id}/${result.postId}/${Date.now()}_${i}.${ext}`;
-        const url = await uploadFile("post-media", path, file);
-        if (url) {
-          await addPostMedia({
-            postId: result.postId,
-            storagePath: path,
-            mediaType: file.type.startsWith("video/") ? "video" : "image",
-            sortOrder: i,
-          });
-        }
+    // Link already-uploaded media to the post
+    if (result.postId) {
+      const successFiles = uploadedFiles.filter((f) => f.status === "done");
+      for (let i = 0; i < successFiles.length; i++) {
+        await addPostMedia({
+          postId: result.postId,
+          storagePath: successFiles[i].storagePath,
+          mediaType: successFiles[i].mediaType,
+          sortOrder: i,
+        });
       }
     }
 
@@ -90,7 +145,7 @@ export default function ContentPage() {
     setEditorBody("");
     setEditorVisibility("free");
     setEditorPpvPrice("");
-    setEditorFiles([]);
+    setUploadedFiles([]);
   };
 
   const handleDeletePost = async () => {
@@ -132,6 +187,9 @@ export default function ContentPage() {
     return data.publicUrl;
   };
 
+  const allUploaded = uploadedFiles.length === 0 || uploadedFiles.every((f) => f.status !== "uploading");
+  const canCreate = editorTitle.trim() && allUploaded && !creating;
+
   return (
     <div>
       <div className={s.contentHeader}>
@@ -160,7 +218,7 @@ export default function ContentPage() {
             padding: "2rem",
           }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setShowEditor(false);
+            if (e.target === e.currentTarget && !creating) setShowEditor(false);
           }}
         >
           <div
@@ -233,33 +291,68 @@ export default function ContentPage() {
               <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "var(--dim)", marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 Media
               </label>
-              <MediaUploader
-                onFiles={(files) => setEditorFiles((prev) => [...prev, ...files])}
-              />
-              {editorFiles.length > 0 && (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: "0.75rem" }}>
-                  {editorFiles.map((f, i) => (
+              <MediaUploader onFiles={handleFilesSelected} />
+              {uploadedFiles.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: "0.75rem" }}>
+                  {uploadedFiles.map((f) => (
                     <div
-                      key={i}
+                      key={f.storagePath}
                       style={{
-                        padding: "0.35rem 0.75rem",
+                        padding: "0.5rem 0.75rem",
                         background: "var(--input-bg)",
                         border: "1px solid var(--border)",
-                        borderRadius: 8,
-                        fontSize: "0.78rem",
-                        fontWeight: 600,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
+                        borderRadius: 10,
+                        position: "relative",
+                        overflow: "hidden",
                       }}
                     >
-                      {f.name.length > 20 ? f.name.slice(0, 20) + "..." : f.name}
-                      <button
-                        onClick={() => setEditorFiles((prev) => prev.filter((_, idx) => idx !== i))}
-                        style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", fontSize: "1rem", lineHeight: 1 }}
-                      >
-                        &times;
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {f.status === "uploading" && (
+                            <div style={{ width: 16, height: 16, border: "2px solid var(--purple)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                          )}
+                          {f.status === "done" && (
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                              <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                          )}
+                          {f.status === "error" && (
+                            <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2.5" strokeLinecap="round" style={{ width: 16, height: 16 }}>
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                          )}
+                          <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>
+                            {f.name.length > 25 ? f.name.slice(0, 25) + "..." : f.name}
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          {f.status === "uploading" && (
+                            <span style={{ fontSize: "0.75rem", color: "var(--purple)", fontWeight: 700 }}>
+                              {f.progress}%
+                            </span>
+                          )}
+                          <button
+                            onClick={() => removeUploadedFile(f.storagePath)}
+                            style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", fontSize: "1rem", lineHeight: 1, padding: 0 }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      {f.status === "uploading" && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            height: 3,
+                            width: `${f.progress}%`,
+                            background: "linear-gradient(90deg, var(--pink), var(--purple))",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -271,14 +364,15 @@ export default function ContentPage() {
                 className={s.btnSecondary}
                 onClick={() => { setShowEditor(false); resetEditor(); }}
                 style={{ flex: 1 }}
+                disabled={creating}
               >
                 Cancel
               </button>
               <button
                 className={s.btnSave}
                 onClick={handleCreatePost}
-                disabled={creating || !editorTitle.trim()}
-                style={{ flex: 1, opacity: creating || !editorTitle.trim() ? 0.5 : 1 }}
+                disabled={!canCreate}
+                style={{ flex: 1, opacity: canCreate ? 1 : 0.5 }}
               >
                 {creating ? "Creating..." : "Create Post"}
               </button>
