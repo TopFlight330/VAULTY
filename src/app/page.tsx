@@ -158,9 +158,12 @@ export default function Home() {
               {t("Create an account", "Créer un compte")}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
             </Link>
-            <a href="#content" className={`${styles.btn} ${styles.ghostBtn}`}>
+            <button
+              className={`${styles.btn} ${styles.ghostBtn}`}
+              onClick={() => document.getElementById("content")?.scrollIntoView({ behavior: "smooth" })}
+            >
               {t("Why Vaulty", "Pourquoi Vaulty")}
-            </a>
+            </button>
           </div>
         </div>
         <div
@@ -229,6 +232,7 @@ export default function Home() {
 
       {/* COMPARE */}
       <section className={styles.sec}>
+        <div className={styles.secInner}>
         <div className={styles.secLabel}>{t("The competition", "La concurrence")}</div>
         <div className={styles.secTitle}>{t("What they charge you.", "Ce qu'ils vous facturent.")}</div>
         <div className={styles.compare}>
@@ -249,10 +253,12 @@ export default function Home() {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       {/* FEATURES */}
       <section className={styles.sec} id="features">
+        <div className={styles.secInner}>
         <div className={styles.secLabel}>{t("Platform features", "Fonctionnalités")}</div>
         <div className={styles.secTitle}>{t("Everything creators need.", "Tout ce dont les créateurs ont besoin.")}</div>
         <div className={styles.featGrid}>
@@ -311,10 +317,12 @@ export default function Home() {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       {/* FOOTER */}
       <footer className={styles.footer}>
+        <div className={styles.ftInner}>
         <div className={styles.ftLogo}>
           <div className={styles.ftLogoIcon}>
             <div className={styles.ftLogoVault}>
@@ -331,6 +339,7 @@ export default function Home() {
           <button onClick={() => setModal("privacy")}>{t("Privacy", "Confidentialité")}</button>
         </div>
         <div className={styles.ftCopy}>&copy; 2026 Vaulty Inc.</div>
+        </div>
       </footer>
 
       {/* MODAL */}
