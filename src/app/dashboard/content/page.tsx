@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { createClient } from "@/lib/supabase/client";
-import { createPost, deletePost, addPostMedia } from "@/lib/actions/posts";
+import { createPost, deletePost, addPostMedia, getMyPosts } from "@/lib/actions/posts";
 import { uploadFileWithProgress, deleteFile } from "@/lib/helpers/storage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { MediaUploader } from "@/components/dashboard/shared/MediaUploader";
@@ -39,16 +38,10 @@ export default function ContentPage() {
   const [creating, setCreating] = useState(false);
 
   const fetchPosts = useCallback(async () => {
-    if (!user) return;
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("posts")
-      .select("*, media:post_media(*)")
-      .eq("creator_id", user.id)
-      .order("created_at", { ascending: false });
-    setPosts((data as PostWithMedia[]) ?? []);
+    const data = await getMyPosts();
+    setPosts(data);
     setLoading(false);
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     fetchPosts();
@@ -224,9 +217,8 @@ export default function ContentPage() {
   const getThumbUrl = (post: PostWithMedia) => {
     const img = post.media?.find((m) => m.media_type === "image");
     if (!img) return null;
-    const supabase = createClient();
-    const { data } = supabase.storage.from("post-media").getPublicUrl(img.storage_path);
-    return data.publicUrl;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    return `${supabaseUrl}/storage/v1/object/public/post-media/${img.storage_path}`;
   };
 
   const allUploaded = uploadedFiles.length === 0 || uploadedFiles.every((f) => f.status !== "uploading");

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { ActionResult, Visibility } from "@/types/database";
+import type { ActionResult, Visibility, PostWithMedia } from "@/types/database";
 
 export async function createPost(data: {
   title: string;
@@ -164,4 +164,23 @@ export async function toggleLike(
     }
     return { success: true, liked: true };
   }
+}
+
+export async function getMyPosts(): Promise<PostWithMedia[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*, media:post_media(*)")
+    .eq("creator_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getMyPosts error:", error.message);
+    return [];
+  }
+
+  return (data as PostWithMedia[]) ?? [];
 }
