@@ -489,6 +489,45 @@ export function CreatorPageClient({
   );
 }
 
+/* ══════ Video Player Component ══════ */
+
+function VideoPlayer({ src }: { src: string }) {
+  const [playing, setPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  if (playing) {
+    return (
+      <video
+        ref={videoRef}
+        src={src}
+        controls
+        autoPlay
+        className={s.postMediaImage}
+        style={{ maxHeight: 560 }}
+      />
+    );
+  }
+
+  return (
+    <div className={s.videoPreview} onClick={() => setPlaying(true)}>
+      <video
+        src={src}
+        preload="metadata"
+        muted
+        className={s.postMediaImage}
+        style={{ maxHeight: 560 }}
+      />
+      <div className={s.videoPlayOverlay}>
+        <div className={s.videoPlayBtn}>
+          <svg viewBox="0 0 24 24" fill="#fff" stroke="none">
+            <polygon points="6,3 20,12 6,21" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ══════ Post Card Component ══════ */
 
 function PostCard({
@@ -634,13 +673,7 @@ function PostCard({
           ) : (
             post.media.map((m) => (
               m.media_type === "video" ? (
-                <video
-                  key={m.id}
-                  src={getMediaUrl(m.storage_path)}
-                  controls
-                  className={s.postMediaImage}
-                  style={{ maxHeight: 560 }}
-                />
+                <VideoPlayer key={m.id} src={getMediaUrl(m.storage_path)} />
               ) : (
                 <img
                   key={m.id}
