@@ -996,7 +996,11 @@
     background: var(--card-hover);
 }
 .mpEditBtn svg { width: 16px; height: 16px; color: var(--dim); }
-.mpShareBtn {
+/* Three-dot menu */
+.mpMoreWrap {
+    position: relative;
+}
+.mpMoreBtn {
     width: 38px; height: 38px;
     border-radius: 12px;
     border: 1px solid var(--border);
@@ -1006,12 +1010,44 @@
     cursor: pointer;
     transition: all 0.15s;
 }
-.mpShareBtn:hover {
-    border-color: var(--pink);
-    color: var(--pink);
-    background: var(--pink-dim);
+.mpMoreBtn:hover {
+    border-color: var(--muted);
+    background: var(--card-hover);
 }
-.mpShareBtn svg { width: 16px; height: 16px; }
+.mpMoreBtn svg { width: 18px; height: 18px; }
+.mpMoreDropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    z-index: 50;
+    min-width: 190px;
+}
+.mpMoreOption {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    width: 100%;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+}
+.mpMoreOption:hover {
+    background: var(--input-bg);
+}
+.mpMoreOption svg { width: 16px; height: 16px; color: var(--dim); flex-shrink: 0; }
 
 /* Info */
 .mpName {

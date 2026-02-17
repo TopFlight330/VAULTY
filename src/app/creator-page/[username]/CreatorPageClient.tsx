@@ -64,6 +64,7 @@ interface Props {
   totalLikes: number;
   hasSubscription: boolean;
   viewerId: string | null;
+  viewMode?: "free" | "subscriber" | null;
 }
 
 export function CreatorPageClient({
@@ -75,6 +76,7 @@ export function CreatorPageClient({
   totalLikes,
   hasSubscription,
   viewerId,
+  viewMode,
 }: Props) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -254,6 +256,17 @@ export function CreatorPageClient({
 
   return (
     <div className={s.page}>
+      {/* View Mode Banner */}
+      {viewMode && (
+        <div className={s.viewModeBanner}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          Viewing as {viewMode === "free" ? "Free User" : "Subscriber"}
+          <button onClick={() => window.close()} className={s.viewModeBannerClose}>Exit Preview</button>
+        </div>
+      )}
+
       {/* Banner */}
       <div className={s.banner}>
         {creator.banner_url && <img src={creator.banner_url} alt="" />}

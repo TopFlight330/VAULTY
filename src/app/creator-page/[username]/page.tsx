@@ -6,10 +6,12 @@ import { CreatorPageClient } from "./CreatorPageClient";
 
 interface Props {
   params: Promise<{ username: string }>;
+  searchParams: Promise<{ view_as?: string }>;
 }
 
-export default async function CreatorPage({ params }: Props) {
+export default async function CreatorPage({ params, searchParams }: Props) {
   const { username } = await params;
+  const { view_as } = await searchParams;
   const supabase = await createClient();
 
   // Fetch creator profile
@@ -81,6 +83,17 @@ export default async function CreatorPage({ params }: Props) {
     hasSubscription = !!sub;
   }
 
+  // "View Page As" mode - only for the page owner
+  const isOwner = viewerId === creator.id;
+  let viewMode: "free" | "subscriber" | null = null;
+  if (isOwner && view_as === "free") {
+    hasSubscription = false;
+    viewMode = "free";
+  } else if (isOwner && view_as === "subscriber") {
+    hasSubscription = true;
+    viewMode = "subscriber";
+  }
+
   const badges = getCreatorBadges(
     creator,
     { subscribers: subCount, posts: postCount, totalLikes },
@@ -96,7 +109,8 @@ export default async function CreatorPage({ params }: Props) {
       postCount={postCount}
       totalLikes={totalLikes}
       hasSubscription={hasSubscription}
-      viewerId={viewerId}
+      viewerId={viewMode ? null : viewerId}
+      viewMode={viewMode}
     />
   );
 }

@@ -5,6 +5,37 @@
   background: var(--bg);
 }
 
+/* ── View Mode Banner ── */
+.viewModeBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.6rem 1rem;
+  background: linear-gradient(135deg, rgba(244,63,142,0.15), rgba(139,92,246,0.15));
+  border-bottom: 1px solid rgba(244,63,142,0.25);
+  color: var(--pink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-sora);
+}
+.viewModeBannerClose {
+  margin-left: 12px;
+  padding: 0.3rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(244,63,142,0.3);
+  background: rgba(244,63,142,0.1);
+  color: var(--pink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.viewModeBannerClose:hover {
+  background: rgba(244,63,142,0.2);
+}
+
 /* ── Banner ── */
 .banner {
   width: 100%;

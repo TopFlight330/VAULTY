@@ -50,6 +50,14 @@ export default function MyPagePage() {
   const [showStatusDD, setShowStatusDD] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
+  // Three-dot menu
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  // View Page As modal
+  const [showViewAs, setShowViewAs] = useState(false);
+  const [viewAsRole, setViewAsRole] = useState<"free" | "subscriber">("free");
+
   // File inputs
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -72,11 +80,14 @@ export default function MyPagePage() {
     fetchData();
   }, [fetchData]);
 
-  // Close status dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
         setShowStatusDD(false);
+      }
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setShowMoreMenu(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -235,9 +246,23 @@ export default function MyPagePage() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Edit Profile
               </a>
-              <button className={s.mpShareBtn} onClick={copyProfileLink}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-              </button>
+              <div className={s.mpMoreWrap} ref={moreMenuRef}>
+                <button className={s.mpMoreBtn} onClick={() => setShowMoreMenu(!showMoreMenu)}>
+                  <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                </button>
+                {showMoreMenu && (
+                  <div className={s.mpMoreDropdown}>
+                    <button className={s.mpMoreOption} onClick={() => { copyProfileLink(); setShowMoreMenu(false); }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                      Copy Profile Link
+                    </button>
+                    <button className={s.mpMoreOption} onClick={() => { setShowViewAs(true); setShowMoreMenu(false); }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      View Page As
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -494,6 +519,48 @@ export default function MyPagePage() {
           onCropComplete={handleCroppedBanner}
           onClose={() => setCropBannerFile(null)}
         />
+      )}
+
+      {/* ═══ View Page As Modal ═══ */}
+      {showViewAs && (
+        <div className={s.modalOverlay} onClick={() => setShowViewAs(false)}>
+          <div className={s.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              <h3 className={s.modalTitle} style={{ marginBottom: 0 }}>View Page As</h3>
+              <button onClick={() => setShowViewAs(false)} style={{ background: "none", border: "none", color: "var(--dim)", cursor: "pointer", padding: 4 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <p className={s.modalDesc}>
+              Preview your page as different user types to verify your content permissions are set as expected.
+            </p>
+
+            <div className={s.modalReasons}>
+              <label className={`${s.modalReasonOption} ${viewAsRole === "free" ? s.modalReasonOptionActive : ""}`}>
+                <input type="radio" name="viewAs" value="free" checked={viewAsRole === "free"} onChange={() => setViewAsRole("free")} />
+                <span className={s.modalRadio} />
+                Free User
+              </label>
+              <label className={`${s.modalReasonOption} ${viewAsRole === "subscriber" ? s.modalReasonOptionActive : ""}`}>
+                <input type="radio" name="viewAs" value="subscriber" checked={viewAsRole === "subscriber"} onChange={() => setViewAsRole("subscriber")} />
+                <span className={s.modalRadio} />
+                Subscriber
+              </label>
+            </div>
+
+            <div className={s.modalActions}>
+              <button
+                className={s.btnSave}
+                onClick={() => {
+                  window.open(`/creator-page/${username}?view_as=${viewAsRole}`, "_blank");
+                  setShowViewAs(false);
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
