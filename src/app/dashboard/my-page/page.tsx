@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { getMyPageData, updateProfile, updateAvatar, updateBanner } from "@/lib/actions/profile";
 import { deletePost } from "@/lib/actions/posts";
-import { createSignedUploadUrl } from "@/lib/actions/storage";
+import { createSignedUploadUrl, uploadFileDirect } from "@/lib/actions/storage";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import type { PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
@@ -109,19 +109,15 @@ export default function MyPagePage() {
 
   const handleCroppedAvatar = async (blob: Blob) => {
     if (!user) return;
+    // Convert blob to base64 for server action
+    const arrayBuffer = await blob.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
     const path = `${user.id}/avatar.jpg`;
-    const signed = await createSignedUploadUrl("avatars", path);
-    if (!signed) { showToast("Upload failed", "error"); return; }
+    const uploaded = await uploadFileDirect("avatars", path, base64, "image/jpeg");
+    if (!uploaded) { showToast("Upload failed", "error"); return; }
 
-    const res = await fetch(signed.signedUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "image/jpeg", "x-upsert": "true" },
-      body: blob,
-    });
-    if (!res.ok) { showToast("Upload failed", "error"); return; }
-
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
-    const result = await updateAvatar(publicUrl);
+    const result = await updateAvatar(uploaded.publicUrl);
     if (result.success) {
       showToast("Avatar updated!", "success");
       refreshProfile();

@@ -11,7 +11,7 @@ import {
   deactivatePage,
   deleteAccount,
 } from "@/lib/actions/profile";
-import { createSignedUploadUrl } from "@/lib/actions/storage";
+import { uploadFileDirect } from "@/lib/actions/storage";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import s from "../dashboard.module.css";
 
@@ -332,26 +332,16 @@ export default function SettingsPage() {
     if (!user) return;
     setUploadingAvatar(true);
 
-    const path = `${user.id}/avatar.jpg`;
-    const signed = await createSignedUploadUrl("avatars", path);
-    if (!signed) {
-      showToast("Failed to prepare upload.", "error");
-      setUploadingAvatar(false);
-      return;
-    }
-
     try {
-      const res = await fetch(signed.signedUrl, {
-        method: "PUT",
-        headers: { "Content-Type": "image/jpeg", "x-upsert": "true" },
-        body: blob,
-      });
-      if (!res.ok) throw new Error("Upload failed");
+      // Convert blob to base64 for server action
+      const arrayBuffer = await blob.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
+      const path = `${user.id}/avatar.jpg`;
+      const uploaded = await uploadFileDirect("avatars", path, base64, "image/jpeg");
+      if (!uploaded) throw new Error("Upload failed");
 
-      const result = await updateAvatar(publicUrl);
+      const result = await updateAvatar(uploaded.publicUrl);
       if (result.success) {
         showToast("Avatar updated!", "success");
         await refreshProfile();
