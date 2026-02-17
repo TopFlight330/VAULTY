@@ -20,11 +20,16 @@
 - L'user est vérifié via `supabase.auth.getUser()` AVANT d'utiliser le admin client
 
 ### Storage / Upload de fichiers
-- **Stratégie qui fonctionne** : `createSignedUploadUrl` (server action, admin client) → `uploadFileWithProgress` (client-side XHR PUT)
-- Le helper `uploadFileWithProgress` dans `src/lib/helpers/storage.ts` est la méthode prouvée fonctionnelle
-- Les buckets doivent exister dans Supabase. `createSignedUploadUrl` crée auto le bucket s'il n'existe pas
+- **Avatar** : Utiliser `uploadAndSetAvatar(formData)` server action (100% server-side, bypass tout)
+- **Post media** : `uploadFileWithProgress` (signed URL + XHR PUT côté client)
+- Les buckets sont auto-créés s'ils n'existent pas
 - Buckets utilisés : `post-media`, `avatars`, `banners`
 - Toujours utiliser `upsert: true` ou `x-upsert: true` header pour les re-uploads
+
+### AuthProvider
+- `refreshProfile()` utilise la server action `getProfile()` (admin client)
+- NE PAS utiliser le browser client pour fetch le profile (ça peut hang)
+- Le browser client (`src/lib/supabase/client.ts`) est OK pour `getUser()` et `onAuthStateChange` seulement
 
 ## Fichiers clés
 
@@ -42,17 +47,22 @@
 
 ## Patterns importants
 
-### Upload de fichier (pattern à copier)
+### Upload avatar (pattern à copier)
 ```typescript
-// Client-side (dans un component)
-import { createSignedUploadUrl } from "@/lib/actions/storage";
+// 100% server-side - le plus fiable
+import { uploadAndSetAvatar } from "@/lib/actions/profile";
+
+const formData = new FormData();
+formData.append("file", new File([blob], "avatar.jpg", { type: "image/jpeg" }));
+const result = await uploadAndSetAvatar(formData);
+```
+
+### Upload post media (pattern à copier)
+```typescript
+// Client-side avec progress - pour fichiers plus gros
 import { uploadFileWithProgress } from "@/lib/helpers/storage";
 
-const file = new File([blob], "filename.jpg", { type: "image/jpeg" });
-const path = `${user.id}/filename.jpg`;
-const storagePath = await uploadFileWithProgress("bucket-name", path, file, (pct) => {});
-if (!storagePath) { /* erreur */ return; }
-const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/bucket-name/${path}?t=${Date.now()}`;
+const storagePath = await uploadFileWithProgress("post-media", path, file, (pct) => {});
 ```
 
 ### Update profil (pattern à copier)
@@ -68,5 +78,7 @@ const { error } = await admin.from("profiles").update({ ... }).eq("id", user.id)
 |--------|-------|----------|
 | Updates silencieusement ignorés | Pas de policy RLS UPDATE | Utiliser `createAdminClient()` |
 | `getSession()` hang | Browser client cassé | Utiliser server actions |
-| "Failed to prepare upload" | Bucket n'existe pas dans Supabase | `createSignedUploadUrl` crée auto le bucket |
-| Upload échoue côté client | Mauvaise stratégie d'upload | Utiliser `uploadFileWithProgress` (signed URL + XHR) |
+| "Failed to prepare upload" | Bucket n'existe pas dans Supabase | Buckets auto-créés par server actions |
+| "Failed to get signed URL" | Signed URL échoue sur Netlify | Utiliser `uploadAndSetAvatar` (100% server-side) |
+| Toggles load à l'infini | `refreshProfile` hang avec browser client | `refreshProfile` utilise maintenant server action `getProfile` |
+| Profile data disparait au reload | Update échoue silencieusement | Vérifier admin client + `SUPABASE_SERVICE_ROLE_KEY` sur Netlify |
