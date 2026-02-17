@@ -57,6 +57,13 @@ function BadgeIcon({ icon }: { icon: string }) {
   }
 }
 
+function visibilityStyle(v: string) {
+  if (v === "free") return { background: "var(--success-dim)", color: "var(--success)" };
+  if (v === "premium") return { background: "var(--pink-dim)", color: "var(--pink)" };
+  if (v === "ppv") return { background: "var(--warning-dim)", color: "var(--warning)" };
+  return {};
+}
+
 /* ── Main Component ── */
 
 interface Props {
@@ -337,13 +344,6 @@ export function CreatorPageClient({
     .flatMap((p) =>
       (p.media ?? []).map((m) => ({ ...m, postVisibility: p.visibility }))
     );
-
-  const visibilityStyle = (v: string) => {
-    if (v === "free") return { background: "var(--success-dim)", color: "var(--success)" };
-    if (v === "premium") return { background: "var(--pink-dim)", color: "var(--pink)" };
-    if (v === "ppv") return { background: "var(--warning-dim)", color: "var(--warning)" };
-    return {};
-  };
 
   return (
     <div className={s.page}>
@@ -766,10 +766,8 @@ function PostCard({
           )}
         </div>
         <div className={s.postHeaderInfo}>
-          <div className={s.postHeaderTop}>
-            <span className={s.postHeaderName}>{creator.display_name}</span>
-            <span className={s.postHeaderUsername}>@{creator.username}</span>
-          </div>
+          <div className={s.postHeaderName}>{creator.display_name}</div>
+          <div className={s.postHeaderUsername}>@{creator.username}</div>
         </div>
         <div className={s.postHeaderRight}>
           {post.is_pinned && (
@@ -886,7 +884,12 @@ function PostCard({
             post.media.map((m) => {
               const url = getMediaUrl(m.storage_path);
               return m.media_type === "video" ? (
-                <VideoPlayer key={m.id} src={url} />
+                <div key={m.id} className={s.mediaWrap}>
+                  <VideoPlayer src={url} />
+                  <span className={s.postVisibilityBadge} style={visibilityStyle(post.visibility)}>
+                    {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+                  </span>
+                </div>
               ) : (
                 <div key={m.id} className={s.mediaWrap}>
                   <img
@@ -895,6 +898,9 @@ function PostCard({
                     className={s.postMediaImageClickable}
                     onClick={() => setLightboxSrc(url)}
                   />
+                  <span className={s.postVisibilityBadge} style={visibilityStyle(post.visibility)}>
+                    {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+                  </span>
                   <div className={s.watermark}>Vaulty.com/{creator.username}</div>
                 </div>
               );
