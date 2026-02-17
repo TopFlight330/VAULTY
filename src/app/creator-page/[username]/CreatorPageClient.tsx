@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
@@ -98,8 +98,74 @@ export function CreatorPageClient({
   const [tipAmounts, setTipAmounts] = useState<Record<string, string>>({});
   const [sendingTip, setSendingTip] = useState(false);
 
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const initials = getInitials(creator.display_name);
   const isOwner = viewerId === creator.id;
+
+  // Sort badges: earned first, then unearned
+  const sortedBadges = [...badges].sort((a, b) => (a.earned === b.earned ? 0 : a.earned ? -1 : 1));
+
+  // Star field animation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let w: number, h: number;
+    let stars: { x: number; y: number; r: number; color: string; pulse: number; speed: number; vx: number; vy: number }[] = [];
+    let animId: number;
+
+    function resize() {
+      w = canvas!.width = window.innerWidth;
+      h = canvas!.height = window.innerHeight;
+    }
+
+    function init() {
+      stars = [];
+      const count = Math.floor((w * h) / 10000);
+      for (let i = 0; i < count; i++) {
+        const isPink = Math.random() > 0.8;
+        const isPurple = !isPink && Math.random() > 0.75;
+        let color: string;
+        if (isPink) color = `rgba(244,63,142,${0.3 + Math.random() * 0.5})`;
+        else if (isPurple) color = `rgba(139,92,246,${0.2 + Math.random() * 0.5})`;
+        else color = `rgba(255,255,255,${0.15 + Math.random() * 0.35})`;
+        stars.push({
+          x: Math.random() * w, y: Math.random() * h,
+          r: 0.8 + Math.random() * 2.2, color,
+          pulse: Math.random() * Math.PI * 2,
+          speed: 0.003 + Math.random() * 0.008,
+          vx: (Math.random() - 0.5) * 0.15,
+          vy: (Math.random() - 0.5) * 0.15,
+        });
+      }
+    }
+
+    function draw() {
+      ctx!.clearRect(0, 0, w, h);
+      for (const st of stars) {
+        st.pulse += st.speed;
+        st.x += st.vx; st.y += st.vy;
+        if (st.x < -10) st.x = w + 10;
+        if (st.x > w + 10) st.x = -10;
+        if (st.y < -10) st.y = h + 10;
+        if (st.y > h + 10) st.y = -10;
+        ctx!.globalAlpha = 0.5 + Math.sin(st.pulse) * 0.35;
+        ctx!.beginPath();
+        ctx!.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx!.fillStyle = st.color;
+        ctx!.fill();
+      }
+      ctx!.globalAlpha = 1;
+      animId = requestAnimationFrame(draw);
+    }
+
+    resize(); init(); draw();
+    const onResize = () => { resize(); init(); };
+    window.addEventListener("resize", onResize);
+    return () => { window.removeEventListener("resize", onResize); cancelAnimationFrame(animId); };
+  }, []);
 
   const requireAuth = () => {
     if (!viewerId) {
@@ -260,6 +326,9 @@ export function CreatorPageClient({
 
   return (
     <div className={s.page}>
+      {/* Star Field */}
+      <div className={s.starField}><canvas ref={canvasRef} /></div>
+
       {/* Top Nav */}
       <nav className={s.topNav}>
         <Link href="/" className={s.topNavLogo}>
@@ -297,11 +366,6 @@ export function CreatorPageClient({
       {/* Banner */}
       <div className={s.banner}>
         {creator.banner_url && <img src={creator.banner_url} alt="" />}
-        <button className={s.backBtn} onClick={() => router.back()}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
       </div>
 
       {/* Profile Card */}
@@ -324,12 +388,17 @@ export function CreatorPageClient({
           )}
         </div>
 
-        <div className={s.username}>@{creator.username}</div>
+        <div className={s.username}>
+          @{creator.username}
+          {creator.category === "18+" && (
+            <span className={s.nsfwBadge}>18+</span>
+          )}
+        </div>
 
         {/* Achievement Badges */}
-        {badges.length > 0 && (
+        {sortedBadges.length > 0 && (
           <div className={s.badgesRow}>
-            {badges.map((badge) => (
+            {sortedBadges.map((badge) => (
               <div
                 key={badge.id}
                 className={`${s.badge} ${badge.earned ? s.badgeEarned : s.badgeGray}`}

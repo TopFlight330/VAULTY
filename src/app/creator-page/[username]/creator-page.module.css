@@ -3,7 +3,14 @@
 .page {
   min-height: 100vh;
   background: var(--bg);
+  position: relative;
 }
+
+/* ── Star Field ── */
+.starField {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+}
+.starField canvas { width: 100%; height: 100%; }
 
 /* ── Top Nav (same as landing page) ── */
 .topNav {
@@ -15,6 +22,8 @@
   background: rgba(14,11,20,0.85);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
 }
 .topNavLogo {
   display: flex;
@@ -127,6 +136,8 @@
   font-size: 0.85rem;
   font-weight: 700;
   font-family: var(--font-sora);
+  position: relative;
+  z-index: 1;
 }
 .viewModeBannerClose {
   margin-left: 12px;
@@ -154,6 +165,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 16px;
+  z-index: 1;
 }
 .banner img {
   width: 100%; height: 100%;
@@ -166,6 +178,7 @@
   margin: -60px auto 0;
   position: relative;
   padding: 0 1rem;
+  z-index: 1;
 }
 .avatar {
   width: 120px; height: 120px;
@@ -201,6 +214,21 @@
   font-size: 0.9rem;
   color: var(--dim);
   margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nsfwBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: rgba(239,68,68,0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.25);
 }
 
 /* ── Achievement Badges ── */
@@ -324,6 +352,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Post Card ── */
