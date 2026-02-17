@@ -378,77 +378,79 @@ export function CreatorPageClient({
           )}
         </div>
 
-        <div className={s.nameRow}>
-          <div className={s.displayName}>{creator.display_name}</div>
-          {creator.is_verified && (
-            <svg className={s.verifiedBadge} viewBox="0 0 24 24" fill="var(--purple)" stroke="none">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-        </div>
-
-        <div className={s.username}>
-          @{creator.username}
-          {creator.category === "18+" && (
-            <span className={s.nsfwBadge}>18+</span>
-          )}
-        </div>
-
-        {/* Achievement Badges */}
-        {sortedBadges.length > 0 && (
-          <div className={s.badgesRow}>
-            {sortedBadges.map((badge) => (
-              <div
-                key={badge.id}
-                className={`${s.badge} ${badge.earned ? s.badgeEarned : s.badgeGray}`}
-                title={badge.description}
-              >
-                <BadgeIcon icon={badge.icon} />
-                {badge.name}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {creator.bio && <div className={s.bio}>{creator.bio}</div>}
-
-        <div className={s.statsRow}>
-          <div className={s.statItem}>
-            {subCount.toLocaleString()} <span>subscribers</span>
-          </div>
-          <div className={s.statItem}>
-            {postCount.toLocaleString()} <span>posts</span>
-          </div>
-          <div className={s.statItem}>
-            {totalLikes.toLocaleString()} <span>likes</span>
-          </div>
-        </div>
-
-        {/* Subscribe Card */}
-        {!isOwner && creator.subscription_price && (
-          <div className={s.subscribeCard}>
-            <div>
-              <div className={s.subscribePrice}>
-                {creator.subscription_price} credits/mo
-              </div>
-              <div className={s.subscribeInfo}>
-                Unlock all premium content
-              </div>
-            </div>
-            {hasSubscription ? (
-              <div className={s.subscribedLabel}>Subscribed</div>
-            ) : (
-              <button
-                className={s.subscribeBtn}
-                onClick={handleSubscribe}
-                disabled={subscribing}
-              >
-                {subscribing ? "Subscribing..." : "Subscribe"}
-              </button>
+        <div className={s.profileBody}>
+          <div className={s.nameRow}>
+            <div className={s.displayName}>{creator.display_name}</div>
+            {creator.is_verified && (
+              <svg className={s.verifiedBadge} viewBox="0 0 24 24" fill="var(--purple)" stroke="none">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             )}
           </div>
-        )}
+
+          <div className={s.username}>
+            @{creator.username}
+            {creator.category === "18+" && (
+              <span className={s.nsfwBadge}>18+</span>
+            )}
+          </div>
+
+          {/* Achievement Badges */}
+          {sortedBadges.length > 0 && (
+            <div className={s.badgesRow}>
+              {sortedBadges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className={`${s.badge} ${badge.earned ? s.badgeEarned : s.badgeGray}`}
+                  title={badge.description}
+                >
+                  <BadgeIcon icon={badge.icon} />
+                  {badge.name}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {creator.bio && <div className={s.bio}>{creator.bio}</div>}
+
+          <div className={s.statsRow}>
+            <div className={s.statItem}>
+              {subCount.toLocaleString()} <span>subscribers</span>
+            </div>
+            <div className={s.statItem}>
+              {postCount.toLocaleString()} <span>posts</span>
+            </div>
+            <div className={s.statItem}>
+              {totalLikes.toLocaleString()} <span>likes</span>
+            </div>
+          </div>
+
+          {/* Subscribe Card */}
+          {!isOwner && creator.subscription_price && (
+            <div className={s.subscribeCard}>
+              <div>
+                <div className={s.subscribePrice}>
+                  {creator.subscription_price} credits/mo
+                </div>
+                <div className={s.subscribeInfo}>
+                  Unlock all premium content
+                </div>
+              </div>
+              {hasSubscription ? (
+                <div className={s.subscribedLabel}>Subscribed</div>
+              ) : (
+                <button
+                  className={s.subscribeBtn}
+                  onClick={handleSubscribe}
+                  disabled={subscribing}
+                >
+                  {subscribing ? "Subscribing..." : "Subscribe"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Posts Feed */}
