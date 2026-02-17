@@ -474,22 +474,24 @@ export default function SettingsPage() {
           </div>
           <div className={s.formGroup} style={{ marginBottom: "1.5rem" }}>
             <label>Category</label>
-            <select
-              className={`${s.formInput} ${s.formInputSelect}`}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="general">General</option>
-              <option value="art">Art &amp; Photography</option>
-              <option value="music">Music</option>
-              <option value="fitness">Fitness &amp; Wellness</option>
-              <option value="cooking">Cooking &amp; Recipes</option>
-              <option value="education">Education</option>
-              <option value="entertainment">Entertainment</option>
-              <option value="gaming">Gaming</option>
-              <option value="lifestyle">Lifestyle</option>
-              <option value="other">Other</option>
-            </select>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button
+                type="button"
+                className={category === "general" ? s.btnSave : s.btnSecondary}
+                style={{ flex: 1, padding: "0.6rem 1rem" }}
+                onClick={() => setCategory("general")}
+              >
+                General
+              </button>
+              <button
+                type="button"
+                className={category === "18+" ? s.btnSave : s.btnSecondary}
+                style={{ flex: 1, padding: "0.6rem 1rem" }}
+                onClick={() => setCategory("18+")}
+              >
+                18+
+              </button>
+            </div>
           </div>
 
           <button
