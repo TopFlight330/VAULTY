@@ -11,7 +11,7 @@ import {
   deactivatePage,
   deleteAccount,
 } from "@/lib/actions/profile";
-import { uploadFileDirect } from "@/lib/actions/storage";
+import { uploadFileWithProgress } from "@/lib/helpers/storage";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import s from "../dashboard.module.css";
 
@@ -333,15 +333,15 @@ export default function SettingsPage() {
     setUploadingAvatar(true);
 
     try {
-      // Convert blob to base64 for server action
-      const arrayBuffer = await blob.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-
+      const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
       const path = `${user.id}/avatar.jpg`;
-      const uploaded = await uploadFileDirect("avatars", path, base64, "image/jpeg");
-      if (!uploaded) throw new Error("Upload failed");
 
-      const result = await updateAvatar(uploaded.publicUrl);
+      const storagePath = await uploadFileWithProgress("avatars", path, file, () => {});
+      if (!storagePath) throw new Error("Upload failed");
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
+      const result = await updateAvatar(publicUrl);
       if (result.success) {
         showToast("Avatar updated!", "success");
         await refreshProfile();
