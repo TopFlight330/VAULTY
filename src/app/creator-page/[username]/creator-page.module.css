@@ -528,7 +528,7 @@
   border-color: transparent;
 }
 .postHeader {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   padding: 1rem 1.25rem;
 }
 .postAvatar {
@@ -543,16 +543,20 @@
 .postAvatar img { width: 100%; height: 100%; object-fit: cover; }
 .postHeaderInfo {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   min-width: 0;
 }
-.postHeaderNameRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.postHeaderName {
+  font-weight: 800; font-size: 0.88rem; line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.postHeaderName { font-weight: 800; font-size: 0.88rem; line-height: 1.2; }
+.postHeaderUsername {
+  font-size: 0.78rem; color: var(--muted); line-height: 1.3;
+}
+.postHeaderTime {
+  font-size: 0.75rem; color: var(--muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .postVisibilityTag {
   font-size: 0.65rem;
   font-weight: 700;
@@ -562,29 +566,7 @@
   border-radius: 6px;
   line-height: 1.3;
   flex-shrink: 0;
-  margin-left: auto;
-}
-.postHeaderUsernameRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.postHeaderUsername { font-size: 0.78rem; color: var(--muted); line-height: 1.2; }
-.postPinnedLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--pink);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-left: auto;
-}
-.postHeaderTime {
-  font-size: 0.75rem; color: var(--muted);
-  margin-left: auto;
-  flex-shrink: 0;
+  white-space: nowrap;
 }
 .postMenuWrap {
   position: relative;

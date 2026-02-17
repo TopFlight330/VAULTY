@@ -797,17 +797,13 @@ function PostCard({
           )}
         </div>
         <div className={s.postHeaderInfo}>
-          <div className={s.postHeaderNameRow}>
-            <span className={s.postHeaderName}>{creator.display_name}</span>
-            <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
-          </div>
-          <div className={s.postHeaderUsernameRow}>
-            <span className={s.postHeaderUsername}>@{creator.username}</span>
-            <span className={s.postVisibilityTag} style={visibilityStyle(post.visibility)}>
-              {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
-            </span>
-          </div>
+          <div className={s.postHeaderName}>{creator.display_name}</div>
+          <div className={s.postHeaderUsername}>@{creator.username}</div>
         </div>
+        <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
+        <span className={s.postVisibilityTag} style={visibilityStyle(post.visibility)}>
+          {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+        </span>
         <div className={s.postMenuWrap} ref={menuRef}>
           <button className={s.postMenuBtn} onClick={() => setShowMenu(!showMenu)}>
             <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
