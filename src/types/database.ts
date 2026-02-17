@@ -41,6 +41,14 @@ export interface Profile {
   is_verified: boolean;
   is_banned: boolean;
   ban_reason: string | null;
+  is_deactivated: boolean;
+  deactivation_reason: string | null;
+  setting_watermark: boolean;
+  setting_2fa: boolean;
+  setting_notif_subs: boolean;
+  setting_notif_tips: boolean;
+  setting_notif_payouts: boolean;
+  setting_marketing: boolean;
   created_at: string;
   updated_at: string;
 }

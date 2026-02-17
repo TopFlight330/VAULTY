@@ -1305,6 +1305,153 @@
     border-color: var(--danger);
 }
 
+/* ══════ TOGGLE SPINNER ══════ */
+.toggleSpinner {
+    width: 18px; height: 18px;
+    animation: spinToggle 0.8s linear infinite;
+    flex-shrink: 0;
+    color: var(--pink);
+}
+.toggleSpinner svg { width: 18px; height: 18px; }
+@keyframes spinToggle {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ══════ MODAL ══════ */
+.modalOverlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+.modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 2rem;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    animation: modalIn 0.2s ease-out;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modalIcon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem;
+}
+.modalIcon svg { width: 24px; height: 24px; }
+.modalTitle {
+    font-family: var(--font-sora);
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+.modalDesc {
+    font-size: 0.85rem;
+    color: var(--dim);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+}
+.modalReasons {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 1rem;
+}
+.modalReasonOption {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+.modalReasonOption:hover { border-color: var(--muted); }
+.modalReasonOptionActive {
+    border-color: var(--pink);
+    background: var(--pink-dim);
+}
+.modalReasonOption input { display: none; }
+.modalRadio {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.15s;
+}
+.modalReasonOptionActive .modalRadio {
+    border-color: var(--pink);
+}
+.modalReasonOptionActive .modalRadio::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--pink);
+}
+.modalTextarea {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    outline: none;
+    resize: vertical;
+    min-height: 70px;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+}
+.modalTextarea:focus { border-color: var(--pink); }
+.modalActions {
+    display: flex; gap: 0.75rem; justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+.modalWarningBox {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: var(--danger-dim);
+    border: 1px solid rgba(239,68,68,0.2);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--danger);
+    line-height: 1.5;
+}
+.modalWarningBox svg {
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+}
+.btnDangerSolid {
+    padding: 0.65rem 1.5rem;
+    background: var(--danger);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+}
+.btnDangerSolid:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 20px rgba(239,68,68,0.3);
+}
+.btnDangerSolid:disabled { opacity: 0.5; cursor: default; }
+
 /* ══════ RESPONSIVE ══════ */
 @media (max-width: 1100px) {
     .statCards { grid-template-columns: repeat(2, 1fr); }
