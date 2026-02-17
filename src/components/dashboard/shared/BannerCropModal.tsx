@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { getCroppedImageBlob } from "@/lib/utils/cropImage";
@@ -12,18 +12,35 @@ interface BannerCropModalProps {
   onClose: () => void;
 }
 
+const BANNER_ASPECT = 800 / 220;
+
 export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCropModalProps) {
   const [imageSrc, setImageSrc] = useState("");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
+  const [cropSize, setCropSize] = useState<{ width: number; height: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const url = URL.createObjectURL(imageFile);
     setImageSrc(url);
     return () => URL.revokeObjectURL(url);
   }, [imageFile]);
+
+  // Measure container width and force crop size to fill it
+  useEffect(() => {
+    const measure = () => {
+      if (containerRef.current) {
+        const w = containerRef.current.clientWidth;
+        setCropSize({ width: w, height: Math.round(w / BANNER_ASPECT) });
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   const handleCropComplete = useCallback((_: Area, croppedPixels: Area) => {
     setCroppedAreaPixels(croppedPixels);
@@ -46,21 +63,24 @@ export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCr
       <div className={s.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600 }}>
         <h3 className={s.modalTitle}>Crop Banner</h3>
 
-        <div style={{
-          position: "relative",
-          width: "100%",
-          height: 350,
-          background: "#000",
-          borderRadius: 12,
-          overflow: "hidden",
-          marginBottom: "1rem",
-        }}>
-          {imageSrc && (
+        <div
+          ref={containerRef}
+          style={{
+            position: "relative",
+            width: "100%",
+            height: 350,
+            background: "#000",
+            borderRadius: 12,
+            overflow: "hidden",
+            marginBottom: "1rem",
+          }}
+        >
+          {imageSrc && cropSize && (
             <Cropper
               image={imageSrc}
               crop={crop}
               zoom={zoom}
-              aspect={800 / 220}
+              cropSize={cropSize}
               cropShape="rect"
               showGrid={false}
               objectFit="horizontal-cover"
