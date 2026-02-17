@@ -492,13 +492,9 @@ export function CreatorPageClient({
             </div>
 
             <div className={s.usernameRow}>
-              <span className={s.username}>@{creator.username}</span>
-              {creator.online_status === "available" && (
-                <span className={s.onlineLabel}>
-                  <span className={s.onlineLabelDot} />
-                  Available now
-                </span>
-              )}
+              <span className={s.username}>
+                @{creator.username}{creator.online_status === "available" && " - Online"}
+              </span>
             </div>
 
             {/* Achievement Badges */}

@@ -49,7 +49,7 @@ export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCr
         <div style={{
           position: "relative",
           width: "100%",
-          aspectRatio: "800 / 220",
+          height: 350,
           background: "#000",
           borderRadius: 12,
           overflow: "hidden",
