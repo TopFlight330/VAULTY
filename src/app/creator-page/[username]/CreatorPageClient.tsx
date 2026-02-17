@@ -327,18 +327,20 @@ export function CreatorPageClient({
         <div className={s.username}>@{creator.username}</div>
 
         {/* Achievement Badges */}
-        <div className={s.badgesRow}>
-          {badges.map((badge) => (
-            <div
-              key={badge.id}
-              className={badge.earned ? s.badgeEarned : s.badgeGray}
-              title={badge.description}
-            >
-              <BadgeIcon icon={badge.icon} />
-              {badge.name}
-            </div>
-          ))}
-        </div>
+        {badges.length > 0 && (
+          <div className={s.badgesRow}>
+            {badges.map((badge) => (
+              <div
+                key={badge.id}
+                className={`${s.badge} ${badge.earned ? s.badgeEarned : s.badgeGray}`}
+                title={badge.description}
+              >
+                <BadgeIcon icon={badge.icon} />
+                {badge.name}
+              </div>
+            ))}
+          </div>
+        )}
 
         {creator.bio && <div className={s.bio}>{creator.bio}</div>}
 

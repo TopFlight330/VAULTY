@@ -205,36 +205,40 @@
 
 /* ── Achievement Badges ── */
 .badgesRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 .badge {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 0.3rem 0.7rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.55rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  transition: all 0.2s;
+  transition: all 0.25s;
+  white-space: nowrap;
 }
 .badgeEarned {
-  background: var(--purple-dim);
+  background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(244,63,142,0.1));
   color: var(--purple);
-  border: 1px solid rgba(139,92,246,0.25);
+  border: 1px solid rgba(139,92,246,0.35);
+  box-shadow: 0 0 12px rgba(139,92,246,0.15);
 }
 .badgeGray {
-  background: rgba(82,77,99,0.15);
+  background: rgba(255,255,255,0.03);
   color: var(--muted);
-  border: 1px solid rgba(82,77,99,0.2);
-  opacity: 0.5;
+  border: 1px solid rgba(255,255,255,0.06);
+  opacity: 0.45;
 }
 .badgeIcon {
-  width: 13px; height: 13px;
+  width: 14px; height: 14px;
+  flex-shrink: 0;
 }
 
 /* ── Bio ── */
@@ -243,7 +247,6 @@
   color: var(--dim);
   line-height: 1.7;
   margin-bottom: 1rem;
-  max-width: 520px;
   white-space: pre-wrap;
 }
 
@@ -632,6 +635,8 @@
   .profileCard { margin-top: -50px; }
   .avatar { width: 100px; height: 100px; font-size: 1.8rem; }
   .displayName { font-size: 1.3rem; }
+  .badgesRow { grid-template-columns: repeat(3, 1fr); }
+  .badge { font-size: 0.62rem; padding: 0.45rem 0.3rem; }
   .subscribeCard { flex-direction: column; align-items: stretch; text-align: center; }
   .feed { padding: 0 0.5rem 4rem; }
   .postCard { border-radius: 10px; }
