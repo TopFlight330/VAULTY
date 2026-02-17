@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getMyPageData, updateProfile, updateAvatar, updateBanner } from "@/lib/actions/profile";
+import { getMyPageData, updateProfile, updateBanner, uploadAndSetAvatar } from "@/lib/actions/profile";
 import { deletePost } from "@/lib/actions/posts";
-import { createSignedUploadUrl, uploadFileDirect } from "@/lib/actions/storage";
+import { createSignedUploadUrl } from "@/lib/actions/storage";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import type { PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
@@ -109,18 +109,13 @@ export default function MyPagePage() {
 
   const handleCroppedAvatar = async (blob: Blob) => {
     if (!user) return;
-    // Convert blob to base64 for server action
-    const arrayBuffer = await blob.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const formData = new FormData();
+    formData.append("file", new File([blob], "avatar.jpg", { type: "image/jpeg" }));
 
-    const path = `${user.id}/avatar.jpg`;
-    const uploaded = await uploadFileDirect("avatars", path, base64, "image/jpeg");
-    if (!uploaded) { showToast("Upload failed", "error"); return; }
-
-    const result = await updateAvatar(uploaded.publicUrl);
+    const result = await uploadAndSetAvatar(formData);
     if (result.success) {
       showToast("Avatar updated!", "success");
-      refreshProfile();
+      await refreshProfile();
       setCropFile(null);
     } else {
       showToast(result.message, "error");

@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { ActionResult, PostWithMedia } from "@/types/database";
+import type { ActionResult, PostWithMedia, Profile } from "@/types/database";
 
 export async function updateProfile(data: {
   display_name?: string;
@@ -175,6 +175,71 @@ export async function deleteAccount(password: string): Promise<ActionResult> {
   await supabase.auth.signOut();
 
   return { success: true, message: "Account deleted." };
+}
+
+export async function getProfile(): Promise<Profile | null> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  return (data as Profile) ?? null;
+}
+
+export async function uploadAndSetAvatar(formData: FormData): Promise<ActionResult & { url?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: "Not authenticated." };
+
+  const file = formData.get("file") as File | null;
+  if (!file) return { success: false, message: "No file provided." };
+
+  const admin = createAdminClient();
+  const path = `${user.id}/avatar.jpg`;
+
+  // Ensure bucket exists
+  await admin.storage.createBucket("avatars", {
+    public: true,
+    fileSizeLimit: 5242880, // 5MB
+  }).catch(() => {}); // Ignore if already exists
+
+  // Convert File to ArrayBuffer for server upload
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  // Upload via admin client (bypasses all storage policies)
+  const { error: uploadError } = await admin.storage
+    .from("avatars")
+    .upload(path, buffer, {
+      contentType: "image/jpeg",
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error("Avatar upload error:", uploadError.message);
+    return { success: false, message: "Upload failed: " + uploadError.message };
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
+
+  // Update profile
+  const { error: updateError } = await admin
+    .from("profiles")
+    .update({ avatar_url: publicUrl })
+    .eq("id", user.id);
+
+  if (updateError) {
+    return { success: false, message: updateError.message };
+  }
+
+  return { success: true, message: "Avatar updated.", url: publicUrl };
 }
 
 export async function getMyPageData(): Promise<{

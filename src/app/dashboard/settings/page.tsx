@@ -6,12 +6,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import {
   updateProfile,
-  updateAvatar,
   updateSetting,
+  uploadAndSetAvatar,
   deactivatePage,
   deleteAccount,
 } from "@/lib/actions/profile";
-import { uploadFileWithProgress } from "@/lib/helpers/storage";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import s from "../dashboard.module.css";
 
@@ -333,15 +332,10 @@ export default function SettingsPage() {
     setUploadingAvatar(true);
 
     try {
-      const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
-      const path = `${user.id}/avatar.jpg`;
+      const formData = new FormData();
+      formData.append("file", new File([blob], "avatar.jpg", { type: "image/jpeg" }));
 
-      const storagePath = await uploadFileWithProgress("avatars", path, file, () => {});
-      if (!storagePath) throw new Error("Upload failed");
-
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
-      const result = await updateAvatar(publicUrl);
+      const result = await uploadAndSetAvatar(formData);
       if (result.success) {
         showToast("Avatar updated!", "success");
         await refreshProfile();

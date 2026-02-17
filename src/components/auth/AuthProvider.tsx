@@ -2,6 +2,7 @@
 
 import { createContext, useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getProfile } from "@/lib/actions/profile";
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/database";
 
@@ -24,19 +25,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    setProfile(data as Profile | null);
+  // Use server action to fetch profile (bypasses RLS via admin client)
+  const fetchProfile = useCallback(async () => {
+    const data = await getProfile();
+    setProfile(data);
   }, []);
 
   const refreshProfile = useCallback(async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await fetchProfile();
     }
   }, [user, fetchProfile]);
 
@@ -46,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       setUser(user);
       if (user) {
-        await fetchProfile(user.id);
+        await fetchProfile();
       }
       setIsLoading(false);
     });
@@ -57,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const newUser = session?.user ?? null;
       setUser(newUser);
       if (newUser) {
-        await fetchProfile(newUser.id);
+        await fetchProfile();
       } else {
         setProfile(null);
       }
