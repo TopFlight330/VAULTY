@@ -799,9 +799,6 @@ function PostCard({
         <div className={s.postHeaderInfo}>
           <div className={s.postHeaderNameRow}>
             <span className={s.postHeaderName}>{creator.display_name}</span>
-            <span className={s.postVisibilityTag} style={visibilityStyle(post.visibility)}>
-              {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
-            </span>
             <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
             <div className={s.postMenuWrap} ref={menuRef}>
               <button className={s.postMenuBtn} onClick={() => setShowMenu(!showMenu)}>
@@ -842,6 +839,9 @@ function PostCard({
                 Pinned
               </span>
             )}
+            <span className={s.postVisibilityTag} style={visibilityStyle(post.visibility)}>
+              {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+            </span>
           </div>
         </div>
       </div>
