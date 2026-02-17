@@ -10,21 +10,64 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem 1.5rem;
+  height: 60px;
+  padding: 0 1.5rem;
+  background: rgba(14,11,20,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
 }
 .topNavLogo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   text-decoration: none;
-  font-family: var(--font-unbounded);
-  font-weight: 900;
-  font-size: 1.15rem;
   color: var(--text);
 }
-.topNavLogo svg {
-  width: 26px;
-  height: 26px;
+.topNavLogoIcon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, rgba(244,63,142,0.1), rgba(139,92,246,0.06));
+  border: 1px solid rgba(244,63,142,0.2);
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.topNavLogoVault {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--pink);
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.topNavLogoVault::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: var(--pink);
+  border-radius: 50%;
+  position: absolute;
+}
+.topNavLogoVault .sp {
+  position: absolute;
+  width: 1.5px;
+  height: 7px;
+  background: var(--pink);
+  border-radius: 1px;
+}
+.topNavLogoVault .sp:nth-child(1) { transform: rotate(0deg); }
+.topNavLogoVault .sp:nth-child(2) { transform: rotate(90deg); }
+.topNavLogoVault .sp:nth-child(3) { transform: rotate(45deg); }
+.topNavLogoVault .sp:nth-child(4) { transform: rotate(135deg); }
+.topNavLogoText {
+  font-family: var(--font-unbounded);
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1px;
 }
 .topNavActions {
   display: flex;
