@@ -7,6 +7,7 @@ import { getMyPageData, updateProfile, updateBanner, uploadAndSetAvatar, uploadA
 import { deletePost } from "@/lib/actions/posts";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import { BannerCropModal } from "@/components/dashboard/shared/BannerCropModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
 
@@ -66,6 +67,10 @@ export default function MyPagePage() {
   // Crop modals
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropBannerFile, setCropBannerFile] = useState<File | null>(null);
+
+  // Delete confirmation
+  const [deleteTarget, setDeleteTarget] = useState<PostWithMedia | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -158,16 +163,19 @@ export default function MyPagePage() {
   };
 
   /* ── Delete post ── */
-  const handleDeletePost = async (postId: string) => {
-    if (!confirm("Delete this post? This cannot be undone.")) return;
-    const result = await deletePost(postId);
+  const handleDeletePost = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const result = await deletePost(deleteTarget.id);
     if (result.success) {
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      setPosts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
       setPostCount((c) => c - 1);
       showToast("Post deleted", "success");
     } else {
       showToast(result.message, "error");
     }
+    setDeleteTarget(null);
+    setDeleting(false);
   };
 
   /* ── Copy link ── */
@@ -451,7 +459,7 @@ export default function MyPagePage() {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             Edit
                           </button>
-                          <button className={`${s.mpPostActionBtn} ${s.mpPostActionBtnDel}`} onClick={() => handleDeletePost(post.id)}>
+                          <button className={`${s.mpPostActionBtn} ${s.mpPostActionBtnDel}`} onClick={() => setDeleteTarget(post)}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                             Delete
                           </button>
@@ -567,6 +575,19 @@ export default function MyPagePage() {
           </div>
         </div>
       )}
+
+      {/* ═══ Delete Confirmation ═══ */}
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        onConfirm={handleDeletePost}
+        onCancel={() => setDeleteTarget(null)}
+        title="Delete Post"
+        message={`Delete "${deleteTarget?.title ?? ""}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        isLoading={deleting}
+      />
     </div>
   );
 }

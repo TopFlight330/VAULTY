@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult, Visibility, PostWithMedia } from "@/types/database";
 
 export async function createPost(data: {
@@ -77,11 +78,25 @@ export async function deletePost(postId: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: "Not authenticated." };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+
+  // Verify ownership before deleting
+  const { data: post } = await admin
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("creator_id", user.id)
+    .single();
+
+  if (!post) return { success: false, message: "Post not found." };
+
+  // Delete associated media records first
+  await admin.from("post_media").delete().eq("post_id", postId);
+
+  const { error } = await admin
     .from("posts")
     .delete()
-    .eq("id", postId)
-    .eq("creator_id", user.id);
+    .eq("id", postId);
 
   if (error) return { success: false, message: error.message };
   return { success: true, message: "Post deleted." };
