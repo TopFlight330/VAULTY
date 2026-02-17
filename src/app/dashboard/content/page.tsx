@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { createPost, updatePost, deletePost, addPostMedia, getMyPosts } from "@/lib/actions/posts";
+import { createPost, updatePost, deletePost, addPostMedia, getMyPosts, togglePinPost } from "@/lib/actions/posts";
 import { uploadFileWithProgress, deleteFile } from "@/lib/helpers/storage";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { MediaUploader } from "@/components/dashboard/shared/MediaUploader";
@@ -280,6 +280,16 @@ export default function ContentPage() {
     }
     setDeleteTarget(null);
     setDeleting(false);
+  };
+
+  const handleTogglePin = async (post: PostWithMedia) => {
+    const result = await togglePinPost(post.id);
+    if (result.success) {
+      showToast(result.message, "success");
+      fetchPosts();
+    } else {
+      showToast(result.message, "error");
+    }
   };
 
   const visibilityClass = (v: string) => {
@@ -628,7 +638,7 @@ export default function ContentPage() {
           {posts.map((post) => {
             const thumbUrl = getThumbUrl(post);
             return (
-              <div key={post.id} className={s.contentPost}>
+              <div key={post.id} className={s.contentPost} style={post.is_pinned ? { border: "1px solid var(--pink)", boxShadow: "0 0 0 1px rgba(244,63,142,0.15)" } : undefined}>
                 <div className={s.contentThumb}>
                   {thumbUrl ? (
                     <img
@@ -642,6 +652,21 @@ export default function ContentPage() {
                   <span className={`${s.contentVisibility} ${visibilityClass(post.visibility)}`}>
                     {post.visibility === "ppv" ? "PPV" : capitalize(post.visibility)}
                   </span>
+                  {post.is_pinned && (
+                    <span style={{
+                      position: "absolute", top: 8, right: 8,
+                      background: "var(--pink)", color: "#fff",
+                      fontSize: "0.65rem", fontWeight: 800,
+                      padding: "2px 8px", borderRadius: 6,
+                      display: "flex", alignItems: "center", gap: 4,
+                      textTransform: "uppercase", letterSpacing: "0.04em",
+                    }}>
+                      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ width: 10, height: 10 }}>
+                        <path d="M16 2L17.5 6.5L22 8L17.5 9.5L16 14L14.5 9.5L10 8L14.5 6.5L16 2Z" />
+                      </svg>
+                      Pinned
+                    </span>
+                  )}
                 </div>
                 <div className={s.contentBody}>
                   <div className={s.contentTitle}>{post.title}</div>
@@ -662,6 +687,17 @@ export default function ContentPage() {
                     )}
                   </div>
                   <div className={s.contentActions}>
+                    <button
+                      className={s.contentActionBtn}
+                      onClick={() => handleTogglePin(post)}
+                      style={post.is_pinned ? { color: "var(--pink)" } : undefined}
+                      title={post.is_pinned ? "Unpin post" : "Pin to top"}
+                    >
+                      <svg viewBox="0 0 24 24" fill={post.is_pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z" />
+                      </svg>
+                      {post.is_pinned ? "Unpin" : "Pin"}
+                    </button>
                     <button
                       className={s.contentActionBtn}
                       onClick={() => openEditPost(post)}
@@ -807,10 +843,13 @@ function ImageCropModal({
 
   if (!imgSrc) return null;
 
+  const visibleTop = cropTop;
+  const visibleBottom = cropBottom;
+
   return (
     <div style={{
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
-      zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
       backdropFilter: "blur(4px)",
     }}>
       <div style={{
@@ -831,41 +870,80 @@ function ImageCropModal({
 
           {/* Top crop overlay */}
           <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: cropTop,
+            position: "absolute", top: 0, left: 0, right: 0, height: visibleTop,
             background: "rgba(0,0,0,0.6)", transition: dragging.current === "top" ? "none" : "height 0.05s",
+            pointerEvents: "none",
           }} />
-          {/* Top drag handle */}
+          {/* Top drag handle - full-width bar */}
           <div
             onMouseDown={(e) => handleMouseDown("top", e)}
             style={{
-              position: "absolute", top: cropTop - 3, left: 0, right: 0, height: 6,
-              cursor: "ns-resize", zIndex: 5,
+              position: "absolute", top: visibleTop - 12, left: 0, right: 0, height: 24,
+              cursor: "ns-resize", zIndex: 10,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
+            {/* Handle line */}
             <div style={{
-              width: 60, height: 4, borderRadius: 2,
-              background: cropTop > 0 ? "var(--pink)" : "rgba(255,255,255,0.3)",
+              position: "absolute", left: 0, right: 0, height: 2,
+              background: "var(--pink)", boxShadow: "0 0 6px rgba(244,63,142,0.5)",
             }} />
+            {/* Center grip */}
+            <div style={{
+              width: 48, height: 20, borderRadius: 10,
+              background: "var(--pink)", display: "flex", alignItems: "center", justifyContent: "center",
+              gap: 2, zIndex: 1, boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }}>
+              <div style={{ width: 16, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.8)" }} />
+            </div>
           </div>
 
           {/* Bottom crop overlay */}
           <div style={{
-            position: "absolute", bottom: 0, left: 0, right: 0, height: cropBottom,
+            position: "absolute", bottom: 0, left: 0, right: 0, height: visibleBottom,
             background: "rgba(0,0,0,0.6)", transition: dragging.current === "bottom" ? "none" : "height 0.05s",
+            pointerEvents: "none",
           }} />
-          {/* Bottom drag handle */}
+          {/* Bottom drag handle - full-width bar */}
           <div
             onMouseDown={(e) => handleMouseDown("bottom", e)}
             style={{
-              position: "absolute", bottom: cropBottom - 3, left: 0, right: 0, height: 6,
-              cursor: "ns-resize", zIndex: 5,
+              position: "absolute", bottom: visibleBottom - 12, left: 0, right: 0, height: 24,
+              cursor: "ns-resize", zIndex: 10,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
+            {/* Handle line */}
             <div style={{
-              width: 60, height: 4, borderRadius: 2,
-              background: cropBottom > 0 ? "var(--pink)" : "rgba(255,255,255,0.3)",
+              position: "absolute", left: 0, right: 0, height: 2,
+              background: "var(--pink)", boxShadow: "0 0 6px rgba(244,63,142,0.5)",
+            }} />
+            {/* Center grip */}
+            <div style={{
+              width: 48, height: 20, borderRadius: 10,
+              background: "var(--pink)", display: "flex", alignItems: "center", justifyContent: "center",
+              gap: 2, zIndex: 1, boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }}>
+              <div style={{ width: 16, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.8)" }} />
+            </div>
+          </div>
+
+          {/* Grid overlay (rule-of-thirds) on visible area */}
+          <div style={{
+            position: "absolute", top: visibleTop, left: 0, right: 0,
+            bottom: visibleBottom, pointerEvents: "none", zIndex: 4,
+          }}>
+            {/* Horizontal grid lines */}
+            <div style={{ position: "absolute", top: "33.33%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.25)" }} />
+            <div style={{ position: "absolute", top: "66.66%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.25)" }} />
+            {/* Vertical grid lines */}
+            <div style={{ position: "absolute", left: "33.33%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.25)" }} />
+            <div style={{ position: "absolute", left: "66.66%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.25)" }} />
+            {/* Border around visible crop area */}
+            <div style={{
+              position: "absolute", inset: 0,
+              border: "2px solid rgba(255,255,255,0.4)",
+              pointerEvents: "none",
             }} />
           </div>
         </div>

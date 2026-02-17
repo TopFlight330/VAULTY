@@ -378,7 +378,6 @@ export function CreatorPageClient({
           )}
         </div>
 
-        <div className={s.profileBody}>
           <div className={s.nameRow}>
             <div className={s.displayName}>{creator.display_name}</div>
             {creator.is_verified && (
@@ -450,7 +449,6 @@ export function CreatorPageClient({
               )}
             </div>
           )}
-        </div>
       </div>
 
       {/* Posts Feed */}
@@ -625,6 +623,18 @@ function PostCard({
           </div>
         </div>
         <div className={s.postHeaderRight}>
+          {post.is_pinned && (
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 3,
+              fontSize: "0.68rem", fontWeight: 700, color: "var(--pink)",
+              textTransform: "uppercase", letterSpacing: "0.03em",
+            }}>
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style={{ width: 10, height: 10 }}>
+                <path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z" />
+              </svg>
+              Pinned
+            </span>
+          )}
           <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
           <div className={s.postMenuWrap} ref={menuRef}>
             <button className={s.postMenuBtn} onClick={() => setShowMenu(!showMenu)}>

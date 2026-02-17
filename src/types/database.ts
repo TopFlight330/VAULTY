@@ -78,6 +78,7 @@ export interface Post {
   view_count: number;
   comment_count: number;
   is_published: boolean;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -180,12 +180,6 @@
   padding: 0 1rem;
   z-index: 1;
 }
-.profileBody {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.25rem;
-}
 .avatar {
   width: 120px; height: 120px;
   border-radius: 50%;

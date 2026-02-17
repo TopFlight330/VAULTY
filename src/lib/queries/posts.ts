@@ -18,6 +18,7 @@ export async function getCreatorPosts(
     .from("posts")
     .select("*, media:post_media(*)")
     .eq("creator_id", creatorId)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .range(from, from + limit - 1);
 
@@ -46,6 +47,7 @@ export async function getCreatorPostsForViewer(
     .select("*, media:post_media(*)")
     .eq("creator_id", creatorId)
     .eq("is_published", true)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (!posts) return [];
@@ -109,6 +111,7 @@ export async function getCreatorPostsWithInteractions(
     .select("*, media:post_media(*)")
     .eq("creator_id", creatorId)
     .eq("is_published", true)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (!posts) return [];

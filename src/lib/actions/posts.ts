@@ -181,6 +181,34 @@ export async function toggleLike(
   }
 }
 
+export async function togglePinPost(postId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: "Not authenticated." };
+
+  const admin = createAdminClient();
+
+  // Fetch current state
+  const { data: post } = await admin
+    .from("posts")
+    .select("id, is_pinned")
+    .eq("id", postId)
+    .eq("creator_id", user.id)
+    .single();
+
+  if (!post) return { success: false, message: "Post not found." };
+
+  const newPinned = !post.is_pinned;
+
+  const { error } = await admin
+    .from("posts")
+    .update({ is_pinned: newPinned })
+    .eq("id", postId);
+
+  if (error) return { success: false, message: error.message };
+  return { success: true, message: newPinned ? "Post pinned." : "Post unpinned." };
+}
+
 export async function getMyPosts(): Promise<PostWithMedia[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -190,6 +218,7 @@ export async function getMyPosts(): Promise<PostWithMedia[]> {
     .from("posts")
     .select("*, media:post_media(*)")
     .eq("creator_id", user.id)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (error) {
