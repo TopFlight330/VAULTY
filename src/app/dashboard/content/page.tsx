@@ -48,44 +48,87 @@ export default function ContentPage() {
     fetchPosts();
   }, [fetchPosts]);
 
-  // Upload files immediately when selected
+  // Crop modal state
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+
+  // Upload a single file (used after crop or directly for videos)
+  const uploadSingleFile = (file: File) => {
+    if (!user) return;
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/pending/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const mediaType: "image" | "video" = file.type.startsWith("video/") ? "video" : "image";
+
+    const entry: UploadedFile = {
+      name: file.name,
+      storagePath: path,
+      mediaType,
+      progress: 0,
+      status: "uploading",
+    };
+
+    setUploadedFiles((prev) => [...prev, entry]);
+
+    uploadFileWithProgress("post-media", path, file, (percent) => {
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.storagePath === path ? { ...f, progress: percent } : f
+        )
+      );
+    }).then((result) => {
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.storagePath === path
+            ? { ...f, status: result ? "done" : "error", progress: 100 }
+            : f
+        )
+      );
+      if (!result) {
+        showToast(`Failed to upload ${file.name}`, "error");
+      }
+    });
+  };
+
+  // When files are selected: images go to crop, videos upload directly
   const handleFilesSelected = (files: File[]) => {
     if (!user) return;
-
+    const images: File[] = [];
     for (const file of files) {
-      const ext = file.name.split(".").pop();
-      const path = `${user.id}/pending/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-      const mediaType: "image" | "video" = file.type.startsWith("video/") ? "video" : "image";
+      if (file.type.startsWith("video/")) {
+        uploadSingleFile(file);
+      } else {
+        images.push(file);
+      }
+    }
+    if (images.length > 0) {
+      setCropFile(images[0]);
+      setCropQueue(images.slice(1));
+    }
+  };
 
-      const entry: UploadedFile = {
-        name: file.name,
-        storagePath: path,
-        mediaType,
-        progress: 0,
-        status: "uploading",
-      };
+  // After crop confirmed (receives the cropped blob)
+  const handleCropDone = (blob: Blob) => {
+    const file = new File([blob], cropFile!.name, { type: "image/jpeg" });
+    uploadSingleFile(file);
+    // Process next in queue
+    if (cropQueue.length > 0) {
+      setCropFile(cropQueue[0]);
+      setCropQueue(cropQueue.slice(1));
+    } else {
+      setCropFile(null);
+      setCropQueue([]);
+    }
+  };
 
-      setUploadedFiles((prev) => [...prev, entry]);
-
-      // Start upload immediately (no await — runs in parallel)
-      uploadFileWithProgress("post-media", path, file, (percent) => {
-        setUploadedFiles((prev) =>
-          prev.map((f) =>
-            f.storagePath === path ? { ...f, progress: percent } : f
-          )
-        );
-      }).then((result) => {
-        setUploadedFiles((prev) =>
-          prev.map((f) =>
-            f.storagePath === path
-              ? { ...f, status: result ? "done" : "error", progress: 100 }
-              : f
-          )
-        );
-        if (!result) {
-          showToast(`Failed to upload ${file.name}`, "error");
-        }
-      });
+  // Skip crop — upload original
+  const handleCropSkip = () => {
+    if (cropFile) uploadSingleFile(cropFile);
+    if (cropQueue.length > 0) {
+      setCropFile(cropQueue[0]);
+      setCropQueue(cropQueue.slice(1));
+    } else {
+      setCropFile(null);
+      setCropQueue([]);
     }
   };
 
@@ -652,6 +695,222 @@ export default function ContentPage() {
         variant="danger"
         isLoading={deleting}
       />
+
+      {/* Image Crop Modal */}
+      {cropFile && (
+        <ImageCropModal
+          file={cropFile}
+          onDone={handleCropDone}
+          onSkip={handleCropSkip}
+          onCancel={() => { setCropFile(null); setCropQueue([]); }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ══════ Image Crop Modal ══════ */
+
+function ImageCropModal({
+  file,
+  onDone,
+  onSkip,
+  onCancel,
+}: {
+  file: File;
+  onDone: (blob: Blob) => void;
+  onSkip: () => void;
+  onCancel: () => void;
+}) {
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [imgNatW, setImgNatW] = useState(0);
+  const [imgNatH, setImgNatH] = useState(0);
+  const [cropTop, setCropTop] = useState(0);
+  const [cropBottom, setCropBottom] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef<"top" | "bottom" | null>(null);
+  const dragStartY = useRef(0);
+  const dragStartVal = useRef(0);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      setImgNatW(img.naturalWidth);
+      setImgNatH(img.naturalHeight);
+      setImgSrc(url);
+      setCropTop(0);
+      setCropBottom(0);
+    };
+    img.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const displayH = containerRef.current?.clientHeight ?? 500;
+  const maxCrop = displayH > 40 ? displayH - 40 : displayH;
+
+  const handleMouseDown = (edge: "top" | "bottom", e: React.MouseEvent) => {
+    e.preventDefault();
+    dragging.current = edge;
+    dragStartY.current = e.clientY;
+    dragStartVal.current = edge === "top" ? cropTop : cropBottom;
+
+    const handleMouseMove = (ev: MouseEvent) => {
+      const dy = ev.clientY - dragStartY.current;
+      if (dragging.current === "top") {
+        const next = Math.max(0, Math.min(maxCrop - cropBottom, dragStartVal.current + dy));
+        setCropTop(next);
+      } else {
+        const next = Math.max(0, Math.min(maxCrop - cropTop, dragStartVal.current - dy));
+        setCropBottom(next);
+      }
+    };
+
+    const handleMouseUp = () => {
+      dragging.current = null;
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleConfirm = () => {
+    if (!imgSrc || !containerRef.current) return;
+    const container = containerRef.current;
+    const displayW = container.clientWidth;
+    const displayTotalH = container.clientHeight;
+    const scaleX = imgNatW / displayW;
+    const scaleY = imgNatH / displayTotalH;
+
+    const srcX = 0;
+    const srcY = cropTop * scaleY;
+    const srcW = imgNatW;
+    const srcH = (displayTotalH - cropTop - cropBottom) * scaleY;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(srcW);
+    canvas.height = Math.round(srcH);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, srcX, Math.round(srcY), Math.round(srcW), Math.round(srcH), 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (blob) onDone(blob);
+      }, "image/jpeg", 0.92);
+    };
+    img.src = imgSrc;
+  };
+
+  if (!imgSrc) return null;
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
+      zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center",
+      backdropFilter: "blur(4px)",
+    }}>
+      <div style={{
+        background: "var(--card)", borderRadius: 16, border: "1px solid var(--border)",
+        width: "min(90vw, 700px)", maxHeight: "90vh", display: "flex", flexDirection: "column",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          padding: "1rem 1.25rem", borderBottom: "1px solid var(--border)",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <div style={{ fontWeight: 800, fontSize: "0.95rem" }}>Crop Image</div>
+          <div style={{ fontSize: "0.78rem", color: "var(--dim)" }}>Drag edges to crop</div>
+        </div>
+
+        <div style={{ position: "relative", flex: 1, overflow: "hidden", minHeight: 300, maxHeight: "65vh" }} ref={containerRef}>
+          <img src={imgSrc} alt="" style={{ width: "100%", display: "block" }} />
+
+          {/* Top crop overlay */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: cropTop,
+            background: "rgba(0,0,0,0.6)", transition: dragging.current === "top" ? "none" : "height 0.05s",
+          }} />
+          {/* Top drag handle */}
+          <div
+            onMouseDown={(e) => handleMouseDown("top", e)}
+            style={{
+              position: "absolute", top: cropTop - 3, left: 0, right: 0, height: 6,
+              cursor: "ns-resize", zIndex: 5,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <div style={{
+              width: 60, height: 4, borderRadius: 2,
+              background: cropTop > 0 ? "var(--pink)" : "rgba(255,255,255,0.3)",
+            }} />
+          </div>
+
+          {/* Bottom crop overlay */}
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0, height: cropBottom,
+            background: "rgba(0,0,0,0.6)", transition: dragging.current === "bottom" ? "none" : "height 0.05s",
+          }} />
+          {/* Bottom drag handle */}
+          <div
+            onMouseDown={(e) => handleMouseDown("bottom", e)}
+            style={{
+              position: "absolute", bottom: cropBottom - 3, left: 0, right: 0, height: 6,
+              cursor: "ns-resize", zIndex: 5,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <div style={{
+              width: 60, height: 4, borderRadius: 2,
+              background: cropBottom > 0 ? "var(--pink)" : "rgba(255,255,255,0.3)",
+            }} />
+          </div>
+        </div>
+
+        <div style={{
+          padding: "1rem 1.25rem", borderTop: "1px solid var(--border)",
+          display: "flex", gap: "0.75rem",
+        }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1, padding: "0.6rem", background: "none",
+              border: "1px solid var(--border)", borderRadius: 10,
+              color: "var(--dim)", fontFamily: "inherit", fontSize: "0.85rem",
+              fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSkip}
+            style={{
+              flex: 1, padding: "0.6rem",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid var(--border)", borderRadius: 10,
+              color: "var(--text)", fontFamily: "inherit", fontSize: "0.85rem",
+              fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Skip
+          </button>
+          <button
+            onClick={handleConfirm}
+            style={{
+              flex: 1, padding: "0.6rem",
+              background: "linear-gradient(135deg, #f43f8e, #8b5cf6)",
+              border: "none", borderRadius: 10,
+              color: "#fff", fontFamily: "inherit", fontSize: "0.85rem",
+              fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            Crop & Upload
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
