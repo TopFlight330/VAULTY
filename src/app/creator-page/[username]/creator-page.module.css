@@ -156,10 +156,16 @@
   background: rgba(244,63,142,0.2);
 }
 
+/* ── Content Wrapper ── */
+.contentWrap {
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
 /* ── Banner ── */
 .banner {
-  max-width: 1050px;
-  margin: 2rem auto 0;
+  margin-top: 2rem;
   height: 260px;
   background: linear-gradient(135deg, rgba(244,63,142,0.2), rgba(139,92,246,0.2));
   position: relative;
@@ -174,10 +180,8 @@
 
 /* ── Profile Card ── */
 .profileCard {
-  max-width: 1050px;
-  margin: -60px auto 0;
+  margin-top: -60px;
   position: relative;
-  padding: 0 1rem;
   z-index: 1;
 }
 .avatar {
@@ -346,9 +350,7 @@
 
 /* ── Feed ── */
 .feed {
-  max-width: 1050px;
-  margin: 0 auto;
-  padding: 0 1rem 4rem;
+  padding: 0 0 4rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;

@@ -363,6 +363,9 @@ export function CreatorPageClient({
         </div>
       )}
 
+      {/* Content Container - 1050px max */}
+      <div className={s.contentWrap}>
+
       {/* Banner */}
       <div className={s.banner}>
         {creator.banner_url && <img src={creator.banner_url} alt="" />}
@@ -485,6 +488,8 @@ export function CreatorPageClient({
           ))
         )}
       </div>
+
+      </div>{/* end contentWrap */}
     </div>
   );
 }
