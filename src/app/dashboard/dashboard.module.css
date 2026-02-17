@@ -876,6 +876,11 @@
 .payoutStatusProcessing { background: var(--blue-dim); color: var(--blue); }
 
 /* ══════ MY PAGE VIEW ══════ */
+.mpPageWrap {
+    max-width: 1080px;
+    margin: 0 auto;
+}
+
 .mpCard {
     background: var(--card);
     border: 1px solid var(--border);

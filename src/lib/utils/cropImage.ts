@@ -8,12 +8,14 @@ export interface PixelCrop {
 export async function getCroppedImageBlob(
   imageSrc: string,
   pixelCrop: PixelCrop,
-  outputSize = 400
+  outputWidth = 400,
+  outputHeight?: number
 ): Promise<Blob> {
   const image = await loadImage(imageSrc);
   const canvas = document.createElement("canvas");
-  canvas.width = outputSize;
-  canvas.height = outputSize;
+  const outH = outputHeight ?? outputWidth;
+  canvas.width = outputWidth;
+  canvas.height = outH;
   const ctx = canvas.getContext("2d")!;
 
   ctx.drawImage(
@@ -24,8 +26,8 @@ export async function getCroppedImageBlob(
     pixelCrop.height,
     0,
     0,
-    outputSize,
-    outputSize
+    outputWidth,
+    outH
   );
 
   return new Promise((resolve, reject) => {

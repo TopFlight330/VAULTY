@@ -3,10 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getMyPageData, updateProfile, updateBanner, uploadAndSetAvatar } from "@/lib/actions/profile";
+import { getMyPageData, updateProfile, updateBanner, uploadAndSetAvatar, uploadAndSetBanner } from "@/lib/actions/profile";
 import { deletePost } from "@/lib/actions/posts";
-import { createSignedUploadUrl } from "@/lib/actions/storage";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
+import { BannerCropModal } from "@/components/dashboard/shared/BannerCropModal";
 import type { PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
 
@@ -54,8 +54,9 @@ export default function MyPagePage() {
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  // Avatar crop modal
+  // Crop modals
   const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropBannerFile, setCropBannerFile] = useState<File | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -83,25 +84,16 @@ export default function MyPagePage() {
   }, []);
 
   /* ── Upload helpers ── */
-  const handleBannerUpload = async (file: File) => {
+  const handleCroppedBanner = async (blob: Blob) => {
     if (!user) return;
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${user.id}/banner.${ext}`;
-    const signed = await createSignedUploadUrl("banners", path);
-    if (!signed) { showToast("Upload failed", "error"); return; }
+    const formData = new FormData();
+    formData.append("file", new File([blob], "banner.jpg", { type: "image/jpeg" }));
 
-    const res = await fetch(signed.signedUrl, {
-      method: "PUT",
-      headers: { "Content-Type": file.type, "x-upsert": "true" },
-      body: file,
-    });
-    if (!res.ok) { showToast("Upload failed", "error"); return; }
-
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/banners/${path}?t=${Date.now()}`;
-    const result = await updateBanner(publicUrl);
+    const result = await uploadAndSetBanner(formData);
     if (result.success) {
       showToast("Banner updated!", "success");
-      refreshProfile();
+      await refreshProfile();
+      setCropBannerFile(null);
     } else {
       showToast(result.message, "error");
     }
@@ -199,10 +191,10 @@ export default function MyPagePage() {
   );
 
   return (
-    <div>
+    <div className={s.mpPageWrap}>
       {/* Hidden file inputs */}
       <input ref={bannerInputRef} type="file" accept="image/*" style={{ display: "none" }}
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBannerUpload(f); e.target.value = ""; }} />
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) setCropBannerFile(f); e.target.value = ""; }} />
       <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: "none" }}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) setCropFile(f); e.target.value = ""; }} />
 
@@ -492,6 +484,15 @@ export default function MyPagePage() {
           imageFile={cropFile}
           onCropComplete={handleCroppedAvatar}
           onClose={() => setCropFile(null)}
+        />
+      )}
+
+      {/* ═══ Banner Crop Modal ═══ */}
+      {cropBannerFile && (
+        <BannerCropModal
+          imageFile={cropBannerFile}
+          onCropComplete={handleCroppedBanner}
+          onClose={() => setCropBannerFile(null)}
         />
       )}
     </div>

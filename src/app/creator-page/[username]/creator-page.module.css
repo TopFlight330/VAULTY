@@ -20,7 +20,7 @@
 
 /* ── Profile Card ── */
 .profileCard {
-  max-width: 680px;
+  max-width: 1080px;
   margin: -60px auto 0;
   position: relative;
   padding: 0 1rem;
@@ -173,7 +173,7 @@
 
 /* ── Feed ── */
 .feed {
-  max-width: 680px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 0 1rem 4rem;
   display: flex;

@@ -125,6 +125,52 @@ export async function updateBanner(url: string): Promise<ActionResult> {
   return { success: true, message: "Banner updated." };
 }
 
+export async function uploadAndSetBanner(formData: FormData): Promise<ActionResult & { url?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: "Not authenticated." };
+
+  const file = formData.get("file") as File | null;
+  if (!file) return { success: false, message: "No file provided." };
+
+  const admin = createAdminClient();
+  const path = `${user.id}/banner.jpg`;
+
+  await admin.storage.createBucket("banners", {
+    public: true,
+    fileSizeLimit: 10485760, // 10MB
+  }).catch(() => {});
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const { error: uploadError } = await admin.storage
+    .from("banners")
+    .upload(path, buffer, {
+      contentType: "image/jpeg",
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error("Banner upload error:", uploadError.message);
+    return { success: false, message: "Upload failed: " + uploadError.message };
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/banners/${path}?t=${Date.now()}`;
+
+  const { error: updateError } = await admin
+    .from("profiles")
+    .update({ banner_url: publicUrl })
+    .eq("id", user.id);
+
+  if (updateError) {
+    return { success: false, message: updateError.message };
+  }
+
+  return { success: true, message: "Banner updated.", url: publicUrl };
+}
+
 export async function deactivatePage(reason: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
