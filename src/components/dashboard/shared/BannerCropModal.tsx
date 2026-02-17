@@ -33,10 +33,10 @@ export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCr
     if (!croppedAreaPixels || !imageSrc) return;
     setSaving(true);
     try {
-      const blob = await getCroppedImageBlob(imageSrc, croppedAreaPixels, 1200, 330);
+      const blob = await getCroppedImageBlob(imageSrc, croppedAreaPixels, 800, 220);
       await onCropComplete(blob);
-    } catch {
-      // Error handling delegated to parent
+    } catch (err) {
+      console.error("Banner crop error:", err);
     }
     setSaving(false);
   };
