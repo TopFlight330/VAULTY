@@ -478,13 +478,16 @@ export function CreatorPageClient({
             <div className={s.nameRow}>
               <div className={s.displayName}>{creator.display_name}</div>
               {creator.is_verified && (
-                <svg className={s.verifiedBadge} viewBox="0 0 24 24" fill="var(--purple)" stroke="none">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg className={s.verifiedBadge} viewBox="0 0 24 24">
+                  <defs>
+                    <linearGradient id="vgrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#f43f8e" />
+                      <stop offset="100%" stopColor="#8b5cf6" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="url(#vgrad)" stroke="none" />
                   <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              )}
-              {creator.category === "18+" && (
-                <span className={s.nsfwTag}>18+</span>
               )}
             </div>
 
@@ -508,7 +511,7 @@ export function CreatorPageClient({
                   return (
                     <div
                       key={badge.id}
-                      className={`${s.badge} ${badge.earned ? (isVerified ? s.badgeVerified : s.badgeEarned) : s.badgeGray}`}
+                      className={`${s.badge} ${badge.earned ? s.badgeEarned : s.badgeGray}`}
                       title={badge.description}
                     >
                       <BadgeIcon icon={displayIcon} />
@@ -533,6 +536,9 @@ export function CreatorPageClient({
               <div className={s.statItem}>
                 <span className={s.statAge}>{accountAge(creator.created_at)}</span>
               </div>
+              {creator.category === "18+" && (
+                <span className={s.nsfwTag}>18+</span>
+              )}
             </div>
           </div>
         </div>
@@ -852,17 +858,6 @@ function PostCard({
         </div>
       )}
 
-      {/* PPV Badge */}
-      {post.visibility === "ppv" && post.ppv_price && isBlurred && (
-        <div className={s.ppvBadge}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0110 0v4" />
-          </svg>
-          Pay-Per-View &middot; {post.ppv_price} credits
-        </div>
-      )}
-
       {/* Media */}
       {hasMedia && (
         <div className={s.postMedia}>
@@ -875,6 +870,9 @@ function PostCard({
                   className={s.postMediaImage}
                 />
               </div>
+              <span className={s.postVisibilityBadge} style={visibilityStyle(post.visibility)}>
+                {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+              </span>
               <div className={s.blurOverlay}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
