@@ -33,7 +33,7 @@ export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCr
     if (!croppedAreaPixels || !imageSrc) return;
     setSaving(true);
     try {
-      const blob = await getCroppedImageBlob(imageSrc, croppedAreaPixels, 1080, 360);
+      const blob = await getCroppedImageBlob(imageSrc, croppedAreaPixels, 1200, 330);
       await onCropComplete(blob);
     } catch {
       // Error handling delegated to parent
@@ -60,7 +60,7 @@ export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCr
               image={imageSrc}
               crop={crop}
               zoom={zoom}
-              aspect={3}
+              aspect={800 / 220}
               cropShape="rect"
               showGrid={false}
               onCropChange={setCrop}
