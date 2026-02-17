@@ -17,16 +17,31 @@ export async function createSignedUploadUrl(
 
   // Use admin client to bypass storage policies
   const admin = createAdminClient();
-  const { data, error } = await admin.storage
+  let { data, error } = await admin.storage
     .from(bucket)
     .createSignedUploadUrl(path);
 
+  // If bucket doesn't exist, create it and retry
   if (error) {
-    console.error("Signed URL error:", error.message);
-    return null;
+    console.error("Signed URL error (first attempt):", error.message);
+    await admin.storage.createBucket(bucket, {
+      public: true,
+      fileSizeLimit: 52428800, // 50MB
+    });
+
+    const retry = await admin.storage
+      .from(bucket)
+      .createSignedUploadUrl(path);
+    data = retry.data;
+    error = retry.error;
+
+    if (error) {
+      console.error("Signed URL error (after bucket creation):", error.message);
+      return null;
+    }
   }
 
-  return { signedUrl: data.signedUrl, token: data.token };
+  return data ? { signedUrl: data.signedUrl, token: data.token } : null;
 }
 
 /**
