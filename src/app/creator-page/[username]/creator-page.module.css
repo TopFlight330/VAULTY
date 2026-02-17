@@ -15,6 +15,19 @@
   background: rgba(14,11,20,0.92);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.topNav::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 120px;
+  background: radial-gradient(ellipse, rgba(244,63,142,0.08) 0%, rgba(139,92,246,0.04) 40%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 .topNavLogo {
   display: flex;
@@ -141,7 +154,7 @@
 /* ── Banner ── */
 .banner {
   max-width: 1080px;
-  margin: 0 auto;
+  margin: 2rem auto 0;
   height: 260px;
   background: linear-gradient(135deg, rgba(244,63,142,0.2), rgba(139,92,246,0.2));
   position: relative;
