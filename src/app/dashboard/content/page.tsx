@@ -157,12 +157,12 @@ export default function ContentPage() {
         return;
       }
 
-      // Link any new uploaded media
+      // Link any new uploaded media (prefix r2: for R2 storage)
       const successFiles = uploadedFiles.filter((f) => f.status === "done");
       for (let i = 0; i < successFiles.length; i++) {
         await addPostMedia({
           postId: editingPost.id,
-          storagePath: successFiles[i].storagePath,
+          storagePath: `r2:${successFiles[i].storagePath}`,
           mediaType: successFiles[i].mediaType,
           sortOrder: (editingPost.media?.length ?? 0) + i,
         });
@@ -189,7 +189,7 @@ export default function ContentPage() {
         for (let i = 0; i < successFiles.length; i++) {
           await addPostMedia({
             postId: result.postId,
-            storagePath: successFiles[i].storagePath,
+            storagePath: `r2:${successFiles[i].storagePath}`,
             mediaType: successFiles[i].mediaType,
             sortOrder: i,
           });
@@ -259,7 +259,11 @@ export default function ContentPage() {
   const getThumbUrl = (post: PostWithMedia) => {
     const img = post.media?.find((m) => m.media_type === "image");
     if (!img) return null;
-    return `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${img.storage_path}`;
+    const sp = img.storage_path;
+    if (sp.startsWith("r2:")) {
+      return `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${sp.slice(3)}`;
+    }
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${sp}`;
   };
 
   const allUploaded = uploadedFiles.length === 0 || uploadedFiles.every((f) => f.status !== "uploading");

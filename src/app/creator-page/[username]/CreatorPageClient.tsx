@@ -36,7 +36,10 @@ function timeAgo(dateStr: string): string {
 }
 
 function getMediaUrl(storagePath: string): string {
-  return `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${storagePath}`;
+  if (storagePath.startsWith("r2:")) {
+    return `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${storagePath.slice(3)}`;
+  }
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${storagePath}`;
 }
 
 /* ── Badge Icons ── */

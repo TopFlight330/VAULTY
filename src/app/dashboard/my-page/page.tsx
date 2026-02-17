@@ -27,6 +27,7 @@ function timeAgo(dateStr: string): string {
 }
 
 const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 export default function MyPagePage() {
   const { profile, user, refreshProfile } = useAuth();
@@ -186,8 +187,12 @@ export default function MyPagePage() {
   const onlineStatus = profile?.online_status ?? "available";
   const subPrice = profile?.subscription_price;
 
-  const getMediaUrl = (storagePath: string) =>
-    `${R2_PUBLIC_URL}/${storagePath}`;
+  const getMediaUrl = (storagePath: string) => {
+    if (storagePath.startsWith("r2:")) {
+      return `${R2_PUBLIC_URL}/${storagePath.slice(3)}`;
+    }
+    return `${SUPABASE_URL}/storage/v1/object/public/post-media/${storagePath}`;
+  };
 
   const visibilityStyle = (v: string) => {
     if (v === "free") return { background: "var(--success-dim)", color: "var(--success)" };
