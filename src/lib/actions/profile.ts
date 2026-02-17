@@ -7,15 +7,17 @@ export async function updateProfile(data: {
   display_name?: string;
   bio?: string;
   category?: string;
+  subscription_price?: number | null;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: "Not authenticated." };
 
-  const updates: Record<string, string> = {};
+  const updates: Record<string, unknown> = {};
   if (data.display_name !== undefined) updates.display_name = data.display_name;
   if (data.bio !== undefined) updates.bio = data.bio;
   if (data.category !== undefined) updates.category = data.category;
+  if (data.subscription_price !== undefined) updates.subscription_price = data.subscription_price;
 
   if (Object.keys(updates).length === 0) {
     return { success: false, message: "Nothing to update." };

@@ -4,18 +4,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import { subscribe } from "@/lib/actions/subscriptions";
+import { toggleLike } from "@/lib/actions/posts";
+import { toggleBookmark } from "@/lib/actions/bookmarks";
+import { addComment, getPostComments } from "@/lib/actions/comments";
 import { sendTip, purchasePPV } from "@/lib/actions/credits";
-import { getPublicUrl } from "@/lib/helpers/storage";
-import type { Profile, PostWithAccess, Tier } from "@/types/database";
+import type {
+  Profile,
+  PostWithInteractions,
+  AchievementBadge,
+  CommentWithProfile,
+} from "@/types/database";
 import s from "./creator-page.module.css";
 
 function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
 function timeAgo(dateStr: string): string {
@@ -33,80 +35,212 @@ function timeAgo(dateStr: string): string {
   });
 }
 
+function getMediaUrl(storagePath: string): string {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${storagePath}`;
+}
+
+/* ── Badge Icons ── */
+function BadgeIcon({ icon }: { icon: string }) {
+  const p = { width: 13, height: 13, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (icon) {
+    case "checkmark": return <svg {...p}><path d="M20 6L9 17l-5-5" /></svg>;
+    case "flash": return <svg {...p}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>;
+    case "trophy": return <svg {...p}><path d="M6 9H4.5a2.5 2.5 0 010-5H6" /><path d="M18 9h1.5a2.5 2.5 0 000-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" /><path d="M18 2H6v7a6 6 0 0012 0V2z" /></svg>;
+    case "star": return <svg {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
+    case "documents": return <svg {...p}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>;
+    case "heart": return <svg {...p}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>;
+    default: return null;
+  }
+}
+
+/* ── Main Component ── */
+
 interface Props {
   creator: Profile;
-  posts: PostWithAccess[];
-  tiers: Tier[];
+  posts: PostWithInteractions[];
+  badges: AchievementBadge[];
   subCount: number;
   postCount: number;
+  totalLikes: number;
   hasSubscription: boolean;
   viewerId: string | null;
 }
 
 export function CreatorPageClient({
   creator,
-  posts,
-  tiers,
+  posts: initialPosts,
+  badges,
   subCount,
   postCount,
+  totalLikes,
   hasSubscription,
   viewerId,
 }: Props) {
   const router = useRouter();
   const { showToast } = useToast();
-  const [subscribing, setSubscribing] = useState<string | null>(null);
-  const [tipping, setTipping] = useState(false);
-  const [tipAmount, setTipAmount] = useState("");
+  const [posts, setPosts] = useState(initialPosts);
+  const [subscribing, setSubscribing] = useState(false);
   const [unlocking, setUnlocking] = useState<string | null>(null);
+
+  // Per-post states
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [commentTexts, setCommentTexts] = useState<Record<string, string>>({});
+  const [postComments, setPostComments] = useState<Record<string, CommentWithProfile[]>>({});
+  const [loadingComments, setLoadingComments] = useState<Set<string>>(new Set());
+  const [sendingComment, setSendingComment] = useState<Set<string>>(new Set());
+  const [tipOpenFor, setTipOpenFor] = useState<string | null>(null);
+  const [tipAmounts, setTipAmounts] = useState<Record<string, string>>({});
+  const [sendingTip, setSendingTip] = useState(false);
 
   const initials = getInitials(creator.display_name);
   const isOwner = viewerId === creator.id;
 
-  const handleSubscribe = async (tierId: string) => {
+  const requireAuth = () => {
     if (!viewerId) {
-      showToast("Please log in to subscribe.", "error");
+      showToast("Please log in first.", "error");
       router.push("/login");
-      return;
+      return true;
     }
-    setSubscribing(tierId);
-    const result = await subscribe(creator.id, tierId);
+    return false;
+  };
+
+  /* ── Subscribe ── */
+  const handleSubscribe = async () => {
+    if (requireAuth()) return;
+    setSubscribing(true);
+    const result = await subscribe(creator.id);
     if (result.success) {
       showToast(result.message, "success");
       router.refresh();
     } else {
       showToast(result.message, "error");
     }
-    setSubscribing(null);
+    setSubscribing(false);
   };
 
-  const handleTip = async () => {
-    if (!viewerId) {
-      showToast("Please log in to send a tip.", "error");
-      router.push("/login");
-      return;
+  /* ── Like ── */
+  const handleLike = async (postId: string) => {
+    if (requireAuth()) return;
+    // Optimistic
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? {
+              ...p,
+              is_liked: !p.is_liked,
+              like_count: p.is_liked ? p.like_count - 1 : p.like_count + 1,
+            }
+          : p
+      )
+    );
+    const result = await toggleLike(postId);
+    if (!result.success) {
+      // Revert
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                is_liked: !p.is_liked,
+                like_count: p.is_liked ? p.like_count - 1 : p.like_count + 1,
+              }
+            : p
+        )
+      );
     }
-    const amount = parseInt(tipAmount);
+  };
+
+  /* ── Bookmark ── */
+  const handleBookmark = async (postId: string) => {
+    if (requireAuth()) return;
+    // Optimistic
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, is_bookmarked: !p.is_bookmarked } : p
+      )
+    );
+    const result = await toggleBookmark(postId);
+    if (!result.success) {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, is_bookmarked: !p.is_bookmarked } : p
+        )
+      );
+    }
+  };
+
+  /* ── Comments ── */
+  const toggleComments = async (postId: string) => {
+    const next = new Set(expandedComments);
+    if (next.has(postId)) {
+      next.delete(postId);
+    } else {
+      next.add(postId);
+      // Load comments if not loaded
+      if (!postComments[postId]) {
+        setLoadingComments((prev) => new Set(prev).add(postId));
+        const comments = await getPostComments(postId);
+        setPostComments((prev) => ({ ...prev, [postId]: comments }));
+        setLoadingComments((prev) => {
+          const n = new Set(prev);
+          n.delete(postId);
+          return n;
+        });
+      }
+    }
+    setExpandedComments(next);
+  };
+
+  const handleAddComment = async (postId: string) => {
+    if (requireAuth()) return;
+    const body = (commentTexts[postId] ?? "").trim();
+    if (!body) return;
+    setSendingComment((prev) => new Set(prev).add(postId));
+    const result = await addComment(postId, body);
+    if (result.success) {
+      setCommentTexts((prev) => ({ ...prev, [postId]: "" }));
+      // Refresh comments
+      const comments = await getPostComments(postId);
+      setPostComments((prev) => ({ ...prev, [postId]: comments }));
+      // Increment count
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId ? { ...p, comment_count: p.comment_count + 1 } : p
+        )
+      );
+    } else {
+      showToast(result.message, "error");
+    }
+    setSendingComment((prev) => {
+      const n = new Set(prev);
+      n.delete(postId);
+      return n;
+    });
+  };
+
+  /* ── Tip ── */
+  const handleTip = async (postId: string) => {
+    if (requireAuth()) return;
+    const amount = parseInt(tipAmounts[postId] ?? "");
     if (!amount || amount <= 0) {
       showToast("Enter a valid amount.", "error");
       return;
     }
-    setTipping(true);
+    setSendingTip(true);
     const result = await sendTip(creator.id, amount);
     if (result.success) {
       showToast(result.message, "success");
-      setTipAmount("");
+      setTipAmounts((prev) => ({ ...prev, [postId]: "" }));
+      setTipOpenFor(null);
     } else {
       showToast(result.message, "error");
     }
-    setTipping(false);
+    setSendingTip(false);
   };
 
+  /* ── Unlock PPV ── */
   const handleUnlockPPV = async (postId: string) => {
-    if (!viewerId) {
-      showToast("Please log in to unlock content.", "error");
-      router.push("/login");
-      return;
-    }
+    if (requireAuth()) return;
     setUnlocking(postId);
     const result = await purchasePPV(postId);
     if (result.success) {
@@ -122,13 +256,16 @@ export function CreatorPageClient({
     <div className={s.page}>
       {/* Banner */}
       <div className={s.banner}>
-        {creator.banner_url && (
-          <img src={creator.banner_url} alt="" />
-        )}
+        {creator.banner_url && <img src={creator.banner_url} alt="" />}
+        <button className={s.backBtn} onClick={() => router.back()}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
       </div>
 
-      {/* Profile Header */}
-      <div className={s.profileHeader}>
+      {/* Profile Card */}
+      <div className={s.profileCard}>
         <div className={s.avatar}>
           {creator.avatar_url ? (
             <img src={creator.avatar_url} alt="" />
@@ -136,150 +273,185 @@ export function CreatorPageClient({
             initials
           )}
         </div>
-        <div className={s.displayName}>{creator.display_name}</div>
-        <div className={s.username}>@{creator.username}</div>
-        {creator.bio && <div className={s.bio}>{creator.bio}</div>}
-        <div className={s.meta}>
-          <div className={s.metaItem}>
-            {subCount.toLocaleString()} <span>subscribers</span>
-          </div>
-          <div className={s.metaItem}>
-            {postCount.toLocaleString()} <span>posts</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Layout: Posts + Sidebar */}
-      <div className={s.layout}>
-        {/* Posts Feed */}
-        <div className={s.postsFeed}>
-          {posts.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--dim)", fontSize: "0.9rem" }}>
-              No posts yet.
-            </div>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                creator={creator}
-                isOwner={isOwner}
-                hasSubscription={hasSubscription}
-                onUnlock={handleUnlockPPV}
-                unlocking={unlocking}
-              />
-            ))
+        <div className={s.nameRow}>
+          <div className={s.displayName}>{creator.display_name}</div>
+          {creator.is_verified && (
+            <svg className={s.verifiedBadge} viewBox="0 0 24 24" fill="var(--purple)" stroke="none">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           )}
         </div>
 
-        {/* Sidebar */}
-        <div className={s.sidebar}>
-          {/* Tiers */}
-          {tiers.map((tier) => (
+        <div className={s.username}>@{creator.username}</div>
+
+        {/* Achievement Badges */}
+        <div className={s.badgesRow}>
+          {badges.map((badge) => (
             <div
-              key={tier.id}
-              className={tier.is_featured ? s.tierCardFeatured : s.tierCard}
+              key={badge.id}
+              className={badge.earned ? s.badgeEarned : s.badgeGray}
+              title={badge.description}
             >
-              {tier.is_featured && (
-                <div className={s.tierFeaturedBadge}>Most Popular</div>
-              )}
-              <div className={s.tierName}>{tier.name}</div>
-              <div className={s.tierPrice}>{tier.price}</div>
-              <div className={s.tierPriceUnit}>credits/month</div>
-              {tier.description && (
-                <div className={s.tierDesc}>{tier.description}</div>
-              )}
-              {isOwner ? (
-                <button className={s.tierBtnDisabled} disabled>
-                  Your Tier
-                </button>
-              ) : hasSubscription ? (
-                <button className={s.tierBtnDisabled} disabled>
-                  Subscribed
-                </button>
-              ) : (
-                <button
-                  className={s.tierBtn}
-                  onClick={() => handleSubscribe(tier.id)}
-                  disabled={subscribing === tier.id}
-                >
-                  {subscribing === tier.id ? "Subscribing..." : "Subscribe"}
-                </button>
-              )}
+              <BadgeIcon icon={badge.icon} />
+              {badge.name}
             </div>
           ))}
+        </div>
 
-          {/* Tip */}
-          {!isOwner && (
-            <div className={s.sidebarSection}>
-              <div className={s.sidebarTitle}>Send a Tip</div>
-              <div className={s.tipInput}>
-                <input
-                  type="number"
-                  placeholder="Amount"
-                  min="1"
-                  value={tipAmount}
-                  onChange={(e) => setTipAmount(e.target.value)}
-                />
-                <button
-                  className={s.tipBtn}
-                  onClick={handleTip}
-                  disabled={tipping}
-                >
-                  {tipping ? "Sending..." : "Tip"}
-                </button>
+        {creator.bio && <div className={s.bio}>{creator.bio}</div>}
+
+        <div className={s.statsRow}>
+          <div className={s.statItem}>
+            {subCount.toLocaleString()} <span>subscribers</span>
+          </div>
+          <div className={s.statItem}>
+            {postCount.toLocaleString()} <span>posts</span>
+          </div>
+          <div className={s.statItem}>
+            {totalLikes.toLocaleString()} <span>likes</span>
+          </div>
+        </div>
+
+        {/* Subscribe Card */}
+        {!isOwner && creator.subscription_price && (
+          <div className={s.subscribeCard}>
+            <div>
+              <div className={s.subscribePrice}>
+                {creator.subscription_price} credits/mo
+              </div>
+              <div className={s.subscribeInfo}>
+                Unlock all premium content
               </div>
             </div>
-          )}
-        </div>
+            {hasSubscription ? (
+              <div className={s.subscribedLabel}>Subscribed</div>
+            ) : (
+              <button
+                className={s.subscribeBtn}
+                onClick={handleSubscribe}
+                disabled={subscribing}
+              >
+                {subscribing ? "Subscribing..." : "Subscribe"}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Posts Feed */}
+      <div className={s.feed}>
+        {posts.length === 0 ? (
+          <div className={s.emptyFeed}>No posts yet.</div>
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              creator={creator}
+              isOwner={isOwner}
+              hasSubscription={hasSubscription}
+              onLike={handleLike}
+              onBookmark={handleBookmark}
+              onToggleComments={toggleComments}
+              onAddComment={handleAddComment}
+              onTip={handleTip}
+              onUnlock={handleUnlockPPV}
+              unlocking={unlocking}
+              expandedComments={expandedComments}
+              commentTexts={commentTexts}
+              setCommentTexts={setCommentTexts}
+              postComments={postComments}
+              loadingComments={loadingComments}
+              sendingComment={sendingComment}
+              tipOpenFor={tipOpenFor}
+              setTipOpenFor={setTipOpenFor}
+              tipAmounts={tipAmounts}
+              setTipAmounts={setTipAmounts}
+              sendingTip={sendingTip}
+            />
+          ))
+        )}
       </div>
     </div>
   );
 }
 
-/* ── Post Card ── */
+/* ══════ Post Card Component ══════ */
 
 function PostCard({
   post,
   creator,
   isOwner,
-  hasSubscription,
+  onLike,
+  onBookmark,
+  onToggleComments,
+  onAddComment,
+  onTip,
   onUnlock,
   unlocking,
+  expandedComments,
+  commentTexts,
+  setCommentTexts,
+  postComments,
+  loadingComments,
+  sendingComment,
+  tipOpenFor,
+  setTipOpenFor,
+  tipAmounts,
+  setTipAmounts,
+  sendingTip,
 }: {
-  post: PostWithAccess;
+  post: PostWithInteractions;
   creator: Profile;
   isOwner: boolean;
   hasSubscription: boolean;
-  onUnlock: (postId: string) => void;
+  onLike: (id: string) => void;
+  onBookmark: (id: string) => void;
+  onToggleComments: (id: string) => void;
+  onAddComment: (id: string) => void;
+  onTip: (id: string) => void;
+  onUnlock: (id: string) => void;
   unlocking: string | null;
+  expandedComments: Set<string>;
+  commentTexts: Record<string, string>;
+  setCommentTexts: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  postComments: Record<string, CommentWithProfile[]>;
+  loadingComments: Set<string>;
+  sendingComment: Set<string>;
+  tipOpenFor: string | null;
+  setTipOpenFor: React.Dispatch<React.SetStateAction<string | null>>;
+  tipAmounts: Record<string, string>;
+  setTipAmounts: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  sendingTip: boolean;
 }) {
   const initials = getInitials(creator.display_name);
   const isBlurred = post.access_level === "blur";
   const hasMedia = post.media.length > 0;
-
-  const visibilityBadge = () => {
-    if (post.visibility === "free") return <span className={`${s.postVisibilityBadge} ${s.badgeFree}`}>Free</span>;
-    if (post.visibility === "premium") return <span className={`${s.postVisibilityBadge} ${s.badgePremium}`}>Premium</span>;
-    if (post.visibility === "ppv") return <span className={`${s.postVisibilityBadge} ${s.badgePpv}`}>PPV</span>;
-    return null;
-  };
+  const isExpanded = expandedComments.has(post.id);
+  const comments = postComments[post.id] ?? [];
+  const isLoadingComments = loadingComments.has(post.id);
+  const isSendingComment = sendingComment.has(post.id);
 
   return (
     <div className={s.postCard}>
-      {/* Post Header */}
+      {/* Header */}
       <div className={s.postHeader}>
-        <div className={s.postHeaderAvatar}>
+        <div className={s.postAvatar}>
           {creator.avatar_url ? (
             <img src={creator.avatar_url} alt="" />
           ) : (
             initials
           )}
         </div>
-        <div>
-          <div className={s.postHeaderName}>{creator.display_name}</div>
-          <div className={s.postHeaderTime}>{timeAgo(post.created_at)}</div>
+        <div className={s.postHeaderInfo}>
+          <div className={s.postHeaderTop}>
+            <span className={s.postHeaderName}>{creator.display_name}</span>
+            <span className={s.postHeaderUsername}>@{creator.username}</span>
+          </div>
         </div>
+        <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
       </div>
 
       {/* Title */}
@@ -288,9 +460,20 @@ function PostCard({
       {/* Body */}
       {post.body && (
         <div className={s.postBody}>
-          {isBlurred && post.body.length > 80
-            ? post.body.slice(0, 80) + "..."
+          {isBlurred && post.body.length > 100
+            ? post.body.slice(0, 100) + "..."
             : post.body}
+        </div>
+      )}
+
+      {/* PPV Badge */}
+      {post.visibility === "ppv" && post.ppv_price && isBlurred && (
+        <div className={s.ppvBadge}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0110 0v4" />
+          </svg>
+          Pay-Per-View &middot; {post.ppv_price} credits
         </div>
       )}
 
@@ -301,7 +484,7 @@ function PostCard({
             <div className={s.blurWrap}>
               <div className={s.blurContent}>
                 <img
-                  src={getPublicUrl("post-media", post.media[0].storage_path)}
+                  src={getMediaUrl(post.media[0].storage_path)}
                   alt=""
                   className={s.postMediaImage}
                 />
@@ -328,8 +511,8 @@ function PostCard({
                   <button
                     className={s.blurBtn}
                     onClick={() => {
-                      const tierSection = document.querySelector(`.${s.sidebar}`);
-                      tierSection?.scrollIntoView({ behavior: "smooth" });
+                      const el = document.querySelector(`.${s.subscribeCard}`);
+                      el?.scrollIntoView({ behavior: "smooth" });
                     }}
                   >
                     View Plans
@@ -339,34 +522,168 @@ function PostCard({
             </div>
           ) : (
             post.media.map((m) => (
-              <img
-                key={m.id}
-                src={getPublicUrl("post-media", m.storage_path)}
-                alt=""
-                className={s.postMediaImage}
-              />
+              m.media_type === "video" ? (
+                <video
+                  key={m.id}
+                  src={getMediaUrl(m.storage_path)}
+                  controls
+                  className={s.postMediaImage}
+                  style={{ maxHeight: 560 }}
+                />
+              ) : (
+                <img
+                  key={m.id}
+                  src={getMediaUrl(m.storage_path)}
+                  alt=""
+                  className={s.postMediaImage}
+                />
+              )
             ))
           )}
         </div>
       )}
 
-      {/* Stats */}
-      <div className={s.postStats}>
-        <div className={s.postStat}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Action Bar */}
+      <div className={s.actionBar}>
+        {/* Like */}
+        <button
+          className={post.is_liked ? s.actionBtnActive : s.actionBtn}
+          onClick={() => onLike(post.id)}
+        >
+          <svg viewBox="0 0 24 24" fill={post.is_liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
           </svg>
-          {post.like_count}
-        </div>
-        <div className={s.postStat}>
+          {post.like_count > 0 && post.like_count}
+        </button>
+
+        {/* Comment */}
+        <button
+          className={isExpanded ? s.actionBtnActive : s.actionBtn}
+          onClick={() => onToggleComments(post.id)}
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
           </svg>
-          {post.view_count}
-        </div>
-        {visibilityBadge()}
+          {post.comment_count > 0 && post.comment_count}
+        </button>
+
+        {/* Tip */}
+        {!isOwner && (
+          <button
+            className={tipOpenFor === post.id ? s.actionBtnActive : s.actionBtn}
+            onClick={() =>
+              setTipOpenFor(tipOpenFor === post.id ? null : post.id)
+            }
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+            Tip
+          </button>
+        )}
+
+        {/* Bookmark */}
+        <button
+          className={
+            post.is_bookmarked ? s.actionBtnBookmarkActive : s.actionBtnBookmark
+          }
+          onClick={() => onBookmark(post.id)}
+        >
+          <svg viewBox="0 0 24 24" fill={post.is_bookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+          </svg>
+        </button>
       </div>
+
+      {/* Tip Inline */}
+      {tipOpenFor === post.id && (
+        <div style={{ padding: "0 1.25rem 0.75rem" }}>
+          <div className={s.tipInline}>
+            <input
+              type="number"
+              className={s.tipInlineInput}
+              placeholder="Amount"
+              min="1"
+              value={tipAmounts[post.id] ?? ""}
+              onChange={(e) =>
+                setTipAmounts((prev) => ({ ...prev, [post.id]: e.target.value }))
+              }
+            />
+            <button
+              className={s.tipInlineSend}
+              onClick={() => onTip(post.id)}
+              disabled={sendingTip}
+            >
+              {sendingTip ? "..." : "Send Tip"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Comment Section */}
+      {isExpanded && (
+        <div className={s.commentSection}>
+          {isLoadingComments ? (
+            <div style={{ fontSize: "0.82rem", color: "var(--muted)", padding: "0.5rem 0" }}>
+              Loading comments...
+            </div>
+          ) : (
+            <>
+              {comments.length > 0 && (
+                <div className={s.commentList}>
+                  {comments.map((c) => (
+                    <div key={c.id} className={s.commentItem}>
+                      <div className={s.commentAvatar}>
+                        {c.profile?.avatar_url ? (
+                          <img src={c.profile.avatar_url} alt="" />
+                        ) : (
+                          getInitials(c.profile?.display_name ?? "?")
+                        )}
+                      </div>
+                      <div className={s.commentContent}>
+                        <div className={s.commentName}>
+                          {c.profile?.display_name ?? "User"}
+                          <span>{timeAgo(c.created_at)}</span>
+                        </div>
+                        <div className={s.commentBody}>{c.body}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className={s.commentInputRow}>
+                <input
+                  className={s.commentInput}
+                  placeholder="Add a comment..."
+                  value={commentTexts[post.id] ?? ""}
+                  onChange={(e) =>
+                    setCommentTexts((prev) => ({
+                      ...prev,
+                      [post.id]: e.target.value,
+                    }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      onAddComment(post.id);
+                    }
+                  }}
+                />
+                <button
+                  className={s.commentSendBtn}
+                  onClick={() => onAddComment(post.id)}
+                  disabled={
+                    isSendingComment || !(commentTexts[post.id] ?? "").trim()
+                  }
+                >
+                  {isSendingComment ? "..." : "Send"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

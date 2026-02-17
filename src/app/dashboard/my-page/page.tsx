@@ -3,9 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getMyPageData } from "@/lib/actions/profile";
-import { createTier, updateTier, deleteTier } from "@/lib/actions/tiers";
-import type { Tier, PostWithMedia } from "@/types/database";
+import { getMyPageData, updateProfile } from "@/lib/actions/profile";
+import type { PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
 
 function getInitials(name: string): string {
@@ -20,97 +19,43 @@ function getInitials(name: string): string {
 export default function MyPagePage() {
   const { profile, user } = useAuth();
   const { showToast } = useToast();
-  const [tiers, setTiers] = useState<Tier[]>([]);
   const [posts, setPosts] = useState<PostWithMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [postCount, setPostCount] = useState(0);
   const [subCount, setSubCount] = useState(0);
 
-  // Tier editor
-  const [showTierEditor, setShowTierEditor] = useState(false);
-  const [editingTier, setEditingTier] = useState<Tier | null>(null);
-  const [tierName, setTierName] = useState("");
-  const [tierPrice, setTierPrice] = useState("");
-  const [tierDesc, setTierDesc] = useState("");
-  const [tierFeatured, setTierFeatured] = useState(false);
-  const [saving, setSaving] = useState(false);
+  // Subscription price
+  const [subPrice, setSubPrice] = useState("");
+  const [savingPrice, setSavingPrice] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
 
-    const { tiers: fetchedTiers, posts: fetchedPosts, postCount: fetchedPostCount, subCount: fetchedSubCount } = await getMyPageData();
+    const { posts: fetchedPosts, postCount: fetchedPostCount, subCount: fetchedSubCount } = await getMyPageData();
 
-    setTiers(fetchedTiers);
     setPosts(fetchedPosts);
     setPostCount(fetchedPostCount);
     setSubCount(fetchedSubCount);
+    setSubPrice(profile?.subscription_price?.toString() ?? "");
     setLoading(false);
-  }, [user]);
+  }, [user, profile]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const openTierEditor = (tier?: Tier) => {
-    if (tier) {
-      setEditingTier(tier);
-      setTierName(tier.name);
-      setTierPrice(tier.price.toString());
-      setTierDesc(tier.description);
-      setTierFeatured(tier.is_featured);
-    } else {
-      setEditingTier(null);
-      setTierName("");
-      setTierPrice("");
-      setTierDesc("");
-      setTierFeatured(false);
-    }
-    setShowTierEditor(true);
-  };
-
-  const handleSaveTier = async () => {
-    setSaving(true);
-    const price = parseInt(tierPrice) || 0;
-
-    if (editingTier) {
-      const result = await updateTier(editingTier.id, {
-        name: tierName,
-        price,
-        description: tierDesc,
-        is_featured: tierFeatured,
-      });
-      if (result.success) {
-        showToast("Tier updated!", "success");
-      } else {
-        showToast(result.message, "error");
-      }
-    } else {
-      const result = await createTier({
-        name: tierName,
-        price,
-        description: tierDesc,
-        is_featured: tierFeatured,
-      });
-      if (result.success) {
-        showToast("Tier created!", "success");
-      } else {
-        showToast(result.message, "error");
-      }
-    }
-
-    setSaving(false);
-    setShowTierEditor(false);
-    fetchData();
-  };
-
-  const handleDeleteTier = async (tierId: string) => {
-    const result = await deleteTier(tierId);
+  const handleSavePrice = async () => {
+    setSavingPrice(true);
+    const price = parseInt(subPrice) || 0;
+    const result = await updateProfile({
+      subscription_price: price > 0 ? price : null,
+    });
     if (result.success) {
-      showToast("Tier deleted", "success");
-      fetchData();
+      showToast("Subscription price updated!", "success");
     } else {
       showToast(result.message, "error");
     }
+    setSavingPrice(false);
   };
 
   const copyProfileLink = () => {
@@ -188,176 +133,42 @@ export default function MyPagePage() {
         </div>
       </div>
 
-      <div className={s.sectionTitle}>Subscription Tiers</div>
-      {loading ? (
-        <div className={s.tiersGrid}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={s.tierCard} style={{ minHeight: 200 }}>
-              <div style={{ height: 16, width: "50%", background: "var(--input-bg)", borderRadius: 8, marginBottom: "0.5rem" }} />
-              <div style={{ height: 28, width: "40%", background: "var(--input-bg)", borderRadius: 8, marginBottom: "0.5rem" }} />
-              <div style={{ height: 12, width: "60%", background: "var(--input-bg)", borderRadius: 8 }} />
-            </div>
-          ))}
+      <div className={s.sectionTitle}>Subscription Price</div>
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--border)",
+          borderRadius: 14,
+          padding: "1.25rem",
+          marginBottom: "1.5rem",
+        }}
+      >
+        <div style={{ fontSize: "0.85rem", color: "var(--dim)", marginBottom: "0.75rem" }}>
+          Set the monthly price for subscribers to access your premium content. Leave empty to disable subscriptions.
         </div>
-      ) : (
-        <div className={s.tiersGrid}>
-          {tiers.map((tier) => (
-            <div
-              key={tier.id}
-              className={`${s.tierCard} ${tier.is_featured ? s.tierCardFeatured : ""}`}
-            >
-              {tier.is_featured && (
-                <div className={s.tierFeaturedBadge}>Most Popular</div>
-              )}
-              <div className={s.tierName}>{tier.name}</div>
-              <div className={s.tierPrice}>{tier.price}</div>
-              <div className={s.tierPriceUnit}>credits/mo</div>
-              <div className={s.tierDesc}>{tier.description}</div>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button
-                  className={s.tierEditBtn}
-                  onClick={() => openTierEditor(tier)}
-                  style={{ flex: 1 }}
-                >
-                  Edit
-                </button>
-                <button
-                  className={s.tierEditBtn}
-                  onClick={() => handleDeleteTier(tier.id)}
-                  style={{
-                    flex: 0,
-                    padding: "0.55rem 0.85rem",
-                    color: "var(--danger)",
-                    borderColor: "rgba(239,68,68,0.2)",
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
-                </button>
-              </div>
-            </div>
-          ))}
-          <div className={s.tierAddCard} onClick={() => openTierEditor()}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-            <span>Add New Tier</span>
-          </div>
-        </div>
-      )}
-
-      {/* Tier Editor Modal */}
-      {showTierEditor && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(4px)",
-            zIndex: 500,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "2rem",
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowTierEditor(false);
-          }}
-        >
-          <div
-            style={{
-              background: "var(--card)",
-              border: "1px solid var(--border)",
-              borderRadius: 16,
-              padding: "2rem",
-              width: "100%",
-              maxWidth: 480,
-            }}
+        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+          <input
+            type="number"
+            className={s.formInput}
+            placeholder="e.g. 150"
+            value={subPrice}
+            onChange={(e) => setSubPrice(e.target.value)}
+            min="1"
+            style={{ flex: 1, margin: 0 }}
+          />
+          <span style={{ fontSize: "0.85rem", color: "var(--dim)", fontWeight: 600, whiteSpace: "nowrap" }}>
+            credits/mo
+          </span>
+          <button
+            className={s.btnSave}
+            onClick={handleSavePrice}
+            disabled={savingPrice}
+            style={{ opacity: savingPrice ? 0.5 : 1, whiteSpace: "nowrap" }}
           >
-            <h2 style={{ fontFamily: "var(--font-sora)", fontWeight: 800, marginBottom: "1.5rem" }}>
-              {editingTier ? "Edit Tier" : "Create New Tier"}
-            </h2>
-
-            <div className={s.formGroup}>
-              <label>Tier Name</label>
-              <input
-                type="text"
-                className={s.formInput}
-                placeholder="e.g. Premium"
-                value={tierName}
-                onChange={(e) => setTierName(e.target.value)}
-              />
-            </div>
-
-            <div className={s.formGroup}>
-              <label>Price (credits/month)</label>
-              <input
-                type="number"
-                className={s.formInput}
-                placeholder="e.g. 150"
-                value={tierPrice}
-                onChange={(e) => setTierPrice(e.target.value)}
-                min="1"
-              />
-            </div>
-
-            <div className={s.formGroup}>
-              <label>Description</label>
-              <textarea
-                className={`${s.formInput} ${s.formInputTextarea}`}
-                rows={3}
-                placeholder="What subscribers get with this tier..."
-                value={tierDesc}
-                onChange={(e) => setTierDesc(e.target.value)}
-              />
-            </div>
-
-            <div
-              className={s.toggleRow}
-              style={{ marginBottom: "1.5rem", padding: 0 }}
-            >
-              <div>
-                <div className={s.toggleLabel}>Featured tier</div>
-                <div className={s.toggleDesc}>
-                  Highlighted as &quot;Most Popular&quot; on your page.
-                </div>
-              </div>
-              <label
-                className={`${s.toggleSwitch} ${tierFeatured ? s.toggleSwitchChecked : ""}`}
-              >
-                <input
-                  type="checkbox"
-                  checked={tierFeatured}
-                  onChange={() => setTierFeatured((c) => !c)}
-                />
-                <span className={s.toggleSlider} />
-              </label>
-            </div>
-
-            <div style={{ display: "flex", gap: "0.75rem" }}>
-              <button
-                className={s.btnSecondary}
-                onClick={() => setShowTierEditor(false)}
-                style={{ flex: 1 }}
-              >
-                Cancel
-              </button>
-              <button
-                className={s.btnSave}
-                onClick={handleSaveTier}
-                disabled={saving || !tierName.trim() || !tierPrice}
-                style={{
-                  flex: 1,
-                  opacity: saving || !tierName.trim() || !tierPrice ? 0.5 : 1,
-                }}
-              >
-                {saving
-                  ? "Saving..."
-                  : editingTier
-                    ? "Update Tier"
-                    : "Create Tier"}
-              </button>
-            </div>
-          </div>
+            {savingPrice ? "Saving..." : "Save"}
+          </button>
         </div>
-      )}
+      </div>
 
       <div className={s.sectionTitle}>Posts</div>
       {loading ? (

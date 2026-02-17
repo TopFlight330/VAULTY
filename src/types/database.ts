@@ -37,6 +37,8 @@ export interface Profile {
   category: string;
   social_reach: string | null;
   credit_balance: number;
+  subscription_price: number | null;
+  is_verified: boolean;
   is_banned: boolean;
   ban_reason: string | null;
   created_at: string;
@@ -65,6 +67,7 @@ export interface Post {
   ppv_price: number | null;
   like_count: number;
   view_count: number;
+  comment_count: number;
   is_published: boolean;
   created_at: string;
   updated_at: string;
@@ -127,6 +130,33 @@ export interface Notification {
   created_at: string;
 }
 
+export interface Comment {
+  id: string;
+  user_id: string;
+  post_id: string;
+  body: string;
+  created_at: string;
+}
+
+export interface CommentWithProfile extends Comment {
+  profile: Profile;
+}
+
+export interface Bookmark {
+  id: string;
+  user_id: string;
+  post_id: string;
+  created_at: string;
+}
+
+export interface AchievementBadge {
+  id: string;
+  name: string;
+  icon: string;
+  earned: boolean;
+  description: string;
+}
+
 /* ── Joined / computed types ── */
 
 export interface PostWithMedia extends Post {
@@ -138,6 +168,11 @@ export type AccessLevel = "full" | "blur";
 export interface PostWithAccess extends Post {
   media: PostMedia[];
   access_level: AccessLevel;
+}
+
+export interface PostWithInteractions extends PostWithAccess {
+  is_liked: boolean;
+  is_bookmarked: boolean;
 }
 
 export interface SubscriptionWithCreator extends Subscription {

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCreatorPostsForViewer } from "@/lib/queries/posts";
-import { getCreatorTiers } from "@/lib/queries/tiers";
+import { getCreatorPostsWithInteractions } from "@/lib/queries/posts";
+import { getCreatorBadges } from "@/lib/helpers/badges";
 import { CreatorPageClient } from "./CreatorPageClient";
 
 interface Props {
@@ -29,21 +29,42 @@ export default async function CreatorPage({ params }: Props) {
   } = await supabase.auth.getUser();
   const viewerId = user?.id ?? null;
 
-  // Fetch posts with access level + tiers + stats in parallel
-  const [posts, tiers, subsCountResult, postCountResult] = await Promise.all([
-    getCreatorPostsForViewer(creator.id, viewerId),
-    getCreatorTiers(creator.id),
-    supabase
-      .from("subscriptions")
-      .select("*", { count: "exact", head: true })
-      .eq("creator_id", creator.id)
-      .eq("status", "active"),
-    supabase
-      .from("posts")
-      .select("*", { count: "exact", head: true })
-      .eq("creator_id", creator.id)
-      .eq("is_published", true),
-  ]);
+  // Fetch posts + stats in parallel
+  const [posts, subsCountResult, postCountResult, likesResult, lastPostResult] =
+    await Promise.all([
+      getCreatorPostsWithInteractions(creator.id, viewerId),
+      supabase
+        .from("subscriptions")
+        .select("*", { count: "exact", head: true })
+        .eq("creator_id", creator.id)
+        .eq("status", "active"),
+      supabase
+        .from("posts")
+        .select("*", { count: "exact", head: true })
+        .eq("creator_id", creator.id)
+        .eq("is_published", true),
+      supabase
+        .from("posts")
+        .select("like_count")
+        .eq("creator_id", creator.id)
+        .eq("is_published", true),
+      supabase
+        .from("posts")
+        .select("created_at")
+        .eq("creator_id", creator.id)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single(),
+    ]);
+
+  const subCount = subsCountResult.count ?? 0;
+  const postCount = postCountResult.count ?? 0;
+  const totalLikes = (likesResult.data ?? []).reduce(
+    (sum, p) => sum + (p.like_count ?? 0),
+    0
+  );
+  const lastPostAt = lastPostResult.data?.created_at ?? null;
 
   // Check if viewer has active subscription
   let hasSubscription = false;
@@ -60,13 +81,20 @@ export default async function CreatorPage({ params }: Props) {
     hasSubscription = !!sub;
   }
 
+  const badges = getCreatorBadges(
+    creator,
+    { subscribers: subCount, posts: postCount, totalLikes },
+    lastPostAt
+  );
+
   return (
     <CreatorPageClient
       creator={creator}
       posts={posts}
-      tiers={tiers}
-      subCount={subsCountResult.count ?? 0}
-      postCount={postCountResult.count ?? 0}
+      badges={badges}
+      subCount={subCount}
+      postCount={postCount}
+      totalLikes={totalLikes}
       hasSubscription={hasSubscription}
       viewerId={viewerId}
     />

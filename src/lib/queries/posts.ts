@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { PostWithMedia, PostWithAccess } from "@/types/database";
+import type { PostWithMedia, PostWithAccess, PostWithInteractions } from "@/types/database";
 
 export async function getCreatorPosts(
   creatorId: string,
@@ -95,5 +95,87 @@ export async function getCreatorPostsForViewer(
     }
 
     return { ...post, access_level };
+  });
+}
+
+export async function getCreatorPostsWithInteractions(
+  creatorId: string,
+  viewerId: string | null
+): Promise<PostWithInteractions[]> {
+  const supabase = await createClient();
+
+  const { data: posts } = await supabase
+    .from("posts")
+    .select("*, media:post_media(*)")
+    .eq("creator_id", creatorId)
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+
+  if (!posts) return [];
+
+  // If viewer is the creator, full access
+  if (viewerId === creatorId) {
+    return posts.map((p) => ({
+      ...p,
+      access_level: "full" as const,
+      is_liked: false,
+      is_bookmarked: false,
+    }));
+  }
+
+  let hasSubscription = false;
+  let likedPostIds = new Set<string>();
+  let bookmarkedPostIds = new Set<string>();
+  let purchasedPostIds = new Set<string>();
+
+  if (viewerId) {
+    const [subResult, likesResult, bookmarksResult, ppvResult] =
+      await Promise.all([
+        supabase
+          .from("subscriptions")
+          .select("id")
+          .eq("subscriber_id", viewerId)
+          .eq("creator_id", creatorId)
+          .eq("status", "active")
+          .gte("current_period_end", new Date().toISOString())
+          .limit(1)
+          .single(),
+        supabase
+          .from("likes")
+          .select("post_id")
+          .eq("user_id", viewerId),
+        supabase
+          .from("bookmarks")
+          .select("post_id")
+          .eq("user_id", viewerId),
+        supabase
+          .from("ppv_purchases")
+          .select("post_id")
+          .eq("buyer_id", viewerId),
+      ]);
+
+    hasSubscription = !!subResult.data;
+    if (likesResult.data)
+      likedPostIds = new Set(likesResult.data.map((l) => l.post_id));
+    if (bookmarksResult.data)
+      bookmarkedPostIds = new Set(bookmarksResult.data.map((b) => b.post_id));
+    if (ppvResult.data)
+      purchasedPostIds = new Set(ppvResult.data.map((p) => p.post_id));
+  }
+
+  return posts.map((post) => {
+    let access_level: "full" | "blur" = "blur";
+    if (post.visibility === "free") access_level = "full";
+    else if (post.visibility === "premium" && hasSubscription)
+      access_level = "full";
+    else if (post.visibility === "ppv" && purchasedPostIds.has(post.id))
+      access_level = "full";
+
+    return {
+      ...post,
+      access_level,
+      is_liked: likedPostIds.has(post.id),
+      is_bookmarked: bookmarkedPostIds.has(post.id),
+    };
   });
 }
