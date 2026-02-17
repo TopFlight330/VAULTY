@@ -876,73 +876,467 @@
 .payoutStatusProcessing { background: var(--blue-dim); color: var(--blue); }
 
 /* ══════ MY PAGE VIEW ══════ */
-.pagePreviewCard {
+.mpCard {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
-.pageBanner {
-    width: 100%;
-    height: 180px;
+
+/* Banner */
+.mpBanner {
+    width: 100%; height: 220px;
     background: linear-gradient(135deg, rgba(244,63,142,0.15), rgba(139,92,246,0.15));
+    position: relative; overflow: hidden;
+    cursor: pointer;
+}
+.mpBanner img { width: 100%; height: 100%; object-fit: cover; }
+.mpBannerOverlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    background: rgba(0,0,0,0);
+    transition: background 0.2s;
+}
+.mpBanner:hover .mpBannerOverlay { background: rgba(0,0,0,0.4); }
+.mpBannerBtn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: rgba(14,11,20,0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s;
+}
+.mpBanner:hover .mpBannerBtn { opacity: 1; }
+.mpBannerBtn:hover { background: rgba(14,11,20,0.9); }
+.mpBannerBtn svg { width: 18px; height: 18px; }
+
+/* Profile Section */
+.mpProfileSection {
+    padding: 0 2rem 1.75rem;
     position: relative;
 }
-.pageBannerLabel {
-    position: absolute;
-    bottom: 12px; right: 12px;
-    padding: 4px 12px;
-    border-radius: 8px;
-    background: rgba(0,0,0,0.5);
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--dim);
-    backdrop-filter: blur(10px);
+.mpProfileRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
 }
-.pageProfileSection {
-    padding: 0 2rem 2rem;
+
+/* Avatar */
+.mpAvatarWrap {
     position: relative;
+    margin-top: -55px;
+    cursor: pointer;
+    flex-shrink: 0;
 }
-.pageAvatar {
-    width: 96px; height: 96px;
+.mpAvatar {
+    width: 110px; height: 110px;
     border-radius: 50%;
     background: linear-gradient(135deg, #f43f8e, #8b5cf6);
     border: 4px solid var(--card);
     display: flex; align-items: center; justify-content: center;
     font-family: var(--font-unbounded);
-    font-weight: 900; font-size: 1.6rem; color: #fff;
-    margin-top: -48px;
-    margin-bottom: 1rem;
+    font-weight: 900; font-size: 2rem; color: #fff;
+    overflow: hidden;
 }
-.pageDisplayName {
+.mpAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.mpAvatarCam {
+    position: absolute;
+    bottom: 4px; right: 4px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(14,11,20,0.8);
+    backdrop-filter: blur(8px);
+    border: 2px solid var(--card);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+}
+.mpAvatarCam svg { width: 14px; height: 14px; }
+.mpOnlineDot {
+    position: absolute;
+    bottom: 8px; left: 8px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--card);
+}
+.mpOnlineDotAvailable { background: var(--success); }
+.mpOnlineDotInvisible { background: var(--muted); }
+
+/* Action Buttons */
+.mpActions {
+    display: flex; gap: 8px;
+    margin-top: 0.5rem;
+}
+.mpEditBtn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0.55rem 1.2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+.mpEditBtn:hover {
+    border-color: var(--muted);
+    background: var(--card-hover);
+}
+.mpEditBtn svg { width: 16px; height: 16px; color: var(--dim); }
+.mpShareBtn {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--dim);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.mpShareBtn:hover {
+    border-color: var(--pink);
+    color: var(--pink);
+    background: var(--pink-dim);
+}
+.mpShareBtn svg { width: 16px; height: 16px; }
+
+/* Info */
+.mpName {
     font-family: var(--font-sora);
     font-size: 1.4rem;
     font-weight: 800;
-    margin-bottom: 0.2rem;
+    margin-top: 0.85rem;
+    margin-bottom: 0.1rem;
 }
-.pageUsername {
+.mpUsernameRow {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 0.15rem;
+}
+.mpUsername {
     font-size: 0.88rem;
     color: var(--dim);
+}
+.mpUrl {
+    font-size: 0.75rem;
+    color: var(--muted);
     margin-bottom: 0.75rem;
 }
-.pageBio {
+
+/* Status Dropdown */
+.mpStatusWrap { position: relative; display: inline-flex; }
+.mpStatusBtn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 0.2rem 0.6rem;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.mpStatusBtnAvailable { color: var(--success); }
+.mpStatusBtnInvisible { color: var(--muted); }
+.mpStatusBtn:hover { background: var(--input-bg); }
+.mpStatusBtn svg { width: 12px; height: 12px; }
+.mpStatusDropdown {
+    position: absolute;
+    top: calc(100% + 4px); left: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 50;
+    min-width: 140px;
+}
+.mpStatusOption {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: none;
+    background: none;
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.mpStatusOption:hover { background: var(--input-bg); }
+.mpStatusDot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Bio */
+.mpBio {
     font-size: 0.9rem;
     color: var(--dim);
     line-height: 1.6;
     margin-bottom: 1rem;
-    max-width: 500px;
+    max-width: 520px;
+    white-space: pre-wrap;
 }
-.pageMeta {
+
+/* Stats */
+.mpStats {
     display: flex; gap: 1.5rem;
+    margin-bottom: 1rem;
 }
-.pageMetaItem {
+.mpStatItem {
+    font-size: 0.88rem; font-weight: 700;
+}
+.mpStatItem span {
+    color: var(--dim); font-weight: 600;
+}
+
+/* Subscription Price Card */
+.mpSubCard {
+    padding: 1rem 1.25rem;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.mpSubLabel {
+    font-size: 0.82rem;
+    color: var(--dim);
+}
+.mpSubPrice {
+    font-family: var(--font-unbounded);
+    font-weight: 900;
+    font-size: 1rem;
+}
+.mpSubEditRow {
+    display: flex; align-items: center; gap: 8px;
+}
+.mpSubEditRow input {
+    width: 90px;
+    padding: 0.4rem 0.65rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.82rem; font-weight: 600;
+    outline: none;
+}
+.mpSubEditRow input:focus { border-color: var(--pink); }
+
+/* Tabs */
+.mpTabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.25rem;
+}
+.mpTab {
+    flex: 1;
+    padding: 0.85rem 0;
+    text-align: center;
     font-size: 0.85rem;
     font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+    position: relative;
+    transition: color 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
-.pageMetaItem span {
-    color: var(--dim);
+.mpTab:hover { color: var(--dim); }
+.mpTabActive {
+    color: var(--text);
+}
+.mpTabActive::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(135deg, #f43f8e, #8b5cf6);
+    border-radius: 2px;
+}
+
+/* Feed */
+.mpFeed {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.mpPost {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+.mpPost:hover { border-color: var(--muted); }
+.mpPostHeader {
+    display: flex; align-items: center; gap: 10px;
+    padding: 1rem 1.25rem;
+}
+.mpPostAvatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f43f8e, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-unbounded);
+    font-weight: 900; font-size: 0.65rem; color: #fff;
+    flex-shrink: 0; overflow: hidden;
+}
+.mpPostAvatar img { width: 100%; height: 100%; object-fit: cover; }
+.mpPostHeaderInfo { flex: 1; }
+.mpPostHeaderTop { display: flex; align-items: center; gap: 6px; }
+.mpPostHeaderName { font-weight: 800; font-size: 0.88rem; }
+.mpPostHeaderUsername { font-size: 0.78rem; color: var(--muted); }
+.mpPostHeaderTime {
+    margin-left: auto;
+    font-size: 0.75rem; color: var(--muted);
+}
+.mpPostTitle {
+    padding: 0 1.25rem 0.4rem;
+    font-weight: 800; font-size: 1.02rem;
+}
+.mpPostBody {
+    padding: 0 1.25rem 0.85rem;
+    font-size: 0.88rem; color: var(--dim);
+    line-height: 1.6; white-space: pre-wrap;
+}
+.mpPostMedia {
+    width: 100%;
+    max-height: 480px;
+    position: relative;
+}
+.mpPostMedia img {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    display: block;
+}
+.mpPostVisibility {
+    position: absolute;
+    top: 10px; right: 10px;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.mpPostStats {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+}
+.mpPostStat {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.8rem; color: var(--dim);
     font-weight: 600;
+}
+.mpPostStat svg { width: 16px; height: 16px; }
+.mpPostActions {
+    display: flex; gap: 6px;
+    margin-left: auto;
+}
+.mpPostActionBtn {
+    padding: 0.35rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--dim);
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 4px;
+}
+.mpPostActionBtn:hover {
+    border-color: var(--muted); color: var(--text);
+}
+.mpPostActionBtnDel:hover {
+    border-color: rgba(239,68,68,0.3);
+    color: var(--danger); background: var(--danger-dim);
+}
+.mpPostActionBtn svg { width: 12px; height: 12px; }
+
+/* Media Grid */
+.mpMediaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px;
+}
+.mpMediaThumb {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--input-bg);
+    position: relative;
+}
+.mpMediaThumb img {
+    width: 100%; height: 100%; object-fit: cover;
+}
+.mpMediaThumbBadge {
+    position: absolute;
+    top: 6px; right: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.mpMediaThumbVideo {
+    position: absolute;
+    bottom: 6px; left: 6px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+}
+.mpMediaThumbVideo svg { width: 12px; height: 12px; color: #fff; }
+
+/* Empty */
+.mpEmpty {
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: var(--dim);
+}
+.mpEmptyIcon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: var(--input-bg);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.25rem;
+}
+.mpEmptyIcon svg { width: 28px; height: 28px; color: var(--muted); }
+.mpEmptyTitle {
+    font-family: var(--font-sora);
+    font-size: 1rem; font-weight: 800;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+}
+.mpEmptyDesc {
+    font-size: 0.85rem;
+    max-width: 300px;
 }
 
 .sectionTitle {

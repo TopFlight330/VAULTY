@@ -1,260 +1,492 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getMyPageData, updateProfile } from "@/lib/actions/profile";
+import { getMyPageData, updateProfile, updateAvatar, updateBanner } from "@/lib/actions/profile";
+import { deletePost } from "@/lib/actions/posts";
+import { createSignedUploadUrl } from "@/lib/actions/storage";
 import type { PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
 
 function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+
 export default function MyPagePage() {
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const { showToast } = useToast();
+
   const [posts, setPosts] = useState<PostWithMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [postCount, setPostCount] = useState(0);
   const [subCount, setSubCount] = useState(0);
+  const [totalLikes, setTotalLikes] = useState(0);
 
-  // Subscription price
-  const [subPrice, setSubPrice] = useState("");
+  // Tabs
+  const [activeTab, setActiveTab] = useState<"posts" | "media">("posts");
+
+  // Subscription price inline edit
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
   const [savingPrice, setSavingPrice] = useState(false);
+
+  // Status dropdown
+  const [showStatusDD, setShowStatusDD] = useState(false);
+  const statusRef = useRef<HTMLDivElement>(null);
+
+  // File inputs
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-
-    const { posts: fetchedPosts, postCount: fetchedPostCount, subCount: fetchedSubCount } = await getMyPageData();
-
-    setPosts(fetchedPosts);
-    setPostCount(fetchedPostCount);
-    setSubCount(fetchedSubCount);
-    setSubPrice(profile?.subscription_price?.toString() ?? "");
+    const data = await getMyPageData();
+    setPosts(data.posts);
+    setPostCount(data.postCount);
+    setSubCount(data.subCount);
+    setTotalLikes(data.totalLikes);
     setLoading(false);
-  }, [user, profile]);
+  }, [user]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // Close status dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
+        setShowStatusDD(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  /* ── Upload helpers ── */
+  const handleBannerUpload = async (file: File) => {
+    if (!user) return;
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/banner.${ext}`;
+    const signed = await createSignedUploadUrl("banners", path);
+    if (!signed) { showToast("Upload failed", "error"); return; }
+
+    const res = await fetch(signed.signedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type, "x-upsert": "true" },
+      body: file,
+    });
+    if (!res.ok) { showToast("Upload failed", "error"); return; }
+
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/banners/${path}?t=${Date.now()}`;
+    const result = await updateBanner(publicUrl);
+    if (result.success) {
+      showToast("Banner updated!", "success");
+      refreshProfile();
+    } else {
+      showToast(result.message, "error");
+    }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/avatar.${ext}`;
+    const signed = await createSignedUploadUrl("avatars", path);
+    if (!signed) { showToast("Upload failed", "error"); return; }
+
+    const res = await fetch(signed.signedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type, "x-upsert": "true" },
+      body: file,
+    });
+    if (!res.ok) { showToast("Upload failed", "error"); return; }
+
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
+    const result = await updateAvatar(publicUrl);
+    if (result.success) {
+      showToast("Avatar updated!", "success");
+      refreshProfile();
+    } else {
+      showToast(result.message, "error");
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    const result = await updateBanner("");
+    if (result.success) {
+      showToast("Banner removed", "success");
+      refreshProfile();
+    }
+  };
+
+  /* ── Status ── */
+  const handleStatusChange = async (status: "available" | "invisible") => {
+    setShowStatusDD(false);
+    const result = await updateProfile({ online_status: status });
+    if (result.success) refreshProfile();
+    else showToast(result.message, "error");
+  };
+
+  /* ── Sub price ── */
   const handleSavePrice = async () => {
     setSavingPrice(true);
-    const price = parseInt(subPrice) || 0;
-    const result = await updateProfile({
-      subscription_price: price > 0 ? price : null,
-    });
+    const price = parseInt(priceInput) || 0;
+    const result = await updateProfile({ subscription_price: price > 0 ? price : null });
     if (result.success) {
-      showToast("Subscription price updated!", "success");
+      showToast("Price updated!", "success");
+      refreshProfile();
+      setEditingPrice(false);
     } else {
       showToast(result.message, "error");
     }
     setSavingPrice(false);
   };
 
+  /* ── Delete post ── */
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm("Delete this post? This cannot be undone.")) return;
+    const result = await deletePost(postId);
+    if (result.success) {
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      setPostCount((c) => c - 1);
+      showToast("Post deleted", "success");
+    } else {
+      showToast(result.message, "error");
+    }
+  };
+
+  /* ── Copy link ── */
   const copyProfileLink = () => {
     const link = `vaulty.com/@${profile?.username ?? ""}`;
     navigator.clipboard
       .writeText(`https://${link}`)
-      .then(() => showToast("Profile link copied to clipboard", "success"))
-      .catch(() => showToast(`Profile link: https://${link}`, "info"));
+      .then(() => showToast("Link copied!", "success"))
+      .catch(() => showToast(`https://${link}`, "info"));
   };
 
-  const getThumbUrl = (post: PostWithMedia) => {
-    const img = post.media?.find((m) => m.media_type === "image");
-    if (!img) return null;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    return `${supabaseUrl}/storage/v1/object/public/post-media/${img.storage_path}`;
-  };
-
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-
-  const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-
-  const visibilityColor = (v: string) => {
-    if (v === "free") return "var(--success)";
-    if (v === "premium") return "var(--purple)";
-    if (v === "ppv") return "var(--warning)";
-    return "var(--dim)";
-  };
-
+  /* ── Derived values ── */
   const displayName = profile?.display_name ?? "User";
   const username = profile?.username ?? "";
   const bio = profile?.bio ?? "";
   const initials = getInitials(displayName);
+  const onlineStatus = profile?.online_status ?? "available";
+  const subPrice = profile?.subscription_price;
+
+  const getMediaUrl = (storagePath: string) =>
+    `${SUPABASE_URL}/storage/v1/object/public/post-media/${storagePath}`;
+
+  const visibilityStyle = (v: string) => {
+    if (v === "free") return { background: "var(--success-dim)", color: "var(--success)" };
+    if (v === "premium") return { background: "var(--pink-dim)", color: "var(--pink)" };
+    if (v === "ppv") return { background: "var(--warning-dim)", color: "var(--warning)" };
+    return {};
+  };
+
+  // All media items across posts
+  const allMedia = posts.flatMap((p) =>
+    (p.media ?? []).map((m) => ({ ...m, postVisibility: p.visibility }))
+  );
 
   return (
     <div>
-      <div className={s.viewHeader}>
-        <h1>My Page</h1>
-        <p>Preview and customize how subscribers see your profile.</p>
-      </div>
+      {/* Hidden file inputs */}
+      <input ref={bannerInputRef} type="file" accept="image/*" style={{ display: "none" }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBannerUpload(f); e.target.value = ""; }} />
+      <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: "none" }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.target.value = ""; }} />
 
-      <div className={s.pagePreviewCard}>
-        <div className={s.pageBanner}>
-          {profile?.banner_url && (
-            <img
-              src={profile.banner_url}
-              alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          )}
-        </div>
-        <div className={s.pageProfileSection}>
-          <div className={s.pageAvatar}>
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-              />
-            ) : (
-              initials
+      {/* ═══ Profile Card ═══ */}
+      <div className={s.mpCard}>
+        {/* Banner */}
+        <div className={s.mpBanner} onClick={() => bannerInputRef.current?.click()}>
+          {profile?.banner_url && <img src={profile.banner_url} alt="" />}
+          <div className={s.mpBannerOverlay}>
+            <button className={s.mpBannerBtn} onClick={(e) => { e.stopPropagation(); bannerInputRef.current?.click(); }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </button>
+            {profile?.banner_url && (
+              <button className={s.mpBannerBtn} onClick={(e) => { e.stopPropagation(); handleRemoveBanner(); }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             )}
           </div>
-          <div className={s.pageDisplayName}>{displayName}</div>
-          <div className={s.pageUsername}>@{username}</div>
-          {bio && <div className={s.pageBio}>{bio}</div>}
-          <div className={s.pageMeta}>
-            <div className={s.pageMetaItem}>
-              {subCount.toLocaleString()} <span>subscribers</span>
+        </div>
+
+        {/* Profile Section */}
+        <div className={s.mpProfileSection}>
+          <div className={s.mpProfileRow}>
+            {/* Avatar */}
+            <div className={s.mpAvatarWrap} onClick={() => avatarInputRef.current?.click()}>
+              <div className={s.mpAvatar}>
+                {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}
+              </div>
+              <div className={s.mpAvatarCam}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+              <div className={`${s.mpOnlineDot} ${onlineStatus === "available" ? s.mpOnlineDotAvailable : s.mpOnlineDotInvisible}`} />
             </div>
-            <div className={s.pageMetaItem}>
-              {postCount.toLocaleString()} <span>posts</span>
+
+            {/* Action buttons */}
+            <div className={s.mpActions}>
+              <a href="/dashboard/settings" className={s.mpEditBtn}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Profile
+              </a>
+              <button className={s.mpShareBtn} onClick={copyProfileLink}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              </button>
             </div>
+          </div>
+
+          {/* Name + username */}
+          <div className={s.mpName}>{displayName}</div>
+          <div className={s.mpUsernameRow}>
+            <span className={s.mpUsername}>@{username}</span>
+            {/* Status dropdown */}
+            <div className={s.mpStatusWrap} ref={statusRef}>
+              <button
+                className={`${s.mpStatusBtn} ${onlineStatus === "available" ? s.mpStatusBtnAvailable : s.mpStatusBtnInvisible}`}
+                onClick={() => setShowStatusDD(!showStatusDD)}
+              >
+                <span className={s.mpStatusDot} style={{ background: onlineStatus === "available" ? "var(--success)" : "var(--muted)" }} />
+                {onlineStatus === "available" ? "Available" : "Invisible"}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              {showStatusDD && (
+                <div className={s.mpStatusDropdown}>
+                  <button className={s.mpStatusOption} onClick={() => handleStatusChange("available")}>
+                    <span className={s.mpStatusDot} style={{ background: "var(--success)" }} />
+                    Available
+                  </button>
+                  <button className={s.mpStatusOption} onClick={() => handleStatusChange("invisible")}>
+                    <span className={s.mpStatusDot} style={{ background: "var(--muted)" }} />
+                    Invisible
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className={s.mpUrl}>vaulty.com/@{username}</div>
+
+          {/* Bio */}
+          {bio && <div className={s.mpBio}>{bio}</div>}
+
+          {/* Stats */}
+          <div className={s.mpStats}>
+            <div className={s.mpStatItem}>{subCount.toLocaleString()} <span>subscribers</span></div>
+            <div className={s.mpStatItem}>{postCount.toLocaleString()} <span>posts</span></div>
+            <div className={s.mpStatItem}>{totalLikes.toLocaleString()} <span>likes</span></div>
+          </div>
+
+          {/* Subscription price card */}
+          <div className={s.mpSubCard}>
+            <div>
+              <div className={s.mpSubLabel}>Subscription Price</div>
+              {!editingPrice ? (
+                <div className={s.mpSubPrice}>
+                  {subPrice ? `${subPrice} credits/mo` : "Not set"}
+                </div>
+              ) : (
+                <div className={s.mpSubEditRow}>
+                  <input
+                    type="number"
+                    placeholder="e.g. 150"
+                    value={priceInput}
+                    onChange={(e) => setPriceInput(e.target.value)}
+                    min="1"
+                    autoFocus
+                  />
+                  <span style={{ fontSize: "0.82rem", color: "var(--dim)" }}>credits/mo</span>
+                </div>
+              )}
+            </div>
+            {!editingPrice ? (
+              <button
+                className={s.mpEditBtn}
+                onClick={() => { setPriceInput(subPrice?.toString() ?? ""); setEditingPrice(true); }}
+                style={{ marginTop: 0 }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </button>
+            ) : (
+              <div style={{ display: "flex", gap: 6 }}>
+                <button className={s.btnSave} onClick={handleSavePrice} disabled={savingPrice} style={{ padding: "0.4rem 1rem", fontSize: "0.78rem" }}>
+                  {savingPrice ? "..." : "Save"}
+                </button>
+                <button className={s.btnSecondary} onClick={() => setEditingPrice(false)} style={{ padding: "0.4rem 0.8rem", fontSize: "0.78rem" }}>
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className={s.sectionTitle}>Subscription Price</div>
-      <div
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          borderRadius: 14,
-          padding: "1.25rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        <div style={{ fontSize: "0.85rem", color: "var(--dim)", marginBottom: "0.75rem" }}>
-          Set the monthly price for subscribers to access your premium content. Leave empty to disable subscriptions.
-        </div>
-        <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-          <input
-            type="number"
-            className={s.formInput}
-            placeholder="e.g. 150"
-            value={subPrice}
-            onChange={(e) => setSubPrice(e.target.value)}
-            min="1"
-            style={{ flex: 1, margin: 0 }}
-          />
-          <span style={{ fontSize: "0.85rem", color: "var(--dim)", fontWeight: 600, whiteSpace: "nowrap" }}>
-            credits/mo
-          </span>
-          <button
-            className={s.btnSave}
-            onClick={handleSavePrice}
-            disabled={savingPrice}
-            style={{ opacity: savingPrice ? 0.5 : 1, whiteSpace: "nowrap" }}
-          >
-            {savingPrice ? "Saving..." : "Save"}
+      {/* ═══ Tabs ═══ */}
+      <div className={s.mpCard}>
+        <div className={s.mpTabs}>
+          <button className={`${s.mpTab} ${activeTab === "posts" ? s.mpTabActive : ""}`} onClick={() => setActiveTab("posts")}>
+            Posts
           </button>
+          <button className={`${s.mpTab} ${activeTab === "media" ? s.mpTabActive : ""}`} onClick={() => setActiveTab("media")}>
+            Media
+          </button>
+        </div>
+
+        <div style={{ padding: "0 1.25rem 1.25rem" }}>
+          {/* ── Posts Feed ── */}
+          {activeTab === "posts" && (
+            loading ? (
+              <div className={s.mpFeed}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className={s.mpPost} style={{ padding: "1.25rem" }}>
+                    <div style={{ height: 14, width: "50%", background: "var(--input-bg)", borderRadius: 8, marginBottom: 12 }} />
+                    <div style={{ height: 12, width: "80%", background: "var(--input-bg)", borderRadius: 8, marginBottom: 8 }} />
+                    <div style={{ height: 12, width: "30%", background: "var(--input-bg)", borderRadius: 8 }} />
+                  </div>
+                ))}
+              </div>
+            ) : posts.length === 0 ? (
+              <div className={s.mpEmpty}>
+                <div className={s.mpEmptyIcon}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <div className={s.mpEmptyTitle}>No posts yet</div>
+                <div className={s.mpEmptyDesc}>Create your first post in the Content tab to start building your feed.</div>
+              </div>
+            ) : (
+              <div className={s.mpFeed}>
+                {posts.map((post) => {
+                  const firstImg = post.media?.find((m) => m.media_type === "image");
+                  const firstVid = post.media?.find((m) => m.media_type === "video");
+                  const mediaItem = firstImg || firstVid;
+
+                  return (
+                    <div key={post.id} className={s.mpPost}>
+                      {/* Post header */}
+                      <div className={s.mpPostHeader}>
+                        <div className={s.mpPostAvatar}>
+                          {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}
+                        </div>
+                        <div className={s.mpPostHeaderInfo}>
+                          <div className={s.mpPostHeaderTop}>
+                            <span className={s.mpPostHeaderName}>{displayName}</span>
+                            <span className={s.mpPostHeaderUsername}>@{username}</span>
+                          </div>
+                        </div>
+                        <span className={s.mpPostHeaderTime}>{timeAgo(post.created_at)}</span>
+                      </div>
+
+                      {/* Title */}
+                      {post.title && <div className={s.mpPostTitle}>{post.title}</div>}
+
+                      {/* Body */}
+                      {post.body && <div className={s.mpPostBody}>{post.body}</div>}
+
+                      {/* Media */}
+                      {mediaItem && (
+                        <div className={s.mpPostMedia}>
+                          {mediaItem.media_type === "image" ? (
+                            <img src={getMediaUrl(mediaItem.storage_path)} alt="" />
+                          ) : (
+                            <video src={getMediaUrl(mediaItem.storage_path)} controls style={{ width: "100%", maxHeight: 480 }} />
+                          )}
+                          <span className={s.mpPostVisibility} style={visibilityStyle(post.visibility)}>
+                            {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Stats + Actions */}
+                      <div className={s.mpPostStats}>
+                        <span className={s.mpPostStat}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                          {post.like_count}
+                        </span>
+                        <span className={s.mpPostStat}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          {post.view_count}
+                        </span>
+                        <span className={s.mpPostStat}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                          {post.comment_count}
+                        </span>
+
+                        <div className={s.mpPostActions}>
+                          <button className={s.mpPostActionBtn} onClick={() => showToast("Edit post in Content tab", "info")}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit
+                          </button>
+                          <button className={`${s.mpPostActionBtn} ${s.mpPostActionBtnDel}`} onClick={() => handleDeletePost(post.id)}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {/* ── Media Grid ── */}
+          {activeTab === "media" && (
+            allMedia.length === 0 ? (
+              <div className={s.mpEmpty}>
+                <div className={s.mpEmptyIcon}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <div className={s.mpEmptyTitle}>No media yet</div>
+                <div className={s.mpEmptyDesc}>Upload images or videos when creating posts.</div>
+              </div>
+            ) : (
+              <div className={s.mpMediaGrid}>
+                {allMedia.map((m) => (
+                  <div key={m.id} className={s.mpMediaThumb}>
+                    {m.media_type === "image" ? (
+                      <img src={getMediaUrl(m.storage_path)} alt="" />
+                    ) : (
+                      <>
+                        <video src={getMediaUrl(m.storage_path)} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <div className={s.mpMediaThumbVideo}>
+                          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </div>
+                      </>
+                    )}
+                    <span className={s.mpMediaThumbBadge} style={visibilityStyle(m.postVisibility)}>
+                      {m.postVisibility}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
         </div>
       </div>
 
-      <div className={s.sectionTitle}>Posts</div>
-      {loading ? (
-        <div className={s.contentGrid}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={s.contentPost}>
-              <div className={s.contentThumb} />
-              <div className={s.contentBody}>
-                <div style={{ height: 16, width: "70%", background: "var(--input-bg)", borderRadius: 8, marginBottom: "0.5rem" }} />
-                <div style={{ height: 12, width: "40%", background: "var(--input-bg)", borderRadius: 8 }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : posts.length === 0 ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "var(--dim)", fontSize: "0.9rem" }}>
-          No posts yet. Create your first post in the Content tab.
-        </div>
-      ) : (
-        <div className={s.contentGrid}>
-          {posts.map((post) => {
-            const thumbUrl = getThumbUrl(post);
-            return (
-              <div key={post.id} className={s.contentPost}>
-                <div className={s.contentThumb}>
-                  {thumbUrl ? (
-                    <img
-                      src={thumbUrl}
-                      alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
-                  )}
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      padding: "0.2rem 0.55rem",
-                      borderRadius: 6,
-                      fontSize: "0.68rem",
-                      fontWeight: 700,
-                      background: `${visibilityColor(post.visibility)}20`,
-                      color: visibilityColor(post.visibility),
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {post.visibility === "ppv" ? "PPV" : capitalize(post.visibility)}
-                  </span>
-                </div>
-                <div className={s.contentBody}>
-                  <div className={s.contentTitle}>{post.title}</div>
-                  <div className={s.contentDate}>{formatDate(post.created_at)}</div>
-                  <div className={s.contentStats}>
-                    <span className={s.contentStat}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>
-                      {post.like_count.toLocaleString()}
-                    </span>
-                    <span className={s.contentStat}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-                      {post.view_count.toLocaleString()}
-                    </span>
-                    {post.visibility === "ppv" && post.ppv_price && (
-                      <span className={s.contentStat} style={{ color: "var(--warning)" }}>
-                        {post.ppv_price} credits
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <div className={s.sectionTitle}>Profile Link</div>
+      {/* ═══ Profile Link ═══ */}
       <div className={s.profileLinkCard}>
-        <input
-          type="text"
-          className={s.profileLinkUrl}
-          value={`vaulty.com/@${username}`}
-          readOnly
-        />
+        <input type="text" className={s.profileLinkUrl} value={`vaulty.com/@${username}`} readOnly />
         <button className={s.copyBtn} onClick={copyProfileLink}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           Copy
         </button>
       </div>

@@ -49,6 +49,7 @@ export interface Profile {
   setting_notif_tips: boolean;
   setting_notif_payouts: boolean;
   setting_marketing: boolean;
+  online_status: "available" | "invisible";
   created_at: string;
   updated_at: string;
 }

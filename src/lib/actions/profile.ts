@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { ActionResult, Tier, PostWithMedia } from "@/types/database";
+import type { ActionResult, PostWithMedia } from "@/types/database";
 
 export async function updateProfile(data: {
   display_name?: string;
@@ -10,6 +10,7 @@ export async function updateProfile(data: {
   bio?: string;
   category?: string;
   subscription_price?: number | null;
+  online_status?: "available" | "invisible";
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -20,6 +21,7 @@ export async function updateProfile(data: {
   if (data.bio !== undefined) updates.bio = data.bio;
   if (data.category !== undefined) updates.category = data.category;
   if (data.subscription_price !== undefined) updates.subscription_price = data.subscription_price;
+  if (data.online_status !== undefined) updates.online_status = data.online_status;
 
   // Username with uniqueness check
   if (data.username !== undefined) {
@@ -170,22 +172,16 @@ export async function deleteAccount(password: string): Promise<ActionResult> {
 }
 
 export async function getMyPageData(): Promise<{
-  tiers: Tier[];
   posts: PostWithMedia[];
   postCount: number;
   subCount: number;
+  totalLikes: number;
 }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { tiers: [], posts: [], postCount: 0, subCount: 0 };
+  if (!user) return { posts: [], postCount: 0, subCount: 0, totalLikes: 0 };
 
-  const [tiersResult, postsResult, subsResult] = await Promise.all([
-    supabase
-      .from("tiers")
-      .select("*")
-      .eq("creator_id", user.id)
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true }),
+  const [postsResult, subsResult] = await Promise.all([
     supabase
       .from("posts")
       .select("*, media:post_media(*)")
@@ -199,11 +195,12 @@ export async function getMyPageData(): Promise<{
   ]);
 
   const posts = (postsResult.data ?? []) as PostWithMedia[];
+  const totalLikes = posts.reduce((sum, p) => sum + (p.like_count ?? 0), 0);
 
   return {
-    tiers: (tiersResult.data ?? []) as Tier[],
     posts,
     postCount: posts.length,
     subCount: subsResult.count ?? 0,
+    totalLikes,
   };
 }
