@@ -98,6 +98,7 @@ export function CreatorPageClient({
   const [tipAmounts, setTipAmounts] = useState<Record<string, string>>({});
   const [sendingTip, setSendingTip] = useState(false);
 
+  const [activeTab, setActiveTab] = useState<"posts" | "media">("posts");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const initials = getInitials(creator.display_name);
   const isOwner = viewerId === creator.id;
@@ -330,6 +331,20 @@ export function CreatorPageClient({
     setUnlocking(null);
   };
 
+  // All media items across posts (for Media tab)
+  const allMedia = posts
+    .filter((p) => p.access_level === "full")
+    .flatMap((p) =>
+      (p.media ?? []).map((m) => ({ ...m, postVisibility: p.visibility }))
+    );
+
+  const visibilityStyle = (v: string) => {
+    if (v === "free") return { background: "var(--success-dim)", color: "var(--success)" };
+    if (v === "premium") return { background: "var(--pink-dim)", color: "var(--pink)" };
+    if (v === "ppv") return { background: "var(--warning-dim)", color: "var(--warning)" };
+    return {};
+  };
+
   return (
     <div className={s.page}>
       {/* Star Field */}
@@ -369,131 +384,256 @@ export function CreatorPageClient({
         </div>
       )}
 
-      {/* Banner - wider, outside content constraint */}
-      <div className={s.banner}>
-        {creator.banner_url && <img src={creator.banner_url} alt="" />}
-        {creator.category === "18+" && (
-          <span className={s.nsfwBadge}>18+</span>
-        )}
-      </div>
+      {/* ═══ Content Container - 1050px max (inline style to guarantee) ═══ */}
+      <div style={{ maxWidth: 1050, margin: "0 auto", padding: "1.5rem 1rem 0", boxSizing: "border-box" as const }}>
 
-      {/* Content Container - 1050px max */}
-      <div className={s.contentWrap}>
-
-      {/* Profile Card */}
-      <div className={s.profileCard}>
-        <div className={s.avatar}>
-          {creator.avatar_url ? (
-            <img src={creator.avatar_url} alt="" />
-          ) : (
-            initials
-          )}
-        </div>
-
-          <div className={s.nameRow}>
-            <div className={s.displayName}>{creator.display_name}</div>
-            {creator.is_verified && (
-              <svg className={s.verifiedBadge} viewBox="0 0 24 24" fill="var(--purple)" stroke="none">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+        {/* ═══ Profile Card Box ═══ */}
+        <div className={s.cardBox}>
+          {/* Banner (inside card) */}
+          <div className={s.banner}>
+            {creator.banner_url && <img src={creator.banner_url} alt="" />}
+            {creator.category === "18+" && (
+              <span className={s.nsfwBadge}>18+</span>
             )}
           </div>
 
-          <div className={s.username}>@{creator.username}</div>
-
-          {/* Achievement Badges */}
-          {sortedBadges.length > 0 && (
-            <div className={s.badgesRow}>
-              {sortedBadges.map((badge) => (
-                <div
-                  key={badge.id}
-                  className={`${s.badge} ${badge.earned ? (badge.id === "verified" ? s.badgeVerified : s.badgeEarned) : s.badgeGray}`}
-                  title={badge.description}
-                >
-                  <BadgeIcon icon={badge.icon} />
-                  {badge.name}
+          {/* Profile Section */}
+          <div className={s.profileSection}>
+            <div className={s.profileRow}>
+              {/* Avatar with online dot */}
+              <div className={s.avatarWrap}>
+                <div className={s.avatar}>
+                  {creator.avatar_url ? (
+                    <img src={creator.avatar_url} alt="" />
+                  ) : (
+                    initials
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {creator.bio && <div className={s.bio}>{creator.bio}</div>}
-
-          <div className={s.statsRow}>
-            <div className={s.statItem}>
-              {subCount.toLocaleString()} <span>subscribers</span>
-            </div>
-            <div className={s.statItem}>
-              {postCount.toLocaleString()} <span>posts</span>
-            </div>
-            <div className={s.statItem}>
-              {totalLikes.toLocaleString()} <span>likes</span>
-            </div>
-          </div>
-
-          {/* Subscribe Card */}
-          {!isOwner && creator.subscription_price && (
-            <div className={s.subscribeCard}>
-              <div>
-                <div className={s.subscribePrice}>
-                  {creator.subscription_price} credits/mo
-                </div>
-                <div className={s.subscribeInfo}>
-                  Unlock all premium content
-                </div>
+                {creator.online_status === "available" && (
+                  <div className={s.onlineDot} />
+                )}
               </div>
-              {hasSubscription ? (
-                <div className={s.subscribedLabel}>Subscribed</div>
-              ) : (
-                <button
-                  className={s.subscribeBtn}
-                  onClick={handleSubscribe}
-                  disabled={subscribing}
-                >
-                  {subscribing ? "Subscribing..." : "Subscribe"}
-                </button>
+
+              {/* Action Icons (visible to non-owners) */}
+              {!isOwner && (
+                <div className={s.profileActions}>
+                  <button
+                    className={s.profileActionBtn}
+                    title="Send Tip"
+                    onClick={() => {
+                      if (requireAuth()) return;
+                      if (posts.length > 0) {
+                        setTipOpenFor(posts[0].id);
+                        document.querySelector(`.${s.feed}`)?.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                    </svg>
+                  </button>
+                  <button
+                    className={s.profileActionBtn}
+                    title="Send Message"
+                    onClick={() => showToast("Messaging coming soon", "info")}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                    </svg>
+                  </button>
+                  <button
+                    className={s.profileActionBtn}
+                    title="Add to Favorites"
+                    onClick={() => showToast("Favorites coming soon", "info")}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </button>
+                  <button
+                    className={s.profileActionBtn}
+                    title="Share Profile"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/@${creator.username}`);
+                      showToast("Profile link copied!", "success");
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
+                    </svg>
+                  </button>
+                </div>
               )}
             </div>
-          )}
-      </div>
 
-      {/* Posts Feed */}
-      <div className={s.feed}>
-        {posts.length === 0 ? (
-          <div className={s.emptyFeed}>No posts yet.</div>
-        ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              creator={creator}
-              isOwner={isOwner}
-              hasSubscription={hasSubscription}
-              onLike={handleLike}
-              onBookmark={handleBookmark}
-              onToggleComments={toggleComments}
-              onAddComment={handleAddComment}
-              onTip={handleTip}
-              onUnlock={handleUnlockPPV}
-              unlocking={unlocking}
-              expandedComments={expandedComments}
-              commentTexts={commentTexts}
-              setCommentTexts={setCommentTexts}
-              postComments={postComments}
-              loadingComments={loadingComments}
-              sendingComment={sendingComment}
-              tipOpenFor={tipOpenFor}
-              setTipOpenFor={setTipOpenFor}
-              tipAmounts={tipAmounts}
-              setTipAmounts={setTipAmounts}
-              sendingTip={sendingTip}
-            />
-          ))
-        )}
-      </div>
+            <div className={s.nameRow}>
+              <div className={s.displayName}>{creator.display_name}</div>
+              {creator.is_verified && (
+                <svg className={s.verifiedBadge} viewBox="0 0 24 24" fill="var(--purple)" stroke="none">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
 
-      </div>{/* end contentWrap */}
+            <div className={s.username}>@{creator.username}</div>
+            <div className={s.profileUrl}>vaulty.com/@{creator.username}</div>
+
+            {/* Achievement Badges */}
+            {sortedBadges.length > 0 && (
+              <div className={s.badgesRow}>
+                {sortedBadges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className={`${s.badge} ${badge.earned ? (badge.id === "verified" ? s.badgeVerified : s.badgeEarned) : s.badgeGray}`}
+                    title={badge.description}
+                  >
+                    <BadgeIcon icon={badge.icon} />
+                    {badge.name}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {creator.bio && <div className={s.bio}>{creator.bio}</div>}
+
+            <div className={s.statsRow}>
+              <div className={s.statItem}>
+                {subCount.toLocaleString()} <span>subscribers</span>
+              </div>
+              <div className={s.statItem}>
+                {postCount.toLocaleString()} <span>posts</span>
+              </div>
+              <div className={s.statItem}>
+                {totalLikes.toLocaleString()} <span>likes</span>
+              </div>
+            </div>
+
+            {/* Subscribe Card */}
+            {!isOwner && creator.subscription_price && (
+              <div className={s.subscribeCard}>
+                <div>
+                  <div className={s.subscribePrice}>
+                    {creator.subscription_price} credits/mo
+                  </div>
+                  <div className={s.subscribeInfo}>
+                    Unlock all premium content
+                  </div>
+                </div>
+                {hasSubscription ? (
+                  <div className={s.subscribedLabel}>Subscribed</div>
+                ) : (
+                  <button
+                    className={s.subscribeBtn}
+                    onClick={handleSubscribe}
+                    disabled={subscribing}
+                  >
+                    {subscribing ? "Subscribing..." : "Subscribe"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ═══ Feed Card Box ═══ */}
+        <div className={s.cardBox}>
+          {/* Tabs */}
+          <div className={s.tabs}>
+            <button
+              className={`${s.tab} ${activeTab === "posts" ? s.tabActive : ""}`}
+              onClick={() => setActiveTab("posts")}
+            >
+              Posts
+            </button>
+            <button
+              className={`${s.tab} ${activeTab === "media" ? s.tabActive : ""}`}
+              onClick={() => setActiveTab("media")}
+            >
+              Media
+            </button>
+          </div>
+
+          <div className={s.feedInner}>
+            {/* Posts Feed */}
+            {activeTab === "posts" && (
+              posts.length === 0 ? (
+                <div className={s.emptyFeed}>
+                  <div className={s.emptyIcon}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                  <div className={s.emptyTitle}>No posts yet</div>
+                  <div className={s.emptyDesc}>This creator hasn&apos;t published any posts yet.</div>
+                </div>
+              ) : (
+                <div className={s.feed}>
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      creator={creator}
+                      isOwner={isOwner}
+                      hasSubscription={hasSubscription}
+                      onLike={handleLike}
+                      onBookmark={handleBookmark}
+                      onToggleComments={toggleComments}
+                      onAddComment={handleAddComment}
+                      onTip={handleTip}
+                      onUnlock={handleUnlockPPV}
+                      unlocking={unlocking}
+                      expandedComments={expandedComments}
+                      commentTexts={commentTexts}
+                      setCommentTexts={setCommentTexts}
+                      postComments={postComments}
+                      loadingComments={loadingComments}
+                      sendingComment={sendingComment}
+                      tipOpenFor={tipOpenFor}
+                      setTipOpenFor={setTipOpenFor}
+                      tipAmounts={tipAmounts}
+                      setTipAmounts={setTipAmounts}
+                      sendingTip={sendingTip}
+                    />
+                  ))}
+                </div>
+              )
+            )}
+
+            {/* Media Grid */}
+            {activeTab === "media" && (
+              allMedia.length === 0 ? (
+                <div className={s.emptyFeed}>
+                  <div className={s.emptyIcon}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                  <div className={s.emptyTitle}>No media yet</div>
+                  <div className={s.emptyDesc}>No viewable media content available.</div>
+                </div>
+              ) : (
+                <div className={s.mediaGrid}>
+                  {allMedia.map((m) => (
+                    <div key={m.id} className={s.mediaThumb}>
+                      {m.media_type === "image" ? (
+                        <img src={getMediaUrl(m.storage_path)} alt="" />
+                      ) : (
+                        <>
+                          <video src={getMediaUrl(m.storage_path)} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <div className={s.mediaThumbVideo}>
+                            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                          </div>
+                        </>
+                      )}
+                      <span className={s.mediaThumbBadge} style={visibilityStyle(m.postVisibility)}>
+                        {m.postVisibility}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+      </div>{/* end 1050px container */}
     </div>
   );
 }

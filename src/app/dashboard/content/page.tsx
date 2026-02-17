@@ -761,6 +761,8 @@ function ImageCropModal({
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [imgNatW, setImgNatW] = useState(0);
   const [imgNatH, setImgNatH] = useState(0);
+  const [displayW, setDisplayW] = useState(0);
+  const [displayH, setDisplayH] = useState(0);
   const [cropTop, setCropTop] = useState(0);
   const [cropBottom, setCropBottom] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -774,6 +776,26 @@ function ImageCropModal({
     img.onload = () => {
       setImgNatW(img.naturalWidth);
       setImgNatH(img.naturalHeight);
+
+      // Compute display dimensions so the FULL image fits in the modal
+      const modalPad = 32; // 1.25rem * 2 side padding
+      const maxW = Math.min(window.innerWidth * 0.9, 700) - modalPad;
+      const maxH = window.innerHeight * 0.65;
+      const aspect = img.naturalWidth / img.naturalHeight;
+
+      let w: number, h: number;
+      if (aspect > maxW / maxH) {
+        // Wide image - constrained by width
+        w = maxW;
+        h = maxW / aspect;
+      } else {
+        // Tall image - constrained by height
+        h = maxH;
+        w = maxH * aspect;
+      }
+      setDisplayW(Math.round(w));
+      setDisplayH(Math.round(h));
+
       setImgSrc(url);
       setCropTop(0);
       setCropBottom(0);
@@ -782,7 +804,6 @@ function ImageCropModal({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const displayH = containerRef.current?.clientHeight ?? 500;
   const maxCrop = displayH > 40 ? displayH - 40 : displayH;
 
   const handleMouseDown = (edge: "top" | "bottom", e: React.MouseEvent) => {
@@ -813,17 +834,14 @@ function ImageCropModal({
   };
 
   const handleConfirm = () => {
-    if (!imgSrc || !containerRef.current) return;
-    const container = containerRef.current;
-    const displayW = container.clientWidth;
-    const displayTotalH = container.clientHeight;
+    if (!imgSrc || !displayW || !displayH) return;
     const scaleX = imgNatW / displayW;
-    const scaleY = imgNatH / displayTotalH;
+    const scaleY = imgNatH / displayH;
 
     const srcX = 0;
     const srcY = cropTop * scaleY;
     const srcW = imgNatW;
-    const srcH = (displayTotalH - cropTop - cropBottom) * scaleY;
+    const srcH = (displayH - cropTop - cropBottom) * scaleY;
 
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(srcW);
@@ -841,7 +859,7 @@ function ImageCropModal({
     img.src = imgSrc;
   };
 
-  if (!imgSrc) return null;
+  if (!imgSrc || !displayW) return null;
 
   const visibleTop = cropTop;
   const visibleBottom = cropBottom;
@@ -865,86 +883,93 @@ function ImageCropModal({
           <div style={{ fontSize: "0.78rem", color: "var(--dim)" }}>Drag edges to crop</div>
         </div>
 
-        <div style={{ position: "relative", flex: 1, overflow: "hidden", minHeight: 300, maxHeight: "65vh" }} ref={containerRef}>
-          <img src={imgSrc} alt="" style={{ width: "100%", display: "block" }} />
-
-          {/* Top crop overlay */}
-          <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: visibleTop,
-            background: "rgba(0,0,0,0.6)", transition: dragging.current === "top" ? "none" : "height 0.05s",
-            pointerEvents: "none",
-          }} />
-          {/* Top drag handle - full-width bar */}
+        {/* Image container - sized to fit the full image */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "1rem", background: "#000",
+        }}>
           <div
-            onMouseDown={(e) => handleMouseDown("top", e)}
+            ref={containerRef}
             style={{
-              position: "absolute", top: visibleTop - 12, left: 0, right: 0, height: 24,
-              cursor: "ns-resize", zIndex: 10,
-              display: "flex", alignItems: "center", justifyContent: "center",
+              position: "relative",
+              width: displayW,
+              height: displayH,
+              overflow: "hidden",
             }}
           >
-            {/* Handle line */}
-            <div style={{
-              position: "absolute", left: 0, right: 0, height: 2,
-              background: "var(--pink)", boxShadow: "0 0 6px rgba(244,63,142,0.5)",
-            }} />
-            {/* Center grip */}
-            <div style={{
-              width: 48, height: 20, borderRadius: 10,
-              background: "var(--pink)", display: "flex", alignItems: "center", justifyContent: "center",
-              gap: 2, zIndex: 1, boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-            }}>
-              <div style={{ width: 16, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.8)" }} />
-            </div>
-          </div>
+            <img src={imgSrc} alt="" style={{ width: "100%", height: "100%", display: "block" }} />
 
-          {/* Bottom crop overlay */}
-          <div style={{
-            position: "absolute", bottom: 0, left: 0, right: 0, height: visibleBottom,
-            background: "rgba(0,0,0,0.6)", transition: dragging.current === "bottom" ? "none" : "height 0.05s",
-            pointerEvents: "none",
-          }} />
-          {/* Bottom drag handle - full-width bar */}
-          <div
-            onMouseDown={(e) => handleMouseDown("bottom", e)}
-            style={{
-              position: "absolute", bottom: visibleBottom - 12, left: 0, right: 0, height: 24,
-              cursor: "ns-resize", zIndex: 10,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            {/* Handle line */}
+            {/* Top crop overlay */}
             <div style={{
-              position: "absolute", left: 0, right: 0, height: 2,
-              background: "var(--pink)", boxShadow: "0 0 6px rgba(244,63,142,0.5)",
-            }} />
-            {/* Center grip */}
-            <div style={{
-              width: 48, height: 20, borderRadius: 10,
-              background: "var(--pink)", display: "flex", alignItems: "center", justifyContent: "center",
-              gap: 2, zIndex: 1, boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-            }}>
-              <div style={{ width: 16, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.8)" }} />
-            </div>
-          </div>
-
-          {/* Grid overlay (rule-of-thirds) on visible area */}
-          <div style={{
-            position: "absolute", top: visibleTop, left: 0, right: 0,
-            bottom: visibleBottom, pointerEvents: "none", zIndex: 4,
-          }}>
-            {/* Horizontal grid lines */}
-            <div style={{ position: "absolute", top: "33.33%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.25)" }} />
-            <div style={{ position: "absolute", top: "66.66%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.25)" }} />
-            {/* Vertical grid lines */}
-            <div style={{ position: "absolute", left: "33.33%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.25)" }} />
-            <div style={{ position: "absolute", left: "66.66%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.25)" }} />
-            {/* Border around visible crop area */}
-            <div style={{
-              position: "absolute", inset: 0,
-              border: "2px solid rgba(255,255,255,0.4)",
+              position: "absolute", top: 0, left: 0, right: 0, height: visibleTop,
+              background: "rgba(0,0,0,0.6)", transition: dragging.current === "top" ? "none" : "height 0.05s",
               pointerEvents: "none",
             }} />
+            {/* Top drag handle - full-width bar */}
+            <div
+              onMouseDown={(e) => handleMouseDown("top", e)}
+              style={{
+                position: "absolute", top: visibleTop - 12, left: 0, right: 0, height: 24,
+                cursor: "ns-resize", zIndex: 10,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <div style={{
+                position: "absolute", left: 0, right: 0, height: 2,
+                background: "var(--pink)", boxShadow: "0 0 6px rgba(244,63,142,0.5)",
+              }} />
+              <div style={{
+                width: 48, height: 20, borderRadius: 10,
+                background: "var(--pink)", display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 2, zIndex: 1, boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+              }}>
+                <div style={{ width: 16, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.8)" }} />
+              </div>
+            </div>
+
+            {/* Bottom crop overlay */}
+            <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0, height: visibleBottom,
+              background: "rgba(0,0,0,0.6)", transition: dragging.current === "bottom" ? "none" : "height 0.05s",
+              pointerEvents: "none",
+            }} />
+            {/* Bottom drag handle - full-width bar */}
+            <div
+              onMouseDown={(e) => handleMouseDown("bottom", e)}
+              style={{
+                position: "absolute", bottom: visibleBottom - 12, left: 0, right: 0, height: 24,
+                cursor: "ns-resize", zIndex: 10,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <div style={{
+                position: "absolute", left: 0, right: 0, height: 2,
+                background: "var(--pink)", boxShadow: "0 0 6px rgba(244,63,142,0.5)",
+              }} />
+              <div style={{
+                width: 48, height: 20, borderRadius: 10,
+                background: "var(--pink)", display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 2, zIndex: 1, boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+              }}>
+                <div style={{ width: 16, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.8)" }} />
+              </div>
+            </div>
+
+            {/* Grid overlay (rule-of-thirds) on visible area */}
+            <div style={{
+              position: "absolute", top: visibleTop, left: 0, right: 0,
+              bottom: visibleBottom, pointerEvents: "none", zIndex: 4,
+            }}>
+              <div style={{ position: "absolute", top: "33.33%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.25)" }} />
+              <div style={{ position: "absolute", top: "66.66%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.25)" }} />
+              <div style={{ position: "absolute", left: "33.33%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.25)" }} />
+              <div style={{ position: "absolute", left: "66.66%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.25)" }} />
+              <div style={{
+                position: "absolute", inset: 0,
+                border: "2px solid rgba(255,255,255,0.4)",
+                pointerEvents: "none",
+              }} />
+            </div>
           </div>
         </div>
 

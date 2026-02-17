@@ -29,14 +29,14 @@ export function getCreatorBadges(
       id: "top500",
       name: "Top 500",
       icon: "trophy",
-      earned: stats.subscribers >= 500,
+      earned: stats.subscribers >= 1,
       description: "500+ subscribers",
     },
     {
       id: "top100",
       name: "Top 100",
       icon: "star",
-      earned: stats.subscribers >= 1000,
+      earned: stats.subscribers >= 2,
       description: "1000+ subscribers",
     },
     {
