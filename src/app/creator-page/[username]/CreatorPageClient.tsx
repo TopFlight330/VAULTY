@@ -102,8 +102,14 @@ export function CreatorPageClient({
   const initials = getInitials(creator.display_name);
   const isOwner = viewerId === creator.id;
 
-  // Sort badges: earned first, then unearned
-  const sortedBadges = [...badges].sort((a, b) => (a.earned === b.earned ? 0 : a.earned ? -1 : 1));
+  // Sort badges: verified always first when earned, then other earned, then unearned
+  const sortedBadges = [...badges].sort((a, b) => {
+    if (a.earned && !b.earned) return -1;
+    if (!a.earned && b.earned) return 1;
+    if (a.earned && b.earned && a.id === "verified") return -1;
+    if (a.earned && b.earned && b.id === "verified") return 1;
+    return 0;
+  });
 
   // Star field animation
   useEffect(() => {
@@ -369,6 +375,9 @@ export function CreatorPageClient({
       {/* Banner */}
       <div className={s.banner}>
         {creator.banner_url && <img src={creator.banner_url} alt="" />}
+        {creator.category === "18+" && (
+          <span className={s.nsfwBadge}>18+</span>
+        )}
       </div>
 
       {/* Profile Card */}
@@ -391,12 +400,7 @@ export function CreatorPageClient({
             )}
           </div>
 
-          <div className={s.username}>
-            @{creator.username}
-            {creator.category === "18+" && (
-              <span className={s.nsfwBadge}>18+</span>
-            )}
-          </div>
+          <div className={s.username}>@{creator.username}</div>
 
           {/* Achievement Badges */}
           {sortedBadges.length > 0 && (
@@ -404,7 +408,7 @@ export function CreatorPageClient({
               {sortedBadges.map((badge) => (
                 <div
                   key={badge.id}
-                  className={`${s.badge} ${badge.earned ? s.badgeEarned : s.badgeGray}`}
+                  className={`${s.badge} ${badge.earned ? (badge.id === "verified" ? s.badgeVerified : s.badgeEarned) : s.badgeGray}`}
                   title={badge.description}
                 >
                   <BadgeIcon icon={badge.icon} />
