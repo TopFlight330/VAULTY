@@ -419,11 +419,8 @@ export default function MyPagePage() {
                         <span className={s.mpPostHeaderTime}>{timeAgo(post.created_at)}</span>
                       </div>
 
-                      {/* Title */}
-                      {post.title && <div className={s.mpPostTitle}>{post.title}</div>}
-
                       {/* Body */}
-                      {post.body && <div className={s.mpPostBody}>{post.body}</div>}
+                      {(post.body || post.title) && <div className={s.mpPostBody}>{post.body || post.title}</div>}
 
                       {/* Media */}
                       {mediaItem && (

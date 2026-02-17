@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult, Visibility, PostWithMedia } from "@/types/database";
 
 export async function createPost(data: {
-  title: string;
+  title?: string;
   body?: string;
   visibility: Visibility;
   ppv_price?: number;
@@ -14,8 +14,8 @@ export async function createPost(data: {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: "Not authenticated." };
 
-  if (!data.title.trim()) {
-    return { success: false, message: "Title is required." };
+  if (!data.body?.trim() && !data.title?.trim()) {
+    return { success: false, message: "Content is required." };
   }
 
   if (data.visibility === "ppv" && (!data.ppv_price || data.ppv_price <= 0)) {
@@ -26,7 +26,7 @@ export async function createPost(data: {
     .from("posts")
     .insert({
       creator_id: user.id,
-      title: data.title.trim(),
+      title: data.title?.trim() ?? "",
       body: data.body?.trim() ?? "",
       visibility: data.visibility,
       ppv_price: data.visibility === "ppv" ? data.ppv_price : null,

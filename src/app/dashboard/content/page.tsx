@@ -188,7 +188,7 @@ export default function ContentPage() {
     if (editingPost) {
       // Update existing post
       const result = await updatePost(editingPost.id, {
-        title: editorTitle,
+        title: "",
         body: editorBody,
         visibility: editorVisibility,
         ppv_price: editorVisibility === "ppv" ? parseInt(editorPpvPrice) || 0 : undefined,
@@ -215,7 +215,7 @@ export default function ContentPage() {
     } else {
       // Create new post
       const result = await createPost({
-        title: editorTitle,
+        title: "",
         body: editorBody,
         visibility: editorVisibility,
         ppv_price: editorVisibility === "ppv" ? parseInt(editorPpvPrice) || 0 : undefined,
@@ -260,8 +260,8 @@ export default function ContentPage() {
 
   const openEditPost = (post: PostWithMedia) => {
     setEditingPost(post);
-    setEditorTitle(post.title);
-    setEditorBody(post.body || "");
+    setEditorTitle("");
+    setEditorBody(post.body || post.title || "");
     setEditorVisibility(post.visibility as Visibility);
     setEditorPpvPrice(post.ppv_price?.toString() || "");
     setUploadedFiles([]);
@@ -320,7 +320,7 @@ export default function ContentPage() {
   };
 
   const allUploaded = uploadedFiles.length === 0 || uploadedFiles.every((f) => f.status !== "uploading");
-  const canCreate = editorTitle.trim() && allUploaded && !creating;
+  const canCreate = editorBody.trim() && allUploaded && !creating;
 
   return (
     <div>
@@ -370,18 +370,7 @@ export default function ContentPage() {
             </h2>
 
             <div className={s.formGroup}>
-              <label className={s.formGroup}>Title</label>
-              <input
-                type="text"
-                className={s.formInput}
-                placeholder="Post title..."
-                value={editorTitle}
-                onChange={(e) => setEditorTitle(e.target.value)}
-              />
-            </div>
-
-            <div className={s.formGroup}>
-              <label className={s.formGroup}>Description</label>
+              <label className={s.formGroup}>Content</label>
               <textarea
                 ref={bodyRef}
                 className={`${s.formInput} ${s.formInputTextarea}`}
@@ -669,7 +658,7 @@ export default function ContentPage() {
                   )}
                 </div>
                 <div className={s.contentBody}>
-                  <div className={s.contentTitle}>{post.title}</div>
+                  <div className={s.contentTitle}>{post.body || post.title || "No content"}</div>
                   <div className={s.contentDate}>{formatDate(post.created_at)}</div>
                   <div className={s.contentStats}>
                     <span className={s.contentStat}>

@@ -847,15 +847,12 @@ function PostCard({
         </div>
       </div>
 
-      {/* Title */}
-      {post.title && <div className={s.postTitle}>{post.title}</div>}
-
       {/* Body */}
-      {post.body && (
+      {(post.body || post.title) && (
         <div className={s.postBody}>
-          {isBlurred && post.body.length > 100
-            ? post.body.slice(0, 100) + "..."
-            : post.body}
+          {isBlurred && (post.body || post.title).length > 100
+            ? (post.body || post.title).slice(0, 100) + "..."
+            : (post.body || post.title)}
         </div>
       )}
 
