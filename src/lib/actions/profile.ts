@@ -53,7 +53,9 @@ export async function updateProfile(data: {
     return { success: false, message: "Nothing to update." };
   }
 
-  const { error } = await supabase
+  // Use admin client to bypass RLS (user already verified above)
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("profiles")
     .update(updates)
     .eq("id", user.id);
@@ -83,7 +85,8 @@ export async function updateSetting(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: "Not authenticated." };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("profiles")
     .update({ [key]: value })
     .eq("id", user.id);
@@ -97,7 +100,8 @@ export async function updateAvatar(url: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: "Not authenticated." };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("profiles")
     .update({ avatar_url: url })
     .eq("id", user.id);
@@ -111,7 +115,8 @@ export async function updateBanner(url: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: "Not authenticated." };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("profiles")
     .update({ banner_url: url })
     .eq("id", user.id);
@@ -125,7 +130,8 @@ export async function deactivatePage(reason: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: "Not authenticated." };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("profiles")
     .update({
       is_deactivated: true,
