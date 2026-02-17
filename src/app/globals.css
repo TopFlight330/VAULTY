@@ -17,6 +17,7 @@
   --success: #22c55e;
   --success-dim: rgba(34, 197, 94, 0.1);
   --warning: #f5c542;
+  --warning-dim: rgba(245, 197, 66, 0.1);
   --gold: #f5c542;
   --grad: linear-gradient(135deg, #f43f8e, #8b5cf6);
   --topbar-h: 64px;

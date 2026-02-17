@@ -27,6 +27,9 @@ export default async function CreatorPage({ params, searchParams }: Props) {
 
   if (!creator) notFound();
 
+  // Default online_status (column may be null for older profiles)
+  if (!creator.online_status) creator.online_status = "available";
+
   // Get current viewer
   const {
     data: { user },

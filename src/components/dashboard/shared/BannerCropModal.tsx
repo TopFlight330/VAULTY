@@ -63,6 +63,7 @@ export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCr
               aspect={800 / 220}
               cropShape="rect"
               showGrid={false}
+              objectFit="horizontal-cover"
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={handleCropComplete}
