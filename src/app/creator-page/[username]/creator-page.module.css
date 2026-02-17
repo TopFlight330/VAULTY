@@ -5,6 +5,67 @@
   background: var(--bg);
 }
 
+/* ── Top Nav ── */
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0.85rem 1rem;
+}
+.topNavLogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-family: var(--font-unbounded);
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+.topNavLogo svg {
+  width: 26px;
+  height: 26px;
+}
+.topNavActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topNavBtn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.topNavBtnOutline {
+  composes: topNavBtn;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.topNavBtnOutline:hover {
+  border-color: var(--muted);
+  background: rgba(255,255,255,0.03);
+}
+.topNavBtnGrad {
+  composes: topNavBtn;
+  background: linear-gradient(135deg, #f43f8e, #8b5cf6);
+  border: none;
+  color: #fff;
+}
+.topNavBtnGrad:hover {
+  box-shadow: 0 2px 12px var(--pink-glow);
+}
+
 /* ── View Mode Banner ── */
 .viewModeBanner {
   display: flex;
