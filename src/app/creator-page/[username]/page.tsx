@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCreatorPostsWithInteractions } from "@/lib/queries/posts";
 import { getCreatorBadges } from "@/lib/helpers/badges";
 import { CreatorPageClient } from "./CreatorPageClient";
@@ -14,8 +15,9 @@ export default async function CreatorPage({ params, searchParams }: Props) {
   const { view_as } = await searchParams;
   const supabase = await createClient();
 
-  // Fetch creator profile
-  const { data: creator } = await supabase
+  // Fetch creator profile (admin client to bypass RLS and ensure all fields like online_status)
+  const admin = createAdminClient();
+  const { data: creator } = await admin
     .from("profiles")
     .select("*")
     .eq("username", username)

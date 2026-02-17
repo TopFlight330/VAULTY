@@ -58,9 +58,9 @@ function BadgeIcon({ icon }: { icon: string }) {
 }
 
 function visibilityStyle(v: string) {
-  if (v === "free") return { background: "var(--success-dim)", color: "var(--success)" };
-  if (v === "premium") return { background: "var(--pink-dim)", color: "var(--pink)" };
-  if (v === "ppv") return { background: "var(--warning-dim)", color: "var(--warning)" };
+  if (v === "free") return { background: "var(--success-dim)", color: "var(--success)", border: "1px solid rgba(34,197,94,0.4)" };
+  if (v === "premium") return { background: "var(--pink-dim)", color: "var(--pink)", border: "1px solid rgba(244,63,142,0.4)" };
+  if (v === "ppv") return { background: "var(--warning-dim)", color: "var(--warning)", border: "1px solid rgba(234,179,8,0.4)" };
   return {};
 }
 
@@ -783,7 +783,10 @@ function PostCard({
       {/* Lightbox */}
       {lightboxSrc && (
         <div className={s.lightboxOverlay} onClick={() => setLightboxSrc(null)}>
-          <img src={lightboxSrc} alt="" className={s.lightboxImage} onClick={(e) => e.stopPropagation()} />
+          <div className={s.lightboxWrap} onClick={(e) => e.stopPropagation()}>
+            <img src={lightboxSrc} alt="" className={s.lightboxImage} />
+            <div className={s.watermark}>Vaulty.com/{creator.username}</div>
+          </div>
           <button className={s.lightboxClose} onClick={() => setLightboxSrc(null)}>&times;</button>
         </div>
       )}
