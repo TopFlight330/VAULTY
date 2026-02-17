@@ -274,6 +274,7 @@ export function CreatorPageClient({
           <span className={s.topNavLogoText}>Vaulty</span>
         </Link>
         <div className={s.topNavEnd}>
+          <button className={s.topNavLang}>FR</button>
           <Link href={viewerId ? "/dashboard" : "/login"} className={s.topNavUserBtn}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />

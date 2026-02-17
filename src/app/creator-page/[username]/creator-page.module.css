@@ -91,6 +91,28 @@
   width: 20px;
   height: 20px;
 }
+.topNavLang {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-family: var(--font-sora), 'Sora', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  background: rgba(244,63,142,0.08);
+  color: var(--pink);
+  border: 1px solid rgba(244,63,142,0.2);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.topNavLang:hover {
+  background: rgba(244,63,142,0.15);
+  border-color: rgba(244,63,142,0.35);
+}
 
 /* ── View Mode Banner ── */
 .viewModeBanner {
