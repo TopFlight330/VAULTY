@@ -369,16 +369,16 @@ export function CreatorPageClient({
         </div>
       )}
 
-      {/* Content Container - 1050px max */}
-      <div className={s.contentWrap}>
-
-      {/* Banner */}
+      {/* Banner - wider, outside content constraint */}
       <div className={s.banner}>
         {creator.banner_url && <img src={creator.banner_url} alt="" />}
         {creator.category === "18+" && (
           <span className={s.nsfwBadge}>18+</span>
         )}
       </div>
+
+      {/* Content Container - 1050px max */}
+      <div className={s.contentWrap}>
 
       {/* Profile Card */}
       <div className={s.profileCard}>
