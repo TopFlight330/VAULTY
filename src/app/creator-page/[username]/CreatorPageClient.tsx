@@ -583,9 +583,30 @@ function PostCard({
   const comments = postComments[post.id] ?? [];
   const isLoadingComments = loadingComments.has(post.id);
   const isSendingComment = sendingComment.has(post.id);
+  const [showMenu, setShowMenu] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!showMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showMenu]);
 
   return (
     <div className={s.postCard}>
+      {/* Lightbox */}
+      {lightboxSrc && (
+        <div className={s.lightboxOverlay} onClick={() => setLightboxSrc(null)}>
+          <img src={lightboxSrc} alt="" className={s.lightboxImage} onClick={(e) => e.stopPropagation()} />
+          <button className={s.lightboxClose} onClick={() => setLightboxSrc(null)}>&times;</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className={s.postHeader}>
         <div className={s.postAvatar}>
@@ -601,7 +622,37 @@ function PostCard({
             <span className={s.postHeaderUsername}>@{creator.username}</span>
           </div>
         </div>
-        <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
+        <div className={s.postHeaderRight}>
+          <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
+          <div className={s.postMenuWrap} ref={menuRef}>
+            <button className={s.postMenuBtn} onClick={() => setShowMenu(!showMenu)}>
+              &middot;&middot;&middot;
+            </button>
+            {showMenu && (
+              <div className={s.postMenuDropdown}>
+                <button className={s.postMenuItem} onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/@${creator.username}`);
+                  setShowMenu(false);
+                }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  Copy link to post
+                </button>
+                <button className={s.postMenuItem} onClick={() => setShowMenu(false)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+                  Add to bookmarks
+                </button>
+                <button className={s.postMenuItem} onClick={() => setShowMenu(false)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  I don&apos;t like this post
+                </button>
+                <button className={s.postMenuItemDanger} onClick={() => setShowMenu(false)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Report
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Title */}
@@ -671,18 +722,22 @@ function PostCard({
               </div>
             </div>
           ) : (
-            post.media.map((m) => (
-              m.media_type === "video" ? (
-                <VideoPlayer key={m.id} src={getMediaUrl(m.storage_path)} />
+            post.media.map((m) => {
+              const url = getMediaUrl(m.storage_path);
+              return m.media_type === "video" ? (
+                <VideoPlayer key={m.id} src={url} />
               ) : (
-                <img
-                  key={m.id}
-                  src={getMediaUrl(m.storage_path)}
-                  alt=""
-                  className={s.postMediaImage}
-                />
-              )
-            ))
+                <div key={m.id} className={s.mediaWrap}>
+                  <img
+                    src={url}
+                    alt=""
+                    className={s.postMediaImageClickable}
+                    onClick={() => setLightboxSrc(url)}
+                  />
+                  <div className={s.watermark}>Vaulty.com/{creator.username}</div>
+                </div>
+              );
+            })
           )}
         </div>
       )}
