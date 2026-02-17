@@ -265,21 +265,20 @@ export function CreatorPageClient({
         <Link href="/" className={s.topNavLogo}>
           <div className={s.topNavLogoIcon}>
             <div className={s.topNavLogoVault}>
-              <div className={s.sp} /><div className={s.sp} />
-              <div className={s.sp} /><div className={s.sp} />
+              <div className={s.sp} style={{ transform: "rotate(0deg)" }} />
+              <div className={s.sp} style={{ transform: "rotate(90deg)" }} />
+              <div className={s.sp} style={{ transform: "rotate(45deg)" }} />
+              <div className={s.sp} style={{ transform: "rotate(135deg)" }} />
             </div>
           </div>
           <span className={s.topNavLogoText}>Vaulty</span>
         </Link>
-        <div className={s.topNavActions}>
-          {viewerId ? (
-            <Link href="/dashboard" className={s.topNavBtnGrad}>Dashboard</Link>
-          ) : (
-            <>
-              <Link href="/login" className={s.topNavBtnOutline}>Log In</Link>
-              <Link href="/register" className={s.topNavBtnGrad}>Sign Up</Link>
-            </>
-          )}
+        <div className={s.topNavEnd}>
+          <Link href={viewerId ? "/dashboard" : "/login"} className={s.topNavUserBtn}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" />
+            </svg>
+          </Link>
         </div>
       </nav>
 
