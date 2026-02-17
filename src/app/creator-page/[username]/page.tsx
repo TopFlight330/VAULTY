@@ -31,10 +31,21 @@ export default async function CreatorPage({ params, searchParams }: Props) {
   } = await supabase.auth.getUser();
   const viewerId = user?.id ?? null;
 
+  // "View Page As" mode - only for the page owner
+  const isOwner = viewerId === creator.id;
+  let viewMode: "free" | "subscriber" | null = null;
+  if (isOwner && (view_as === "free" || view_as === "subscriber")) {
+    viewMode = view_as;
+  }
+
+  // When in view mode, fetch posts as if viewer is NOT the owner
+  // Pass null so the owner-bypass in getCreatorPostsWithInteractions is skipped
+  const postsViewerId = viewMode ? null : viewerId;
+
   // Fetch posts + stats in parallel
   const [posts, subsCountResult, postCountResult, likesResult, lastPostResult] =
     await Promise.all([
-      getCreatorPostsWithInteractions(creator.id, viewerId),
+      getCreatorPostsWithInteractions(creator.id, postsViewerId),
       supabase
         .from("subscriptions")
         .select("*", { count: "exact", head: true })
@@ -68,9 +79,18 @@ export default async function CreatorPage({ params, searchParams }: Props) {
   );
   const lastPostAt = lastPostResult.data?.created_at ?? null;
 
-  // Check if viewer has active subscription
+  // Determine subscription status
   let hasSubscription = false;
-  if (viewerId && viewerId !== creator.id) {
+  if (viewMode === "subscriber") {
+    // Simulate subscriber view: unlock premium posts
+    hasSubscription = true;
+    // Override post access levels for premium content
+    posts.forEach((p) => {
+      if (p.visibility === "premium") {
+        (p as { access_level: string }).access_level = "full";
+      }
+    });
+  } else if (!viewMode && viewerId && viewerId !== creator.id) {
     const { data: sub } = await supabase
       .from("subscriptions")
       .select("id")
@@ -81,17 +101,6 @@ export default async function CreatorPage({ params, searchParams }: Props) {
       .limit(1)
       .single();
     hasSubscription = !!sub;
-  }
-
-  // "View Page As" mode - only for the page owner
-  const isOwner = viewerId === creator.id;
-  let viewMode: "free" | "subscriber" | null = null;
-  if (isOwner && view_as === "free") {
-    hasSubscription = false;
-    viewMode = "free";
-  } else if (isOwner && view_as === "subscriber") {
-    hasSubscription = true;
-    viewMode = "subscriber";
   }
 
   const badges = getCreatorBadges(
