@@ -64,6 +64,18 @@ function visibilityStyle(v: string) {
   return {};
 }
 
+function accountAge(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days < 1) return "Joined today";
+  if (days < 30) return `Joined ${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `Joined ${months}mo ago`;
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  return rem > 0 ? `Joined ${years}y ${rem}mo ago` : `Joined ${years}y ago`;
+}
+
 /* ── Main Component ── */
 
 interface Props {
@@ -392,9 +404,6 @@ export function CreatorPageClient({
           {/* Banner (inside card) */}
           <div className={s.banner}>
             {creator.banner_url && <img src={creator.banner_url} alt="" />}
-            {creator.category === "18+" && (
-              <span className={s.nsfwBadge}>18+</span>
-            )}
           </div>
 
           {/* Profile Section */}
@@ -474,67 +483,84 @@ export function CreatorPageClient({
                   <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
+              {creator.category === "18+" && (
+                <span className={s.nsfwTag}>18+</span>
+              )}
             </div>
 
-            <div className={s.username}>@{creator.username}</div>
-            <div className={s.profileUrl}>vaulty.com/@{creator.username}</div>
+            <div className={s.usernameRow}>
+              <span className={s.username}>@{creator.username}</span>
+              {creator.online_status === "available" && (
+                <span className={s.onlineLabel}>
+                  <span className={s.onlineLabelDot} />
+                  Available now
+                </span>
+              )}
+            </div>
 
             {/* Achievement Badges */}
             {sortedBadges.length > 0 && (
               <div className={s.badgesRow}>
-                {sortedBadges.map((badge) => (
-                  <div
-                    key={badge.id}
-                    className={`${s.badge} ${badge.earned ? (badge.id === "verified" ? s.badgeVerified : s.badgeEarned) : s.badgeGray}`}
-                    title={badge.description}
-                  >
-                    <BadgeIcon icon={badge.icon} />
-                    {badge.name}
-                  </div>
-                ))}
+                {sortedBadges.map((badge) => {
+                  const isVerified = badge.id === "verified";
+                  const displayName = isVerified ? "Reactive" : badge.name;
+                  const displayIcon = isVerified ? "flash" : badge.icon;
+                  return (
+                    <div
+                      key={badge.id}
+                      className={`${s.badge} ${badge.earned ? (isVerified ? s.badgeVerified : s.badgeEarned) : s.badgeGray}`}
+                      title={badge.description}
+                    >
+                      <BadgeIcon icon={displayIcon} />
+                      {displayName}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
             {creator.bio && <div className={s.bio}>{creator.bio}</div>}
 
+            <div className={s.divider} />
+
             <div className={s.statsRow}>
-              <div className={s.statItem}>
-                {subCount.toLocaleString()} <span>subscribers</span>
-              </div>
               <div className={s.statItem}>
                 {postCount.toLocaleString()} <span>posts</span>
               </div>
               <div className={s.statItem}>
                 {totalLikes.toLocaleString()} <span>likes</span>
               </div>
-            </div>
-
-            {/* Subscribe Card */}
-            {!isOwner && creator.subscription_price && (
-              <div className={s.subscribeCard}>
-                <div>
-                  <div className={s.subscribePrice}>
-                    {creator.subscription_price} credits/mo
-                  </div>
-                  <div className={s.subscribeInfo}>
-                    Unlock all premium content
-                  </div>
-                </div>
-                {hasSubscription ? (
-                  <div className={s.subscribedLabel}>Subscribed</div>
-                ) : (
-                  <button
-                    className={s.subscribeBtn}
-                    onClick={handleSubscribe}
-                    disabled={subscribing}
-                  >
-                    {subscribing ? "Subscribing..." : "Subscribe"}
-                  </button>
-                )}
+              <div className={s.statItem}>
+                <span className={s.statAge}>{accountAge(creator.created_at)}</span>
               </div>
-            )}
+            </div>
           </div>
         </div>
+
+        {/* ═══ Subscribe Card (outside card box) ═══ */}
+        {!isOwner && creator.subscription_price && (
+          <div className={s.subscribeCard}>
+            <div>
+              <div className={s.subscribePrice}>
+                {creator.subscription_price} credits/mo
+              </div>
+              <div className={s.subscribeInfo}>
+                Unlock all premium content
+              </div>
+            </div>
+            {hasSubscription ? (
+              <div className={s.subscribedLabel}>Subscribed</div>
+            ) : (
+              <button
+                className={s.subscribeBtn}
+                onClick={handleSubscribe}
+                disabled={subscribing}
+              >
+                {subscribing ? "Subscribing..." : "Subscribe"}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* ═══ Feed Card Box ═══ */}
         <div className={s.cardBox}>
