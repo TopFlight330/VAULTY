@@ -21,10 +21,13 @@
 
 ### Storage / Upload de fichiers
 - **Avatar** : Utiliser `uploadAndSetAvatar(formData)` server action (100% server-side, bypass tout)
-- **Post media** : `uploadFileWithProgress` (signed URL + XHR PUT côté client)
-- Les buckets sont auto-créés s'ils n'existent pas
-- Buckets utilisés : `post-media`, `avatars`, `banners`
-- Toujours utiliser `upsert: true` ou `x-upsert: true` header pour les re-uploads
+- **Banner** : Utiliser `uploadAndSetBanner(formData)` server action (100% server-side)
+- **Post media** : `uploadFileWithProgress("post-media", ...)` → upload vers **Cloudflare R2** (presigned URL + XHR PUT côté client)
+- Avatars & banners restent sur Supabase Storage (petits fichiers, pas de trafic élevé)
+- Buckets Supabase : `avatars`, `banners` (auto-créés s'ils n'existent pas)
+- **R2 bucket** : `vault-media` (post-media : images, vidéos)
+- URLs post-media : `NEXT_PUBLIC_R2_PUBLIC_URL/{storage_path}` (PAS Supabase)
+- Toujours utiliser `upsert: true` ou `x-upsert: true` header pour les re-uploads Supabase
 
 ### AuthProvider
 - `refreshProfile()` utilise la server action `getProfile()` (admin client)
@@ -39,9 +42,11 @@
 | `src/lib/supabase/admin.ts` | Client admin (service role, bypass RLS) |
 | `src/lib/supabase/client.ts` | Client browser (CASSÉ pour getSession) |
 | `src/lib/actions/profile.ts` | Server actions profil (update, avatar, banner, settings, delete) |
-| `src/lib/actions/storage.ts` | Server actions storage (signed URLs, upload direct) |
+| `src/lib/actions/storage.ts` | Server actions storage Supabase (signed URLs, upload direct) |
+| `src/lib/actions/r2-storage.ts` | Server actions R2 (presigned URLs, delete) |
+| `src/lib/r2/client.ts` | Client S3 pour Cloudflare R2 |
 | `src/lib/actions/posts.ts` | Server actions posts (create, edit, delete) |
-| `src/lib/helpers/storage.ts` | Helpers client-side upload (uploadFileWithProgress = la bonne méthode) |
+| `src/lib/helpers/storage.ts` | Helpers client-side upload (route post-media → R2, reste → Supabase) |
 | `src/hooks/useAuth.ts` | AuthProvider + hook (profile, user, refreshProfile) |
 | `src/types/database.ts` | Types TypeScript (Profile, Post, PostWithMedia) |
 
@@ -57,12 +62,14 @@ formData.append("file", new File([blob], "avatar.jpg", { type: "image/jpeg" }));
 const result = await uploadAndSetAvatar(formData);
 ```
 
-### Upload post media (pattern à copier)
+### Upload post media vers R2 (pattern à copier)
 ```typescript
-// Client-side avec progress - pour fichiers plus gros
+// Client-side avec progress - upload vers Cloudflare R2
 import { uploadFileWithProgress } from "@/lib/helpers/storage";
 
+// "post-media" = route automatiquement vers R2 (presigned URL)
 const storagePath = await uploadFileWithProgress("post-media", path, file, (pct) => {});
+// URL publique: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${storagePath}`
 ```
 
 ### Update profil (pattern à copier)

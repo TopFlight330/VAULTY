@@ -259,8 +259,7 @@ export default function ContentPage() {
   const getThumbUrl = (post: PostWithMedia) => {
     const img = post.media?.find((m) => m.media_type === "image");
     if (!img) return null;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    return `${supabaseUrl}/storage/v1/object/public/post-media/${img.storage_path}`;
+    return `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${img.storage_path}`;
   };
 
   const allUploaded = uploadedFiles.length === 0 || uploadedFiles.every((f) => f.status !== "uploading");

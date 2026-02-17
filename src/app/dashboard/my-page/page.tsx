@@ -26,7 +26,7 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
 
 export default function MyPagePage() {
   const { profile, user, refreshProfile } = useAuth();
@@ -187,7 +187,7 @@ export default function MyPagePage() {
   const subPrice = profile?.subscription_price;
 
   const getMediaUrl = (storagePath: string) =>
-    `${SUPABASE_URL}/storage/v1/object/public/post-media/${storagePath}`;
+    `${R2_PUBLIC_URL}/${storagePath}`;
 
   const visibilityStyle = (v: string) => {
     if (v === "free") return { background: "var(--success-dim)", color: "var(--success)" };
