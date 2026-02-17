@@ -5,6 +5,8 @@ import { getCreatorPostsWithInteractions } from "@/lib/queries/posts";
 import { getCreatorBadges } from "@/lib/helpers/badges";
 import { CreatorPageClient } from "./CreatorPageClient";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ username: string }>;
   searchParams: Promise<{ view_as?: string }>;
