@@ -79,6 +79,12 @@ const admin = createAdminClient();
 const { error } = await admin.from("profiles").update({ ... }).eq("id", user.id);
 ```
 
+### Banner Crop Modal - NE PAS utiliser react-easy-crop
+- `react-easy-crop` avait un bug persistant : bande noire à droite de l'image dans le crop modal
+- **Cause racine** : La librairie utilise `getBoundingClientRect()` pour mesurer le container, mais le modal a une animation CSS `scale(0.95) → scale(1)`. `getBoundingClientRect()` retourne les dimensions APRÈS transforms CSS, donc pendant/après l'animation, les mesures sont faussées (~5% trop petit). De plus, la librairie utilise flexbox centering + CSS classes (`width: 100%`) qui interagissent mal avec le global `box-sizing: border-box`.
+- **Solution** : Composant custom dans `src/components/dashboard/shared/BannerCropModal.tsx` qui utilise un positionnement absolu avec des valeurs en pixels explicites (`left: Xpx, top: Ypx, width: Wpx, height: Hpx`). Pas de flexbox, pas de CSS de librairie. Le container est mesuré via `clientWidth` (pas affecté par les transforms CSS) après l'animation du modal (`onAnimationEnd` + timeout 300ms fallback).
+- **Pattern** : 3 overlays (dark top + selection border + dark bottom), image positionnée en absolute, drag via pointer events, zoom slider avec minZoom dynamique.
+
 ## Erreurs fréquentes et solutions
 
 | Erreur | Cause | Solution |

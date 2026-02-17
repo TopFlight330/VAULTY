@@ -519,7 +519,7 @@
   border-color: var(--muted);
 }
 .postHeader {
-  display: flex; align-items: flex-start; gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   padding: 1rem 1.25rem;
 }
 .postAvatar {
@@ -530,7 +530,6 @@
   font-family: var(--font-unbounded);
   font-weight: 900; font-size: 0.65rem; color: #fff;
   flex-shrink: 0; overflow: hidden;
-  margin-top: 2px;
 }
 .postAvatar img { width: 100%; height: 100%; object-fit: cover; }
 .postHeaderInfo {
@@ -561,6 +560,7 @@
   color: var(--pink);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  margin-left: auto;
 }
 .postHeaderTime {
   font-size: 0.75rem; color: var(--muted);
