@@ -70,7 +70,6 @@ export function BannerCropModal({ imageFile, onCropComplete, onClose }: BannerCr
             width: "100%",
             height: 350,
             background: "#000",
-            borderRadius: 12,
             overflow: "hidden",
             marginBottom: "1rem",
           }}
