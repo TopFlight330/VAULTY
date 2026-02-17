@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/useToast";
 import { getMyPageData, updateProfile, updateAvatar, updateBanner } from "@/lib/actions/profile";
 import { deletePost } from "@/lib/actions/posts";
 import { createSignedUploadUrl } from "@/lib/actions/storage";
+import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import type { PostWithMedia } from "@/types/database";
 import s from "../dashboard.module.css";
 
@@ -52,6 +53,9 @@ export default function MyPagePage() {
   // File inputs
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // Avatar crop modal
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -103,17 +107,16 @@ export default function MyPagePage() {
     }
   };
 
-  const handleAvatarUpload = async (file: File) => {
+  const handleCroppedAvatar = async (blob: Blob) => {
     if (!user) return;
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${user.id}/avatar.${ext}`;
+    const path = `${user.id}/avatar.jpg`;
     const signed = await createSignedUploadUrl("avatars", path);
     if (!signed) { showToast("Upload failed", "error"); return; }
 
     const res = await fetch(signed.signedUrl, {
       method: "PUT",
-      headers: { "Content-Type": file.type, "x-upsert": "true" },
-      body: file,
+      headers: { "Content-Type": "image/jpeg", "x-upsert": "true" },
+      body: blob,
     });
     if (!res.ok) { showToast("Upload failed", "error"); return; }
 
@@ -122,6 +125,7 @@ export default function MyPagePage() {
     if (result.success) {
       showToast("Avatar updated!", "success");
       refreshProfile();
+      setCropFile(null);
     } else {
       showToast(result.message, "error");
     }
@@ -209,7 +213,7 @@ export default function MyPagePage() {
       <input ref={bannerInputRef} type="file" accept="image/*" style={{ display: "none" }}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleBannerUpload(f); e.target.value = ""; }} />
       <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: "none" }}
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.target.value = ""; }} />
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) setCropFile(f); e.target.value = ""; }} />
 
       {/* ═══ Profile Card ═══ */}
       <div className={s.mpCard}>
@@ -490,6 +494,15 @@ export default function MyPagePage() {
           Copy
         </button>
       </div>
+
+      {/* ═══ Avatar Crop Modal ═══ */}
+      {cropFile && (
+        <AvatarCropModal
+          imageFile={cropFile}
+          onCropComplete={handleCroppedAvatar}
+          onClose={() => setCropFile(null)}
+        />
+      )}
     </div>
   );
 }

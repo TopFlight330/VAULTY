@@ -12,6 +12,7 @@ import {
   deleteAccount,
 } from "@/lib/actions/profile";
 import { createSignedUploadUrl } from "@/lib/actions/storage";
+import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import s from "../dashboard.module.css";
 
 function getInitials(name: string): string {
@@ -271,6 +272,9 @@ export default function SettingsPage() {
     setting_marketing: profile?.setting_marketing ?? false,
   });
 
+  // Avatar crop modal
+  const [cropFile, setCropFile] = useState<File | null>(null);
+
   // Modals
   const [showDeactivate, setShowDeactivate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -311,21 +315,24 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
       showToast("File too large. Max 5MB.", "error");
       return;
     }
 
+    setCropFile(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCroppedAvatar = async (blob: Blob) => {
+    if (!user) return;
     setUploadingAvatar(true);
 
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${user.id}/avatar.${ext}`;
-
-    // Get signed upload URL from server
+    const path = `${user.id}/avatar.jpg`;
     const signed = await createSignedUploadUrl("avatars", path);
     if (!signed) {
       showToast("Failed to prepare upload.", "error");
@@ -333,20 +340,14 @@ export default function SettingsPage() {
       return;
     }
 
-    // Upload via fetch with upsert
     try {
       const res = await fetch(signed.signedUrl, {
         method: "PUT",
-        headers: {
-          "Content-Type": file.type || "application/octet-stream",
-          "x-upsert": "true",
-        },
-        body: file,
+        headers: { "Content-Type": "image/jpeg", "x-upsert": "true" },
+        body: blob,
       });
-
       if (!res.ok) throw new Error("Upload failed");
 
-      // Build public URL
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${path}?t=${Date.now()}`;
 
@@ -354,6 +355,7 @@ export default function SettingsPage() {
       if (result.success) {
         showToast("Avatar updated!", "success");
         await refreshProfile();
+        setCropFile(null);
       } else {
         showToast(result.message, "error");
       }
@@ -362,7 +364,6 @@ export default function SettingsPage() {
     }
 
     setUploadingAvatar(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleToggle = async (key: string, value: boolean) => {
@@ -450,7 +451,7 @@ export default function SettingsPage() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleAvatarUpload}
+                onChange={handleAvatarSelect}
                 style={{ display: "none" }}
               />
             </div>
@@ -615,6 +616,14 @@ export default function SettingsPage() {
         onClose={() => setShowDelete(false)}
         onConfirm={handleDelete}
       />
+
+      {cropFile && (
+        <AvatarCropModal
+          imageFile={cropFile}
+          onCropComplete={handleCroppedAvatar}
+          onClose={() => setCropFile(null)}
+        />
+      )}
     </div>
   );
 }
