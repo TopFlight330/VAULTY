@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { createClient } from "@/lib/supabase/client";
+import { getSubscribersData } from "@/lib/actions/dashboard";
 import type { SubscriptionWithProfile } from "@/types/database";
 import s from "../dashboard.module.css";
 
@@ -24,19 +24,10 @@ export default function SubscribersPage() {
 
   const fetchSubscribers = useCallback(async () => {
     if (!user) return;
-    const supabase = createClient();
-
-    const { data, count } = await supabase
-      .from("subscriptions")
-      .select(
-        "*, subscriber:profiles!subscriptions_subscriber_id_fkey(*), tier:tiers(*)",
-        { count: "exact" }
-      )
-      .eq("creator_id", user.id)
-      .order("created_at", { ascending: false });
-
-    setSubscribers((data as SubscriptionWithProfile[]) ?? []);
-    setTotal(count ?? 0);
+    const { subscribers: fetched, total: fetchedTotal } =
+      await getSubscribersData();
+    setSubscribers(fetched);
+    setTotal(fetchedTotal);
     setLoading(false);
   }, [user]);
 
@@ -184,7 +175,7 @@ export default function SubscribersPage() {
                   </td>
                   <td>
                     <span className={`${s.tierBadge} ${s.tierBadgePremium}`}>
-                      {sub.tier?.name ?? "Unknown"}
+                      {sub.tier?.name ?? "Premium"}
                     </span>
                   </td>
                   <td style={{ color: "var(--dim)" }}>

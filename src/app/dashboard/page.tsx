@@ -1,94 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { createClient } from "@/lib/supabase/client";
+import { getDashboardStats } from "@/lib/actions/dashboard";
 import type { CreatorStats, Notification } from "@/types/database";
 import s from "./dashboard.module.css";
 
 export default function CreatorDashboardPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [stats, setStats] = useState<CreatorStats | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+    const { stats: fetchedStats, notifications: fetchedNotifs } =
+      await getDashboardStats();
+    setStats(fetchedStats);
+    setNotifications(fetchedNotifs);
+    setLoading(false);
+  }, [user]);
+
   useEffect(() => {
-    if (!profile) return;
-    const supabase = createClient();
-
-    async function fetchData() {
-      const userId = profile!.id;
-
-      // Fetch stats in parallel
-      const [subsResult, postResult, txResult, weekSubsResult, notifsResult] =
-        await Promise.all([
-          supabase
-            .from("subscriptions")
-            .select("*", { count: "exact", head: true })
-            .eq("creator_id", userId)
-            .eq("status", "active"),
-          supabase
-            .from("posts")
-            .select("*", { count: "exact", head: true })
-            .eq("creator_id", userId),
-          supabase
-            .from("transactions")
-            .select("amount, type, created_at")
-            .eq("user_id", userId)
-            .in("type", [
-              "subscription_earning",
-              "tip_received",
-              "ppv_earning",
-            ]),
-          supabase
-            .from("subscriptions")
-            .select("*", { count: "exact", head: true })
-            .eq("creator_id", userId)
-            .gte(
-              "created_at",
-              new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-            ),
-          supabase
-            .from("notifications")
-            .select("*")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false })
-            .limit(5),
-        ]);
-
-      const allEarnings = txResult.data ?? [];
-      const totalEarnings = allEarnings.reduce(
-        (sum, tx) => sum + tx.amount,
-        0
-      );
-      const tipTotal = allEarnings
-        .filter((tx) => tx.type === "tip_received")
-        .reduce((sum, tx) => sum + tx.amount, 0);
-      const monthStart = new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        1
-      ).toISOString();
-      const earningsThisMonth = allEarnings
-        .filter((tx) => tx.created_at >= monthStart)
-        .reduce((sum, tx) => sum + tx.amount, 0);
-
-      setStats({
-        total_earnings: totalEarnings,
-        active_subscribers: subsResult.count ?? 0,
-        post_count: postResult.count ?? 0,
-        tip_total: tipTotal,
-        earnings_this_month: earningsThisMonth,
-        subscribers_this_week: weekSubsResult.count ?? 0,
-      });
-
-      setNotifications(notifsResult.data ?? []);
-      setLoading(false);
-    }
-
     fetchData();
-  }, [profile]);
+  }, [fetchData]);
 
   const displayName = profile?.display_name ?? "User";
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { createClient } from "@/lib/supabase/client";
+import { getEarningsData } from "@/lib/actions/dashboard";
 import type { Transaction } from "@/types/database";
 import s from "../dashboard.module.css";
 
@@ -21,23 +21,16 @@ export default function EarningsPage() {
   const [currentPeriod, setCurrentPeriod] = useState<Period>("month");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!user) return;
-    const supabase = createClient();
-
-    async function fetchData() {
-      const { data } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", user!.id)
-        .in("type", ["subscription_earning", "tip_received", "ppv_earning"])
-        .order("created_at", { ascending: false });
-
-      setTransactions(data ?? []);
-      setLoading(false);
-    }
-    fetchData();
+    const { transactions: fetched } = await getEarningsData();
+    setTransactions(fetched);
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
