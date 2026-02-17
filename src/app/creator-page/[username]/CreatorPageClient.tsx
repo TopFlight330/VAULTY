@@ -385,7 +385,7 @@ export function CreatorPageClient({
       )}
 
       {/* ═══ Content Container - 1050px max (inline style to guarantee) ═══ */}
-      <div style={{ maxWidth: 1050, margin: "0 auto", padding: "1.5rem 1rem 0", boxSizing: "border-box" as const }}>
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "1.5rem 1rem 0", boxSizing: "border-box" as const }}>
 
         {/* ═══ Profile Card Box ═══ */}
         <div className={s.cardBox}>
