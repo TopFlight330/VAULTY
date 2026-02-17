@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { createSignedUploadUrl } from "@/lib/actions/storage";
-import { createR2UploadUrl, deleteR2File } from "@/lib/actions/r2-storage";
+import { deleteR2File } from "@/lib/actions/r2-storage";
 
 /**
  * Upload a file to R2 using a presigned URL + XHR for real progress.
@@ -28,12 +28,9 @@ async function uploadToR2(
   file: File,
   onProgress: (percent: number) => void
 ): Promise<string | null> {
-  const result = await createR2UploadUrl(path, file.type || "application/octet-stream");
-  if (!result) {
-    console.error("[R2 UPLOAD] Failed to get presigned URL");
-    onProgress(0);
-    return null;
-  }
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("path", path);
 
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
@@ -62,9 +59,8 @@ async function uploadToR2(
       resolve(null);
     });
 
-    xhr.open("PUT", result.uploadUrl);
-    xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
-    xhr.send(file);
+    xhr.open("POST", "/api/upload");
+    xhr.send(formData);
   });
 }
 
