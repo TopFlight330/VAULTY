@@ -799,6 +799,9 @@ function PostCard({
         <div className={s.postHeaderInfo}>
           <div className={s.postHeaderNameRow}>
             <span className={s.postHeaderName}>{creator.display_name}</span>
+            <span className={s.postVisibilityTag} style={visibilityStyle(post.visibility)}>
+              {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+            </span>
             <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
             <div className={s.postMenuWrap} ref={menuRef}>
               <button className={s.postMenuBtn} onClick={() => setShowMenu(!showMenu)}>
@@ -864,9 +867,6 @@ function PostCard({
                   className={s.postMediaImage}
                 />
               </div>
-              <span className={s.postVisibilityBadge} style={visibilityStyle(post.visibility)}>
-                {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
-              </span>
               <div className={s.blurOverlay}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -904,9 +904,6 @@ function PostCard({
               return m.media_type === "video" ? (
                 <div key={m.id} className={s.mediaWrap}>
                   <VideoPlayer src={url} />
-                  <span className={s.postVisibilityBadge} style={visibilityStyle(post.visibility)}>
-                    {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
-                  </span>
                 </div>
               ) : (
                 <div key={m.id} className={s.mediaWrap}>
@@ -916,9 +913,6 @@ function PostCard({
                     className={s.postMediaImageClickable}
                     onClick={() => setLightboxSrc(url)}
                   />
-                  <span className={s.postVisibilityBadge} style={visibilityStyle(post.visibility)}>
-                    {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
-                  </span>
                   <div className={s.watermark}>Vaulty.com/{creator.username}</div>
                 </div>
               );

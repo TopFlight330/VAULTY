@@ -309,14 +309,19 @@ export default function ContentPage() {
     });
   };
 
-  const getThumbUrl = (post: PostWithMedia) => {
-    const img = post.media?.find((m) => m.media_type === "image");
-    if (!img) return null;
-    const sp = img.storage_path;
+  const getMediaStorageUrl = (sp: string) => {
     if (sp.startsWith("r2:")) {
       return `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${sp.slice(3)}`;
     }
     return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${sp}`;
+  };
+
+  const getThumbInfo = (post: PostWithMedia): { url: string; type: "image" | "video" } | null => {
+    const img = post.media?.find((m) => m.media_type === "image");
+    if (img) return { url: getMediaStorageUrl(img.storage_path), type: "image" };
+    const vid = post.media?.find((m) => m.media_type === "video");
+    if (vid) return { url: getMediaStorageUrl(vid.storage_path), type: "video" };
+    return null;
   };
 
   const allUploaded = uploadedFiles.length === 0 || uploadedFiles.every((f) => f.status !== "uploading");
@@ -625,14 +630,21 @@ export default function ContentPage() {
       ) : (
         <div className={s.contentGrid}>
           {posts.map((post) => {
-            const thumbUrl = getThumbUrl(post);
+            const thumb = getThumbInfo(post);
             return (
               <div key={post.id} className={s.contentPost} style={post.is_pinned ? { border: "1px solid var(--pink)", boxShadow: "0 0 0 1px rgba(244,63,142,0.15)" } : undefined}>
                 <div className={s.contentThumb}>
-                  {thumbUrl ? (
+                  {thumb?.type === "image" ? (
                     <img
-                      src={thumbUrl}
+                      src={thumb.url}
                       alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : thumb?.type === "video" ? (
+                    <video
+                      src={thumb.url}
+                      muted
+                      preload="metadata"
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                   ) : (
