@@ -721,9 +721,7 @@ function PostCard({
           <div className={s.postHeaderUsernameRow}>
             <span className={s.postHeaderUsername}>@{creator.username}</span>
             {post.is_pinned && (
-              <svg className={s.postPinIcon} viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <path d="M16 2l-4 4-5-2-3 3 4.5 4.5L2 18l.5.5L9 12l4.5 4.5 3-3-2-5 4-4L16 2z"/>
-              </svg>
+              <span className={s.postPinnedLabel}>Pinned</span>
             )}
           </div>
         </div>

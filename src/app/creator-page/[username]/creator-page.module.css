@@ -657,9 +657,16 @@
 .postHeaderUsername {
   font-size: 0.78rem; color: var(--dim); line-height: 1.3;
 }
-.postPinIcon {
-  width: 13px; height: 13px;
-  color: var(--muted);
+.postPinnedLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: linear-gradient(135deg, #f43f8e, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-left: auto;
   flex-shrink: 0;
 }
 .postVisibilityTag {
