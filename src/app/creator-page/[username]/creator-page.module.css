@@ -477,7 +477,7 @@
 
 /* ── Subscribe Card (standalone, outside card box) ── */
 .subscribeCard {
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 2rem;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -563,7 +563,8 @@
 }
 .guestPromptActions {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
 }
 .guestPromptBtn {
@@ -574,8 +575,6 @@
   font-size: 0.88rem; font-weight: 700;
   cursor: pointer; transition: all 0.2s;
   text-decoration: none;
-  text-align: center;
-  width: 100%;
 }
 .guestPromptBtn:hover {
   box-shadow: 0 4px 20px var(--pink-glow);
@@ -590,8 +589,6 @@
   font-size: 0.88rem; font-weight: 700;
   cursor: pointer; transition: all 0.2s;
   text-decoration: none;
-  text-align: center;
-  width: 100%;
 }
 .guestPromptBtnOutline:hover {
   border-color: var(--muted);
@@ -1190,7 +1187,13 @@
   .displayName { font-size: 1.2rem; }
   .badgesRow { grid-template-columns: repeat(3, 1fr); }
   .badge { font-size: 0.62rem; padding: 0.45rem 0.3rem; }
-  .subscribeCard { flex-direction: column; align-items: stretch; text-align: center; padding: 1rem 1.25rem; }
+  .subscribeCard { flex-direction: column; align-items: stretch; text-align: center; padding: 1.25rem 1.5rem; }
   .usernameRow { flex-wrap: wrap; gap: 6px; }
   .postCard { border-radius: 10px; }
+}
+@media (max-width: 450px) {
+  .guestPromptActions { flex-direction: column; }
+  .guestPromptBtn, .guestPromptBtnOutline { width: 100%; text-align: center; }
+  .subscribeCard { padding: 1.25rem; }
+  .guestPrompt { padding: 2rem 1.25rem; }
 }
