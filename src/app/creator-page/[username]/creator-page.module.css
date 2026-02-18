@@ -522,11 +522,7 @@
 }
 .subscribeBtnDisabled {
   opacity: 0.5;
-  cursor: not-allowed;
-}
-.subscribeBtnDisabled:hover {
-  box-shadow: none;
-  transform: none;
+  pointer-events: none;
 }
 
 /* ── Guest Login Prompt ── */
