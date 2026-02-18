@@ -383,6 +383,7 @@ export function CreatorPageClient({
               <button
                 className={`${s.profileActionBtn} ${isGuest ? s.profileActionBtnDisabled : ""}`}
                 title="Send Tip"
+                disabled={isGuest}
                 onClick={() => {
                   if (requireAuth()) return;
                   if (posts.length > 0) {
@@ -398,6 +399,7 @@ export function CreatorPageClient({
               <button
                 className={`${s.profileActionBtn} ${isGuest ? s.profileActionBtnDisabled : ""}`}
                 title="Send Message"
+                disabled={isGuest}
                 onClick={() => {
                   if (requireAuth()) return;
                   showToast("Messaging coming soon", "info");
@@ -410,6 +412,7 @@ export function CreatorPageClient({
               <button
                 className={`${s.profileActionBtn} ${isGuest ? s.profileActionBtnDisabled : ""}`}
                 title="Add to Favorites"
+                disabled={isGuest}
                 onClick={() => {
                   if (requireAuth()) return;
                   showToast("Favorites coming soon", "info");

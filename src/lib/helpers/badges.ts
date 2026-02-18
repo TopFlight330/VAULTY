@@ -16,7 +16,7 @@ export function getCreatorBadges(
       name: "Verified",
       icon: "checkmark",
       earned: profile.is_verified,
-      description: "This creator responds to 90% of private messages within 2 hours.",
+      description: "This creator responds to at least 90% of private messages within 2 hours.",
     },
     {
       id: "active",
