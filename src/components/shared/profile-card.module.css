@@ -1,0 +1,292 @@
+/* ══════ SHARED PROFILE CARD ══════ */
+
+.cardBox {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Banner ── */
+.banner {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(135deg, rgba(244,63,142,0.15), rgba(139,92,246,0.15));
+  position: relative;
+  overflow: hidden;
+}
+.banner img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* ── Profile Section ── */
+.profileSection {
+  padding: 0 2rem 1rem;
+  position: relative;
+}
+.profileRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.avatarWrap {
+  position: relative;
+  margin-top: -55px;
+  flex-shrink: 0;
+}
+.avatar {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f43f8e, #8b5cf6);
+  border: 4px solid var(--card);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-unbounded);
+  font-weight: 900; font-size: 2rem; color: #fff;
+  overflow: hidden;
+}
+.avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.onlineDot {
+  position: absolute;
+  bottom: 8px; right: 8px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 3px solid var(--card);
+}
+
+/* ── Profile Action Icons ── */
+.profileActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 0.75rem;
+}
+.profileActionBtn {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--dim);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.profileActionBtn:hover {
+  border-color: var(--pink);
+  color: var(--pink);
+  background: rgba(244,63,142,0.08);
+  box-shadow: 0 0 12px rgba(244,63,142,0.15);
+}
+.profileActionBtn svg {
+  width: 19px; height: 19px;
+}
+
+/* ── Name Row ── */
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0.85rem;
+  margin-bottom: 0.1rem;
+}
+.displayName {
+  font-family: var(--font-sora);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.verifiedBadge {
+  width: 22px; height: 22px;
+  color: var(--purple);
+  flex-shrink: 0;
+}
+
+/* ── Username Row ── */
+.usernameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.username {
+  font-size: 0.88rem;
+  color: var(--dim);
+}
+.joinedAge {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--dim);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ── Divider ── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 1rem;
+}
+
+/* ── Achievement Badges ── */
+.badgesRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.55rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: all 0.25s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.badgeEarned {
+  background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(244,63,142,0.1));
+  color: var(--purple);
+  border: 1px solid rgba(139,92,246,0.35);
+  box-shadow: 0 0 12px rgba(139,92,246,0.15);
+}
+.badgeGray {
+  background: rgba(255,255,255,0.03);
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.08);
+  opacity: 0.65;
+}
+
+/* ── Badge Popup ── */
+.badgePopupOverlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.badgePopup {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.75rem;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  animation: fadeInUp 0.2s ease;
+}
+.badgePopupClose {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; color: var(--dim);
+  cursor: pointer; padding: 4px;
+}
+.badgePopupClose svg { width: 18px; height: 18px; }
+.badgePopupIcon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem;
+}
+.badgePopupIcon svg { width: 22px; height: 22px; }
+.badgePopupIconEarned {
+  background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(244,63,142,0.15));
+  color: var(--purple);
+  border: 1px solid rgba(139,92,246,0.3);
+}
+.badgePopupIconGray {
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.badgePopupName {
+  font-family: var(--font-sora);
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+.badgePopupDesc {
+  font-size: 0.85rem;
+  color: var(--dim);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+.badgePopupStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.35rem 1rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.badgePopupStatusEarned {
+  background: var(--success-dim);
+  color: var(--success);
+}
+.badgePopupStatusLocked {
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Bio ── */
+.bio {
+  font-size: 0.9rem;
+  color: var(--dim);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+}
+
+/* ── Stats Row ── */
+.statsRow {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 0;
+}
+.statsRow .nsfwTag {
+  margin-left: auto;
+}
+.statItem {
+  font-family: var(--font-unbounded);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+.statItem span {
+  font-family: var(--font-sora);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dim);
+  margin-left: 4px;
+}
+.nsfwTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.3);
+  flex-shrink: 0;
+}

@@ -9,6 +9,7 @@ import { toggleLike } from "@/lib/actions/posts";
 import { toggleBookmark } from "@/lib/actions/bookmarks";
 import { addComment, getPostComments } from "@/lib/actions/comments";
 import { sendTip, purchasePPV } from "@/lib/actions/credits";
+import { ProfileCard } from "@/components/shared/ProfileCard";
 import type {
   Profile,
   PostWithInteractions,
@@ -43,37 +44,11 @@ function getMediaUrl(storagePath: string): string {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${storagePath}`;
 }
 
-/* ── Badge Icons ── */
-function BadgeIcon({ icon }: { icon: string }) {
-  const p = { width: 13, height: 13, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  switch (icon) {
-    case "checkmark": return <svg {...p}><path d="M20 6L9 17l-5-5" /></svg>;
-    case "flash": return <svg {...p}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>;
-    case "trophy": return <svg {...p}><path d="M6 9H4.5a2.5 2.5 0 010-5H6" /><path d="M18 9h1.5a2.5 2.5 0 000-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" /><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" /><path d="M18 2H6v7a6 6 0 0012 0V2z" /></svg>;
-    case "star": return <svg {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
-    case "documents": return <svg {...p}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>;
-    case "heart": return <svg {...p}><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>;
-    default: return null;
-  }
-}
-
 function visibilityStyle(v: string) {
   if (v === "free") return { background: "var(--success-dim)", color: "var(--success)", border: "1px solid rgba(34,197,94,0.4)" };
   if (v === "premium") return { background: "var(--pink-dim)", color: "var(--pink)", border: "1px solid rgba(244,63,142,0.4)" };
   if (v === "ppv") return { background: "var(--warning-dim)", color: "var(--warning)", border: "1px solid rgba(234,179,8,0.4)" };
   return {};
-}
-
-function accountAge(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days < 1) return "Joined today";
-  if (days < 30) return `Joined ${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `Joined ${months}mo ago`;
-  const years = Math.floor(months / 12);
-  const rem = months % 12;
-  return rem > 0 ? `Joined ${years}y ${rem}mo ago` : `Joined ${years}y ago`;
 }
 
 /* ── Main Component ── */
@@ -118,19 +93,9 @@ export function CreatorPageClient({
   const [sendingTip, setSendingTip] = useState(false);
 
   const [activeTab, setActiveTab] = useState<"posts" | "media">("posts");
-  const [activeBadge, setActiveBadge] = useState<AchievementBadge | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const initials = getInitials(creator.display_name);
   const isOwner = viewerId === creator.id;
-
-  // Sort badges: verified always first when earned, then other earned, then unearned
-  const sortedBadges = [...badges].sort((a, b) => {
-    if (a.earned && !b.earned) return -1;
-    if (!a.earned && b.earned) return 1;
-    if (a.earned && b.earned && a.id === "verified") return -1;
-    if (a.earned && b.earned && b.id === "verified") return 1;
-    return 0;
-  });
 
   // Star field animation
   useEffect(() => {
@@ -405,169 +370,63 @@ export function CreatorPageClient({
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "1.5rem 1rem 0", boxSizing: "border-box" as const }}>
 
         {/* ═══ Profile Card Box ═══ */}
-        <div className={s.cardBox}>
-          {/* Banner (inside card) */}
-          <div className={s.banner}>
-            {creator.banner_url && <img src={creator.banner_url} alt="" />}
-          </div>
-
-          {/* Profile Section */}
-          <div className={s.profileSection}>
-            <div className={s.profileRow}>
-              {/* Avatar with online dot */}
-              <div className={s.avatarWrap}>
-                <div className={s.avatar}>
-                  {creator.avatar_url ? (
-                    <img src={creator.avatar_url} alt="" />
-                  ) : (
-                    initials
-                  )}
-                </div>
-                {creator.online_status === "available" && (
-                  <div className={s.onlineDot} />
-                )}
-              </div>
-
-              {/* Action Icons (visible to non-owners) */}
-              {!isOwner && (
-                <div className={s.profileActions}>
-                  <button
-                    className={s.profileActionBtn}
-                    title="Send Tip"
-                    onClick={() => {
-                      if (requireAuth()) return;
-                      if (posts.length > 0) {
-                        setTipOpenFor(posts[0].id);
-                        document.querySelector(`.${s.feed}`)?.scrollIntoView({ behavior: "smooth" });
-                      }
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                    </svg>
-                  </button>
-                  <button
-                    className={s.profileActionBtn}
-                    title="Send Message"
-                    onClick={() => showToast("Messaging coming soon", "info")}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                    </svg>
-                  </button>
-                  <button
-                    className={s.profileActionBtn}
-                    title="Add to Favorites"
-                    onClick={() => showToast("Favorites coming soon", "info")}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  </button>
-                  <button
-                    className={s.profileActionBtn}
-                    title="Share Profile"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/@${creator.username}`);
-                      showToast("Profile link copied!", "success");
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className={s.nameRow}>
-              <div className={s.displayName}>{creator.display_name}</div>
-              {creator.is_verified && (
-                <svg className={s.verifiedBadge} viewBox="0 0 24 24">
-                  <defs>
-                    <linearGradient id="vgrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#f43f8e" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="url(#vgrad)" stroke="none" />
-                  <path d="M9 12l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <ProfileCard
+          creator={creator}
+          badges={badges}
+          totalLikes={totalLikes}
+          photoCount={photoCount}
+          videoCount={videoCount}
+          isOwner={isOwner}
+          actionButtons={
+            <>
+              <button
+                className={s.profileActionBtn}
+                title="Send Tip"
+                onClick={() => {
+                  if (requireAuth()) return;
+                  if (posts.length > 0) {
+                    setTipOpenFor(posts[0].id);
+                    document.querySelector(`.${s.feed}`)?.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
                 </svg>
-              )}
-            </div>
-
-            <div className={s.usernameRow}>
-              <span className={s.username}>
-                @{creator.username}{creator.online_status === "available" && " - Online"}
-              </span>
-              <span className={s.joinedAge}>{accountAge(creator.created_at)}</span>
-            </div>
-
-            <div className={s.divider} />
-
-            {/* Achievement Badges */}
-            {sortedBadges.length > 0 && (
-              <div className={s.badgesRow}>
-                {sortedBadges.map((badge) => {
-                  const isVerified = badge.id === "verified";
-                  const displayName = isVerified ? "Reactive" : badge.name;
-                  const displayIcon = isVerified ? "flash" : badge.icon;
-                  return (
-                    <div
-                      key={badge.id}
-                      className={`${s.badge} ${badge.earned ? s.badgeEarned : s.badgeGray}`}
-                      onClick={() => setActiveBadge(badge)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <BadgeIcon icon={displayIcon} />
-                      {displayName}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Badge Info Popup */}
-            {activeBadge && (
-              <div className={s.badgePopupOverlay} onClick={() => setActiveBadge(null)}>
-                <div className={s.badgePopup} onClick={(e) => e.stopPropagation()}>
-                  <button className={s.badgePopupClose} onClick={() => setActiveBadge(null)}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  </button>
-                  <div className={`${s.badgePopupIcon} ${activeBadge.earned ? s.badgePopupIconEarned : s.badgePopupIconGray}`}>
-                    <BadgeIcon icon={activeBadge.id === "verified" ? "flash" : activeBadge.icon} />
-                  </div>
-                  <div className={s.badgePopupName}>
-                    {activeBadge.id === "verified" ? "Reactive" : activeBadge.name}
-                  </div>
-                  <div className={s.badgePopupDesc}>{activeBadge.description}</div>
-                  <div className={`${s.badgePopupStatus} ${activeBadge.earned ? s.badgePopupStatusEarned : s.badgePopupStatusLocked}`}>
-                    {activeBadge.earned ? "Earned" : "Not yet earned"}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {creator.bio && <div className={s.bio}>{creator.bio}</div>}
-
-            <div className={s.divider} />
-
-            <div className={s.statsRow}>
-              <div className={s.statItem}>
-                {totalLikes.toLocaleString()} <span>Likes</span>
-              </div>
-              <div className={s.statItem}>
-                {photoCount.toLocaleString()} <span>Photos</span>
-              </div>
-              <div className={s.statItem}>
-                {videoCount.toLocaleString()} <span>Vidéos</span>
-              </div>
-              {creator.category === "18+" && (
-                <span className={s.nsfwTag}>18+</span>
-              )}
-            </div>
-          </div>
-        </div>
+              </button>
+              <button
+                className={s.profileActionBtn}
+                title="Send Message"
+                onClick={() => showToast("Messaging coming soon", "info")}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                </svg>
+              </button>
+              <button
+                className={s.profileActionBtn}
+                title="Add to Favorites"
+                onClick={() => showToast("Favorites coming soon", "info")}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </button>
+              <button
+                className={s.profileActionBtn}
+                title="Share Profile"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/@${creator.username}`);
+                  showToast("Profile link copied!", "success");
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
+                </svg>
+              </button>
+            </>
+          }
+        />
 
         {/* ═══ Subscribe Card (outside card box) ═══ */}
         {!isOwner && creator.subscription_price && (

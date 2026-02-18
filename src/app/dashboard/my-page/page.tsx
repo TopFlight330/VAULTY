@@ -1,15 +1,17 @@
 "use client";
 
-import { Suspense, useState, useEffect, useCallback, useRef } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
-import { getMyPageData, updateProfile, updateBanner, uploadAndSetAvatar, uploadAndSetBanner } from "@/lib/actions/profile";
+import { getMyPageData, updateProfile, uploadAndSetAvatar, uploadAndSetBanner } from "@/lib/actions/profile";
 import { deletePost } from "@/lib/actions/posts";
+import { getCreatorBadges } from "@/lib/helpers/badges";
 import { AvatarCropModal } from "@/components/dashboard/shared/AvatarCropModal";
 import { BannerCropModal } from "@/components/dashboard/shared/BannerCropModal";
+import { ProfileCard } from "@/components/shared/ProfileCard";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import type { PostWithMedia } from "@/types/database";
+import type { PostWithMedia, Profile } from "@/types/database";
 import s from "../dashboard.module.css";
 
 function getInitials(name: string): string {
@@ -53,19 +55,6 @@ function MyPageContent() {
 
   // Tabs
   const [activeTab, setActiveTab] = useState<"posts" | "media">("posts");
-
-  // Subscription price inline edit
-  const [editingPrice, setEditingPrice] = useState(false);
-  const [priceInput, setPriceInput] = useState("");
-  const [savingPrice, setSavingPrice] = useState(false);
-
-  // Status dropdown
-  const [showStatusDD, setShowStatusDD] = useState(false);
-  const statusRef = useRef<HTMLDivElement>(null);
-
-  // Three-dot menu
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
 
   // View Page As modal
   const [showViewAs, setShowViewAs] = useState(false);
@@ -134,20 +123,6 @@ function MyPageContent() {
     }
   }, [searchParams, router, profile?.subscription_price]);
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
-        setShowStatusDD(false);
-      }
-      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
-        setShowMoreMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
   /* ── Upload helpers ── */
   const handleCroppedBanner = async (blob: Blob) => {
     if (!user) return;
@@ -179,35 +154,11 @@ function MyPageContent() {
     }
   };
 
-  const handleRemoveBanner = async () => {
-    const result = await updateBanner("");
-    if (result.success) {
-      showToast("Banner removed", "success");
-      refreshProfile();
-    }
-  };
-
   /* ── Status ── */
   const handleStatusChange = async (status: "available" | "invisible") => {
-    setShowStatusDD(false);
     const result = await updateProfile({ online_status: status });
     if (result.success) refreshProfile();
     else showToast(result.message, "error");
-  };
-
-  /* ── Sub price ── */
-  const handleSavePrice = async () => {
-    setSavingPrice(true);
-    const price = parseInt(priceInput) || 0;
-    const result = await updateProfile({ subscription_price: price > 0 ? price : null });
-    if (result.success) {
-      showToast("Price updated!", "success");
-      refreshProfile();
-      setEditingPrice(false);
-    } else {
-      showToast(result.message, "error");
-    }
-    setSavingPrice(false);
   };
 
   /* ── Sub price modal ── */
@@ -253,10 +204,8 @@ function MyPageContent() {
   /* ── Derived values ── */
   const displayName = profile?.display_name ?? "User";
   const username = profile?.username ?? "";
-  const bio = profile?.bio ?? "";
   const initials = getInitials(displayName);
   const onlineStatus = profile?.online_status ?? "available";
-  const subPrice = profile?.subscription_price;
 
   const getMediaUrl = (storagePath: string) => {
     if (storagePath.startsWith("r2:")) {
@@ -277,6 +226,19 @@ function MyPageContent() {
     (p.media ?? []).map((m) => ({ ...m, postVisibility: p.visibility }))
   );
 
+  // Compute badges & media counts for ProfileCard
+  const photoCount = posts.reduce((sum, p) => sum + (p.media ?? []).filter((m) => m.media_type === "image").length, 0);
+  const videoCount = posts.reduce((sum, p) => sum + (p.media ?? []).filter((m) => m.media_type === "video").length, 0);
+  const lastPostAt = posts.length > 0 ? posts[0].created_at : null;
+  const badges = useMemo(() => {
+    if (!profile) return [];
+    return getCreatorBadges(
+      profile as Profile,
+      { subscribers: subCount, posts: postCount, totalLikes },
+      lastPostAt
+    );
+  }, [profile, subCount, postCount, totalLikes, lastPostAt]);
+
   return (
     <div className={s.mpPageWrap}>
       {/* Hidden file inputs */}
@@ -285,147 +247,15 @@ function MyPageContent() {
       <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: "none" }}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) setCropFile(f); e.target.value = ""; }} />
 
-      {/* ═══ Profile Card ═══ */}
-      <div className={s.mpCard}>
-        {/* Banner */}
-        <div className={s.mpBanner} onClick={() => bannerInputRef.current?.click()}>
-          {profile?.banner_url && <img src={profile.banner_url} alt="" />}
-          <div className={s.mpBannerOverlay}>
-            <button className={s.mpBannerBtn} onClick={(e) => { e.stopPropagation(); bannerInputRef.current?.click(); }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            </button>
-            {profile?.banner_url && (
-              <button className={s.mpBannerBtn} onClick={(e) => { e.stopPropagation(); handleRemoveBanner(); }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Profile Section */}
-        <div className={s.mpProfileSection}>
-          <div className={s.mpProfileRow}>
-            {/* Avatar */}
-            <div className={s.mpAvatarWrap} onClick={() => avatarInputRef.current?.click()}>
-              <div className={s.mpAvatar}>
-                {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}
-              </div>
-              <div className={s.mpAvatarCam}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              </div>
-              <div className={`${s.mpOnlineDot} ${onlineStatus === "available" ? s.mpOnlineDotAvailable : s.mpOnlineDotInvisible}`} />
-            </div>
-
-            {/* Action buttons */}
-            <div className={s.mpActions}>
-              <a href="/dashboard/settings" className={s.mpEditBtn}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Edit Profile
-              </a>
-              <div className={s.mpMoreWrap} ref={moreMenuRef}>
-                <button className={s.mpMoreBtn} onClick={() => setShowMoreMenu(!showMoreMenu)}>
-                  <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                </button>
-                {showMoreMenu && (
-                  <div className={s.mpMoreDropdown}>
-                    <button className={s.mpMoreOption} onClick={() => { copyProfileLink(); setShowMoreMenu(false); }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-                      Copy Profile Link
-                    </button>
-                    <button className={s.mpMoreOption} onClick={() => { setShowViewAs(true); setShowMoreMenu(false); }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      View Page As
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Name + username */}
-          <div className={s.mpName}>{displayName}</div>
-          <div className={s.mpUsernameRow}>
-            <span className={s.mpUsername}>@{username}</span>
-            {/* Status dropdown */}
-            <div className={s.mpStatusWrap} ref={statusRef}>
-              <button
-                className={`${s.mpStatusBtn} ${onlineStatus === "available" ? s.mpStatusBtnAvailable : s.mpStatusBtnInvisible}`}
-                onClick={() => setShowStatusDD(!showStatusDD)}
-              >
-                <span className={s.mpStatusDot} style={{ background: onlineStatus === "available" ? "var(--success)" : "var(--muted)" }} />
-                {onlineStatus === "available" ? "Available" : "Invisible"}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              {showStatusDD && (
-                <div className={s.mpStatusDropdown}>
-                  <button className={s.mpStatusOption} onClick={() => handleStatusChange("available")}>
-                    <span className={s.mpStatusDot} style={{ background: "var(--success)" }} />
-                    Available
-                  </button>
-                  <button className={s.mpStatusOption} onClick={() => handleStatusChange("invisible")}>
-                    <span className={s.mpStatusDot} style={{ background: "var(--muted)" }} />
-                    Invisible
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className={s.mpUrl}>vaulty.com/@{username}</div>
-
-          {/* Bio */}
-          {bio && <div className={s.mpBio}>{bio}</div>}
-
-          {/* Stats */}
-          <div className={s.mpStats}>
-            <div className={s.mpStatItem}>{subCount.toLocaleString()} <span>subscribers</span></div>
-            <div className={s.mpStatItem}>{postCount.toLocaleString()} <span>posts</span></div>
-            <div className={s.mpStatItem}>{totalLikes.toLocaleString()} <span>likes</span></div>
-          </div>
-
-          {/* Subscription price card */}
-          <div className={s.mpSubCard}>
-            <div>
-              <div className={s.mpSubLabel}>Subscription Price</div>
-              {!editingPrice ? (
-                <div className={s.mpSubPrice}>
-                  {subPrice ? `${subPrice} credits/mo` : "Not set"}
-                </div>
-              ) : (
-                <div className={s.mpSubEditRow}>
-                  <input
-                    type="number"
-                    placeholder="e.g. 150"
-                    value={priceInput}
-                    onChange={(e) => setPriceInput(e.target.value)}
-                    min="1"
-                    autoFocus
-                  />
-                  <span style={{ fontSize: "0.82rem", color: "var(--dim)" }}>credits/mo</span>
-                </div>
-              )}
-            </div>
-            {!editingPrice ? (
-              <button
-                className={s.mpEditBtn}
-                onClick={() => { setPriceInput(subPrice?.toString() ?? ""); setEditingPrice(true); }}
-                style={{ marginTop: 0 }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Edit
-              </button>
-            ) : (
-              <div style={{ display: "flex", gap: 6 }}>
-                <button className={s.btnSave} onClick={handleSavePrice} disabled={savingPrice} style={{ padding: "0.4rem 1rem", fontSize: "0.78rem" }}>
-                  {savingPrice ? "..." : "Save"}
-                </button>
-                <button className={s.btnSecondary} onClick={() => setEditingPrice(false)} style={{ padding: "0.4rem 0.8rem", fontSize: "0.78rem" }}>
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* ═══ Profile Card (shared with creator page) ═══ */}
+      <ProfileCard
+        creator={profile as Profile}
+        badges={badges}
+        totalLikes={totalLikes}
+        photoCount={photoCount}
+        videoCount={videoCount}
+        isOwner={true}
+      />
 
       {/* ═══ Tabs ═══ */}
       <div className={s.mpCard}>
