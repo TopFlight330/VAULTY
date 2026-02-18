@@ -248,14 +248,16 @@ function MyPageContent() {
         onChange={(e) => { const f = e.target.files?.[0]; if (f) setCropFile(f); e.target.value = ""; }} />
 
       {/* ═══ Profile Card (shared with creator page) ═══ */}
-      <ProfileCard
-        creator={profile as Profile}
-        badges={badges}
-        totalLikes={totalLikes}
-        photoCount={photoCount}
-        videoCount={videoCount}
-        isOwner={true}
-      />
+      {profile && (
+        <ProfileCard
+          creator={profile as Profile}
+          badges={badges}
+          totalLikes={totalLikes}
+          photoCount={photoCount}
+          videoCount={videoCount}
+          isOwner={true}
+        />
+      )}
 
       {/* ═══ Tabs ═══ */}
       <div className={s.mpCard}>
