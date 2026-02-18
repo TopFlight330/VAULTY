@@ -555,11 +555,12 @@
   min-width: 0;
 }
 .postHeaderName {
-  font-weight: 800; font-size: 0.88rem; line-height: 1.3;
+  font-weight: 800; font-size: 0.9rem; line-height: 1.3;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .postHeaderUsername {
   font-size: 0.78rem; color: var(--muted); line-height: 1.3;
+  margin-top: 3px;
 }
 .postHeaderTime {
   font-size: 0.75rem; color: var(--muted);
@@ -648,7 +649,7 @@
   font-weight: 800; font-size: 1.02rem;
 }
 .postBody {
-  padding: 0 1.25rem 1rem;
+  padding: 0.85rem 1.25rem 1rem;
   font-size: 0.88rem; color: var(--dim); line-height: 1.6;
   white-space: pre-wrap;
 }
