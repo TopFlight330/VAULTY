@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import { getMyPageData, updateProfile, updateBanner, uploadAndSetAvatar, uploadAndSetBanner } from "@/lib/actions/profile";
@@ -31,8 +32,18 @@ const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL!;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 export default function MyPagePage() {
+  return (
+    <Suspense fallback={null}>
+      <MyPageContent />
+    </Suspense>
+  );
+}
+
+function MyPageContent() {
   const { profile, user, refreshProfile } = useAuth();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [posts, setPosts] = useState<PostWithMedia[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +71,13 @@ export default function MyPagePage() {
   const [showViewAs, setShowViewAs] = useState(false);
   const [viewAsRole, setViewAsRole] = useState<"free" | "subscriber">("free");
 
+  // Sidebar-triggered modals
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
+  const [showSubModal, setShowSubModal] = useState(false);
+  const [subModalInput, setSubModalInput] = useState("");
+  const [subModalSaving, setSubModalSaving] = useState(false);
+
   // File inputs
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -85,6 +103,36 @@ export default function MyPagePage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Handle sidebar submenu modal triggers
+  useEffect(() => {
+    const modal = searchParams.get("modal");
+    if (!modal) return;
+    // Clear the param immediately
+    router.replace("/dashboard/my-page", { scroll: false });
+
+    switch (modal) {
+      case "status":
+        setShowStatusModal(true);
+        break;
+      case "edit-profile":
+        router.push("/dashboard/settings");
+        break;
+      case "options":
+        setShowOptionsModal(true);
+        break;
+      case "subscription":
+        setSubModalInput(profile?.subscription_price?.toString() ?? "");
+        setShowSubModal(true);
+        break;
+      case "avatar":
+        avatarInputRef.current?.click();
+        break;
+      case "banner":
+        bannerInputRef.current?.click();
+        break;
+    }
+  }, [searchParams, router, profile?.subscription_price]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -160,6 +208,21 @@ export default function MyPagePage() {
       showToast(result.message, "error");
     }
     setSavingPrice(false);
+  };
+
+  /* ── Sub price modal ── */
+  const handleSaveSubModal = async () => {
+    setSubModalSaving(true);
+    const price = parseInt(subModalInput) || 0;
+    const result = await updateProfile({ subscription_price: price > 0 ? price : null });
+    if (result.success) {
+      showToast("Price updated!", "success");
+      refreshProfile();
+      setShowSubModal(false);
+    } else {
+      showToast(result.message, "error");
+    }
+    setSubModalSaving(false);
   };
 
   /* ── Delete post ── */
@@ -576,6 +639,102 @@ export default function MyPagePage() {
         variant="danger"
         isLoading={deleting}
       />
+
+      {/* ═══ Status Modal ═══ */}
+      {showStatusModal && (
+        <div className={s.modalOverlay} onClick={() => setShowStatusModal(false)}>
+          <div className={s.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              <h3 className={s.modalTitle} style={{ marginBottom: 0 }}>Online Status</h3>
+              <button onClick={() => setShowStatusModal(false)} style={{ background: "none", border: "none", color: "var(--dim)", cursor: "pointer", padding: 4 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <p className={s.modalDesc}>Choose your online visibility status.</p>
+            <div className={s.modalReasons}>
+              <label
+                className={`${s.modalReasonOption} ${onlineStatus === "available" ? s.modalReasonOptionActive : ""}`}
+                onClick={async () => { await handleStatusChange("available"); setShowStatusModal(false); }}
+              >
+                <span className={s.mpStatusDot} style={{ background: "var(--success)", width: 10, height: 10, borderRadius: "50%", flexShrink: 0 }} />
+                Available
+              </label>
+              <label
+                className={`${s.modalReasonOption} ${onlineStatus === "invisible" ? s.modalReasonOptionActive : ""}`}
+                onClick={async () => { await handleStatusChange("invisible"); setShowStatusModal(false); }}
+              >
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--muted)", flexShrink: 0 }} />
+                Invisible
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Options Modal ═══ */}
+      {showOptionsModal && (
+        <div className={s.modalOverlay} onClick={() => setShowOptionsModal(false)}>
+          <div className={s.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              <h3 className={s.modalTitle} style={{ marginBottom: 0 }}>Options</h3>
+              <button onClick={() => setShowOptionsModal(false)} style={{ background: "none", border: "none", color: "var(--dim)", cursor: "pointer", padding: 4 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div className={s.modalReasons}>
+              <button
+                className={s.modalReasonOption}
+                style={{ cursor: "pointer", width: "100%" }}
+                onClick={() => { copyProfileLink(); setShowOptionsModal(false); }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, flexShrink: 0 }}><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                Copy Profile Link
+              </button>
+              <button
+                className={s.modalReasonOption}
+                style={{ cursor: "pointer", width: "100%" }}
+                onClick={() => { setShowOptionsModal(false); setShowViewAs(true); }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, flexShrink: 0 }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                View Page As
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Subscription Modal ═══ */}
+      {showSubModal && (
+        <div className={s.modalOverlay} onClick={() => setShowSubModal(false)}>
+          <div className={s.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              <h3 className={s.modalTitle} style={{ marginBottom: 0 }}>Subscription Price</h3>
+              <button onClick={() => setShowSubModal(false)} style={{ background: "none", border: "none", color: "var(--dim)", cursor: "pointer", padding: 4 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <p className={s.modalDesc}>Set the monthly subscription price for your page. Leave empty to remove the price.</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1.25rem" }}>
+              <input
+                type="number"
+                className={s.formInput}
+                placeholder="e.g. 150"
+                value={subModalInput}
+                onChange={(e) => setSubModalInput(e.target.value)}
+                min="1"
+                autoFocus
+              />
+              <span style={{ fontSize: "0.85rem", color: "var(--dim)", whiteSpace: "nowrap" }}>credits/mo</span>
+            </div>
+            <div className={s.modalActions}>
+              <button className={s.btnSecondary} onClick={() => setShowSubModal(false)}>Cancel</button>
+              <button className={s.btnSave} onClick={handleSaveSubModal} disabled={subModalSaving}>
+                {subModalSaving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
