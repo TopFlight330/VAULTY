@@ -402,7 +402,8 @@ export function CreatorPageClient({
                 disabled={isGuest}
                 onClick={() => {
                   if (requireAuth()) return;
-                  showToast("Messaging coming soon", "info");
+                  const basePath = isOwner ? "/dashboard/messages" : "/dashboard/client/messages";
+                  router.push(`${basePath}?to=${creator.id}`);
                 }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

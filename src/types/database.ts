@@ -14,7 +14,11 @@ export type TransactionType =
   | "tip_sent"
   | "tip_received"
   | "ppv_payment"
-  | "ppv_earning";
+  | "ppv_earning"
+  | "chat_tip_sent"
+  | "chat_tip_received"
+  | "message_ppv_payment"
+  | "message_ppv_earning";
 
 export type NotificationType =
   | "new_subscriber"
@@ -22,7 +26,10 @@ export type NotificationType =
   | "new_like"
   | "ppv_purchase"
   | "subscription_expired"
-  | "system";
+  | "system"
+  | "new_message"
+  | "message_tip"
+  | "message_ppv_purchase";
 
 /* ── Table types ── */
 
@@ -165,6 +172,53 @@ export interface AchievementBadge {
   icon: string;
   earned: boolean;
   description: string;
+}
+
+/* ── Chat / Messaging types ── */
+
+export interface Conversation {
+  id: string;
+  participant_1: string;
+  participant_2: string;
+  last_message_at: string;
+  last_message_preview: string;
+  is_pinned_by_1: boolean;
+  is_pinned_by_2: boolean;
+  created_at: string;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
+  media_url: string | null;
+  media_type: string | null;
+  is_ppv: boolean;
+  ppv_price: number | null;
+  is_ppv_unlocked: boolean;
+  is_tip: boolean;
+  tip_amount: number | null;
+  is_pinned: boolean;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface ConversationWithProfile extends Conversation {
+  other_user: Profile;
+  unread_count: number;
+}
+
+export interface MessageWithSender extends Message {
+  sender: Profile;
+}
+
+export interface MessagePpvPurchase {
+  id: string;
+  message_id: string;
+  buyer_id: string;
+  price_paid: number;
+  created_at: string;
 }
 
 /* ── Joined / computed types ── */
