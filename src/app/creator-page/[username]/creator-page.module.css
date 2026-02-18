@@ -1191,3 +1191,7 @@
   .usernameRow { flex-wrap: wrap; gap: 6px; }
   .postCard { border-radius: 10px; }
 }
+@media (max-width: 450px) {
+  .guestPromptActions { flex-direction: column; }
+  .guestPromptBtn, .guestPromptBtnOutline { width: 100%; text-align: center; }
+}
