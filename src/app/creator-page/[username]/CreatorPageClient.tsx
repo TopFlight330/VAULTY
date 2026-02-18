@@ -433,7 +433,7 @@ export function CreatorPageClient({
           <div className={s.subscribeCard}>
             <div>
               <div className={s.subscribePrice}>
-                {creator.subscription_price} credits/mo
+                {creator.subscription_price} credits per month
               </div>
               <div className={s.subscribeInfo}>
                 Unlock all premium content

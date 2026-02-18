@@ -602,15 +602,8 @@
 .postCard:hover {
   border-color: var(--muted);
 }
-.postCardPinned {
-  border: 1.5px solid transparent;
-  background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, #f43f8e, #8b5cf6) border-box;
-}
-.postCardPinned:hover {
-  border-color: transparent;
-}
+.postCardPinned {}
+.postCardPinned:hover {}
 .postHeader {
   display: flex; align-items: center; gap: 10px;
   padding: 0.85rem 1.25rem;
