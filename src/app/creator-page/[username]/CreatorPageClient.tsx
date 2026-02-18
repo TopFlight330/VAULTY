@@ -96,6 +96,7 @@ export function CreatorPageClient({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const initials = getInitials(creator.display_name);
   const isOwner = viewerId === creator.id;
+  const isGuest = !viewerId;
 
   // Star field animation
   useEffect(() => {
@@ -380,7 +381,7 @@ export function CreatorPageClient({
           actionButtons={
             <>
               <button
-                className={s.profileActionBtn}
+                className={`${s.profileActionBtn} ${isGuest ? s.profileActionBtnDisabled : ""}`}
                 title="Send Tip"
                 onClick={() => {
                   if (requireAuth()) return;
@@ -395,18 +396,24 @@ export function CreatorPageClient({
                 </svg>
               </button>
               <button
-                className={s.profileActionBtn}
+                className={`${s.profileActionBtn} ${isGuest ? s.profileActionBtnDisabled : ""}`}
                 title="Send Message"
-                onClick={() => showToast("Messaging coming soon", "info")}
+                onClick={() => {
+                  if (requireAuth()) return;
+                  showToast("Messaging coming soon", "info");
+                }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                 </svg>
               </button>
               <button
-                className={s.profileActionBtn}
+                className={`${s.profileActionBtn} ${isGuest ? s.profileActionBtnDisabled : ""}`}
                 title="Add to Favorites"
-                onClick={() => showToast("Favorites coming soon", "info")}
+                onClick={() => {
+                  if (requireAuth()) return;
+                  showToast("Favorites coming soon", "info");
+                }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -443,9 +450,9 @@ export function CreatorPageClient({
               <div className={s.subscribedLabel}>Subscribed</div>
             ) : (
               <button
-                className={s.subscribeBtn}
+                className={`${s.subscribeBtn} ${isGuest ? s.subscribeBtnDisabled : ""}`}
                 onClick={handleSubscribe}
-                disabled={subscribing}
+                disabled={subscribing || isGuest}
               >
                 {subscribing ? "Subscribing..." : "Subscribe"}
               </button>
@@ -453,8 +460,32 @@ export function CreatorPageClient({
           </div>
         )}
 
+        {/* ═══ Guest Login Prompt ═══ */}
+        {isGuest && (
+          <div className={s.guestPrompt}>
+            <div className={s.guestPromptIcon}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
+              </svg>
+            </div>
+            <div className={s.guestPromptTitle}>Want to see more?</div>
+            <div className={s.guestPromptDesc}>
+              Log in or create an account to view {creator.display_name}&apos;s full profile, posts, and exclusive content.
+            </div>
+            <div className={s.guestPromptActions}>
+              <Link href="/login" className={s.guestPromptBtn}>
+                Log In
+              </Link>
+              <Link href="/signup" className={s.guestPromptBtnOutline}>
+                Create Account
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* ═══ Feed Card Box ═══ */}
-        <div className={s.cardBox}>
+        {!isGuest && <div className={s.cardBox}>
           {/* Tabs */}
           <div className={s.tabs}>
             <button
@@ -548,9 +579,9 @@ export function CreatorPageClient({
               )
             )}
           </div>
-        </div>
+        </div>}
 
-      </div>{/* end 1050px container */}
+      </div>{/* end 800px container */}
     </div>
   );
 }

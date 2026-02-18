@@ -254,6 +254,16 @@
   background: rgba(244,63,142,0.08);
   box-shadow: 0 0 12px rgba(244,63,142,0.15);
 }
+.profileActionBtnDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.profileActionBtnDisabled:hover {
+  border-color: var(--border);
+  color: var(--dim);
+  background: rgba(255,255,255,0.03);
+  box-shadow: none;
+}
 .profileActionBtn svg {
   width: 19px; height: 19px;
 }
@@ -508,6 +518,80 @@
   border-radius: 12px;
   color: var(--success);
   font-size: 0.88rem; font-weight: 700;
+}
+.subscribeBtnDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.subscribeBtnDisabled:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+/* ── Guest Login Prompt ── */
+.guestPrompt {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.guestPromptIcon {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(244,63,142,0.12), rgba(139,92,246,0.12));
+  border: 1px solid rgba(139,92,246,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.25rem;
+  color: var(--purple);
+}
+.guestPromptIcon svg { width: 26px; height: 26px; }
+.guestPromptTitle {
+  font-family: var(--font-sora);
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+.guestPromptDesc {
+  font-size: 0.88rem;
+  color: var(--dim);
+  line-height: 1.6;
+  max-width: 380px;
+  margin: 0 auto 1.5rem;
+}
+.guestPromptActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.guestPromptBtn {
+  padding: 0.65rem 2rem;
+  background: linear-gradient(135deg, #f43f8e, #8b5cf6);
+  border: none; border-radius: 12px;
+  color: #fff;
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none;
+}
+.guestPromptBtn:hover {
+  box-shadow: 0 4px 20px var(--pink-glow);
+  transform: translateY(-1px);
+}
+.guestPromptBtnOutline {
+  padding: 0.65rem 2rem;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--dim);
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none;
+}
+.guestPromptBtnOutline:hover {
+  border-color: var(--muted);
+  color: var(--text);
 }
 
 /* ── Tabs ── */
