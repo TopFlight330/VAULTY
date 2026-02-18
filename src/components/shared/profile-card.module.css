@@ -12,7 +12,7 @@
 /* ── Banner ── */
 .banner {
   width: 100%;
-  height: 220px;
+  aspect-ratio: 16 / 5;
   background: linear-gradient(135deg, rgba(244,63,142,0.15), rgba(139,92,246,0.15));
   position: relative;
   overflow: hidden;
@@ -266,10 +266,19 @@
 .statItem {
   font-size: 0.88rem;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.statItem span {
+.statLabel {
   color: var(--dim);
   font-weight: 600;
+}
+.statIcon {
+  display: none;
+  width: 15px; height: 15px;
+  color: var(--dim);
+  flex-shrink: 0;
 }
 .nsfwTag {
   display: inline-flex;
@@ -291,7 +300,6 @@
   .badge { font-size: 0.65rem; padding: 0.5rem 0.4rem; }
 }
 @media (max-width: 600px) {
-  .banner { height: 180px; }
   .profileSection { padding: 0 1.25rem 1rem; }
   .avatarWrap { margin-top: -45px; }
   .avatar { width: 90px; height: 90px; font-size: 1.6rem; }
@@ -303,4 +311,14 @@
   .usernameRow { flex-wrap: wrap; gap: 6px; }
   .statsRow { gap: 1rem; }
   .badge { font-size: 0.6rem; padding: 0.45rem 0.3rem; }
+}
+@media (max-width: 450px) {
+  /* Stats: hide text labels, show icons */
+  .statLabel { display: none; }
+  .statIcon { display: inline-block; }
+
+  /* Badges: icon-only, all 6 on one line */
+  .badgesRow { grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .badge { padding: 0.5rem; gap: 0; }
+  .badgeName { display: none; }
 }

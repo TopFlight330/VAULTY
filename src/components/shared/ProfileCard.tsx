@@ -137,7 +137,7 @@ export function ProfileCard({
                   onClick={() => setActiveBadge(badge)}
                 >
                   <BadgeIcon icon={displayIcon} />
-                  {displayName}
+                  <span className={s.badgeName}>{displayName}</span>
                 </div>
               );
             })}
@@ -171,13 +171,19 @@ export function ProfileCard({
 
         <div className={s.statsRow}>
           <div className={s.statItem}>
-            {totalLikes.toLocaleString()} <span>Likes</span>
+            {totalLikes.toLocaleString()}
+            <span className={s.statLabel}>Likes</span>
+            <svg className={s.statIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
           </div>
           <div className={s.statItem}>
-            {photoCount.toLocaleString()} <span>Photos</span>
+            {photoCount.toLocaleString()}
+            <span className={s.statLabel}>Photos</span>
+            <svg className={s.statIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           </div>
           <div className={s.statItem}>
-            {videoCount.toLocaleString()} <span>Vidéos</span>
+            {videoCount.toLocaleString()}
+            <span className={s.statLabel}>Videos</span>
+            <svg className={s.statIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           </div>
           {creator.category === "18+" && (
             <span className={s.nsfwTag}>18+</span>

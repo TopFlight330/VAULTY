@@ -477,27 +477,29 @@
 
 /* ── Subscribe Card (standalone, outside card box) ── */
 .subscribeCard {
-  padding: 1.15rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.25rem;
   margin-bottom: 1.5rem;
   position: relative;
   z-index: 1;
 }
-.subscribeInfo {
-  font-size: 0.82rem;
-  color: var(--dim);
-}
 .subscribePrice {
   font-family: var(--font-unbounded);
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--text);
+  margin-bottom: 0.3rem;
+}
+.subscribeInfo {
+  font-size: 0.82rem;
+  color: var(--dim);
+  line-height: 1.4;
 }
 .subscribeBtn {
   padding: 0.65rem 1.8rem;
