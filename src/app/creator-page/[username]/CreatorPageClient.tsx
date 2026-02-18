@@ -502,6 +502,8 @@ export function CreatorPageClient({
               <span className={s.joinedAge}>{accountAge(creator.created_at)}</span>
             </div>
 
+            <div className={s.divider} />
+
             {/* Achievement Badges */}
             {sortedBadges.length > 0 && (
               <div className={s.badgesRow}>
