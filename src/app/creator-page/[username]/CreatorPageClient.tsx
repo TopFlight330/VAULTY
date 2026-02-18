@@ -350,6 +350,10 @@ export function CreatorPageClient({
     setUnlocking(null);
   };
 
+  // Count photos & videos across all posts
+  const photoCount = posts.reduce((sum, p) => sum + (p.media ?? []).filter((m) => m.media_type === "image").length, 0);
+  const videoCount = posts.reduce((sum, p) => sum + (p.media ?? []).filter((m) => m.media_type === "video").length, 0);
+
   // All media items across posts (for Media tab)
   const allMedia = posts
     .filter((p) => p.access_level === "full")
@@ -495,6 +499,7 @@ export function CreatorPageClient({
               <span className={s.username}>
                 @{creator.username}{creator.online_status === "available" && " - Online"}
               </span>
+              <span className={s.joinedAge}>{accountAge(creator.created_at)}</span>
             </div>
 
             {/* Achievement Badges */}
@@ -524,13 +529,13 @@ export function CreatorPageClient({
 
             <div className={s.statsRow}>
               <div className={s.statItem}>
-                {postCount.toLocaleString()} <span>posts</span>
+                {totalLikes.toLocaleString()} <span>Likes</span>
               </div>
               <div className={s.statItem}>
-                {totalLikes.toLocaleString()} <span>likes</span>
+                {photoCount.toLocaleString()} <span>Photos</span>
               </div>
               <div className={s.statItem}>
-                <span className={s.statAge}>{accountAge(creator.created_at)}</span>
+                {videoCount.toLocaleString()} <span>Vidéos</span>
               </div>
               {creator.category === "18+" && (
                 <span className={s.nsfwTag}>18+</span>
@@ -801,9 +806,6 @@ function PostCard({
           <div className={s.postHeaderUsername}>@{creator.username}</div>
         </div>
         <span className={s.postHeaderTime}>{timeAgo(post.created_at)}</span>
-        <span className={s.postVisibilityTag} style={visibilityStyle(post.visibility)}>
-          {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
-        </span>
         <div className={s.postMenuWrap} ref={menuRef}>
           <button className={s.postMenuBtn} onClick={() => setShowMenu(!showMenu)}>
             <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
@@ -945,9 +947,13 @@ function PostCard({
               <line x1="12" y1="1" x2="12" y2="23" />
               <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
             </svg>
-            Tip
           </button>
         )}
+
+        {/* Visibility Tag */}
+        <span className={s.postVisibilityTag} style={visibilityStyle(post.visibility)}>
+          {post.visibility === "ppv" ? `PPV · ${post.ppv_price} cr` : post.visibility}
+        </span>
 
         {/* Bookmark */}
         <button
