@@ -4,6 +4,7 @@
   display: flex;
   height: calc(100vh - var(--topbar-h));
   margin: -2rem;
+  width: calc(100% + 4rem);
   overflow: hidden;
 }
 
@@ -344,6 +345,11 @@
   color: var(--pink);
   background: rgba(244, 63, 142, 0.06);
 }
+.chatHeaderBtnActive {
+  border-color: var(--purple);
+  color: var(--purple);
+  background: rgba(139, 92, 246, 0.08);
+}
 .chatHeaderBtn svg {
   width: 16px;
   height: 16px;
@@ -439,22 +445,22 @@
 
 .msgBubble {
   padding: 0.65rem 1rem;
-  border-radius: 18px;
+  border-radius: 10px;
   font-size: 0.88rem;
   line-height: 1.5;
   word-break: break-word;
   position: relative;
 }
 .msgBubbleSent {
-  background: linear-gradient(135deg, #f43f8e, #8b5cf6);
-  color: #fff;
-  border-bottom-right-radius: 6px;
-}
-.msgBubbleReceived {
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--text);
-  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 4px;
+}
+.msgBubbleReceived {
+  background: linear-gradient(135deg, #f43f8e, #8b5cf6);
+  color: #fff;
+  border-bottom-left-radius: 4px;
 }
 
 .msgMedia {
@@ -579,10 +585,10 @@
   gap: 4px;
   margin-top: 3px;
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--muted);
 }
 .msgMetaReceived {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.5);
 }
 .msgRead svg {
   width: 14px;
@@ -801,7 +807,7 @@
 .chatTextarea {
   flex: 1;
   padding: 0.6rem 1rem;
-  border-radius: 18px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--input-bg);
   color: var(--text);
@@ -1031,6 +1037,76 @@
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Emoji Picker ── */
+.emojiPicker {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  width: 260px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 200;
+}
+.emojiPicker::-webkit-scrollbar { width: 4px; }
+.emojiPicker::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.emojiBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+.emojiBtn:hover {
+  background: var(--input-bg);
+}
+
+/* ── PPV Unlock Notification ── */
+.msgPpvNotif {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(244, 63, 142, 0.08));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  max-width: 300px;
+  align-self: center;
+}
+.msgPpvNotifIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--purple);
+}
+.msgPpvNotifIcon svg {
+  width: 14px;
+  height: 14px;
+}
+.msgPpvNotifText {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--purple);
 }
 
 /* ── Message Allowance Banner ── */

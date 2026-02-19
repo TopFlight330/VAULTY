@@ -850,18 +850,39 @@ export async function unlockPPVMessage(
     .update({ is_ppv_unlocked: true })
     .eq("id", messageId);
 
-  // Notification to sender
+  // Get buyer name
   const { data: buyerProfile } = await admin
     .from("profiles")
     .select("display_name")
     .eq("id", user.id)
     .single();
 
+  const buyerName = buyerProfile?.display_name ?? "Someone";
+
+  // Insert a PPV unlock notification message in the conversation
+  await admin.from("messages").insert({
+    conversation_id: msg.conversation_id,
+    sender_id: user.id,
+    body: `${buyerName} paid ${msg.ppv_price} credits to unlock PPV content`,
+    is_tip: true,
+    tip_amount: msg.ppv_price,
+  });
+
+  // Update conversation preview
+  await admin
+    .from("conversations")
+    .update({
+      last_message_at: new Date().toISOString(),
+      last_message_preview: `${buyerName} unlocked PPV content`,
+    })
+    .eq("id", msg.conversation_id);
+
+  // Notification to sender
   await admin.from("notifications").insert({
     user_id: msg.sender_id,
     type: "message_ppv_purchase",
     title: "PPV content purchased!",
-    body: `${buyerProfile?.display_name ?? "Someone"} unlocked your PPV message.`,
+    body: `${buyerName} unlocked your PPV message for ${msg.ppv_price} credits.`,
     related_id: messageId,
   });
 

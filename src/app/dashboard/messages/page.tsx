@@ -106,6 +106,7 @@ function MessagesContent() {
   const [hoveredMsg, setHoveredMsg] = useState<string | null>(null);
   const [contextMenuMsg, setContextMenuMsg] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesAreaRef = useRef<HTMLDivElement>(null);
@@ -371,10 +372,11 @@ function MessagesContent() {
   const handleUnlockPPV = async (messageId: string) => {
     setUnlocking(messageId);
     const result = await unlockPPVMessage(messageId);
-    if (result.success) {
-      setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, is_ppv_unlocked: true } : m))
-      );
+    if (result.success && activeConvId) {
+      // Refresh all messages to show the PPV unlock notification + unlocked content
+      const msgResult = await getMessages(activeConvId, 1, 50);
+      setMessages(msgResult.messages);
+      setTotalMessages(msgResult.total);
     }
     setUnlocking(null);
   };
@@ -415,6 +417,30 @@ function MessagesContent() {
     const el = e.target;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  };
+
+  /* ── Emoji picker ── */
+  const popularEmojis = [
+    "😀","😂","😍","🥰","😘","🤩","😎","🥳",
+    "🔥","❤️","💕","💖","👀","👅","💦","💋",
+    "🎉","✨","💎","🚀","👑","🎬","💰","🤑",
+    "😈","🍑","🍒","💪","🙈","😏",
+  ];
+
+  const insertEmoji = (emoji: string) => {
+    const ta = textareaRef.current;
+    if (!ta) {
+      setInputText((prev) => prev + emoji);
+      return;
+    }
+    const pos = ta.selectionStart;
+    const text = inputText;
+    setInputText(text.substring(0, pos) + emoji + text.substring(pos));
+    setShowEmojiPicker(false);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(pos + emoji.length, pos + emoji.length);
+    }, 0);
   };
 
   /* ── Filter conversations ── */
@@ -540,15 +566,9 @@ function MessagesContent() {
                 </div>
               </div>
               <div className={s.chatHeaderActions}>
-                {/* Tip button (only for non-creators chatting with creators, or members) */}
-                {activeConv.other_user?.role === "creator" && !isCreator && (
-                  <button className={s.chatHeaderBtn} title="Send Tip" onClick={() => setShowTipModal(true)}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
-                  </button>
-                )}
                 {/* Pin conversation */}
                 <button
-                  className={s.chatHeaderBtn}
+                  className={`${s.chatHeaderBtn} ${(activeConv.participant_1 === user?.id ? activeConv.is_pinned_by_1 : activeConv.is_pinned_by_2) ? s.chatHeaderBtnActive : ""}`}
                   title="Pin conversation"
                   onClick={() => handlePinConv(activeConv.id)}
                 >
@@ -814,7 +834,21 @@ function MessagesContent() {
 
                   {/* Input row */}
                   <div className={s.chatInputRow}>
-                    <div className={s.chatInputBtns}>
+                    <div className={s.chatInputBtns} style={{ position: "relative" }}>
+                      {/* Emoji picker */}
+                      <button className={s.chatInputBtn} title="Emoji" onClick={() => setShowEmojiPicker((v) => !v)}>
+                        <span style={{ fontSize: "1rem", lineHeight: 1 }}>😀</span>
+                      </button>
+                      {showEmojiPicker && (
+                        <div className={s.emojiPicker}>
+                          {popularEmojis.map((emoji) => (
+                            <button key={emoji} type="button" className={s.emojiBtn} onClick={() => insertEmoji(emoji)}>
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       {/* Image/video attach */}
                       <button className={s.chatInputBtn} title={isCreator ? "Attach image or video" : "Attach image"} onClick={() => fileInputRef.current?.click()}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
