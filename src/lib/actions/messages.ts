@@ -197,6 +197,7 @@ export interface MessageAllowance {
   purchasedRemaining: number;
   totalRemaining: number;
   isSubscribedToRecipient: boolean;
+  isCreatorExempt: boolean;
   usedToday: number;
 }
 
@@ -213,10 +214,37 @@ export async function getMessageAllowance(
       purchasedRemaining: 0,
       totalRemaining: 0,
       isSubscribedToRecipient: false,
+      isCreatorExempt: false,
       usedToday: 0,
     };
 
   const admin = createAdminClient();
+
+  // Check if user is an active creator (has at least 1 post) → exempt from limits
+  const { data: senderProfile } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (senderProfile?.role === "creator") {
+    const { data: anyPost } = await admin
+      .from("posts")
+      .select("id")
+      .eq("creator_id", user.id)
+      .limit(1);
+
+    if (anyPost && anyPost.length > 0) {
+      return {
+        freeRemaining: 999,
+        purchasedRemaining: 0,
+        totalRemaining: 999,
+        isSubscribedToRecipient: false,
+        isCreatorExempt: true,
+        usedToday: 0,
+      };
+    }
+  }
 
   // Check subscription to recipient
   let isSubscribed = false;
@@ -302,6 +330,7 @@ export async function getMessageAllowance(
     purchasedRemaining,
     totalRemaining,
     isSubscribedToRecipient: isSubscribed,
+    isCreatorExempt: false,
     usedToday: countedToday,
   };
 }
@@ -468,6 +497,17 @@ export async function sendMessage(
   const otherId =
     conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
 
+  // Active creators (with at least 1 post) are exempt from message limits
+  let isActiveCreator = false;
+  if (isCreator) {
+    const { data: anyPost } = await admin
+      .from("posts")
+      .select("id")
+      .eq("creator_id", user.id)
+      .limit(1);
+    isActiveCreator = (anyPost?.length ?? 0) > 0;
+  }
+
   // Check if user is subscribed to the recipient (unlimited messages)
   const { data: activeSub } = await admin
     .from("subscriptions")
@@ -481,7 +521,7 @@ export async function sendMessage(
 
   const isSubscribedToRecipient = !!activeSub;
 
-  if (!isSubscribedToRecipient) {
+  if (!isActiveCreator && !isSubscribedToRecipient) {
     // Count messages sent today to non-subscribed users
     const midnightNY = getMidnightNYISO();
 
@@ -920,4 +960,126 @@ export async function getUnreadCount(): Promise<number> {
     .neq("sender_id", user.id);
 
   return count ?? 0;
+}
+
+/* ═══════════════════════════════════════════════
+   CHAT CLIENT INFO (creator view)
+   ═══════════════════════════════════════════════ */
+
+export interface ChatClientInfo {
+  isSubscriber: boolean;
+  totalTips: number;
+  totalPpv: number;
+  totalSubscription: number;
+  totalCredits: number;
+}
+
+export async function getChatClientInfo(
+  conversationId: string
+): Promise<ChatClientInfo | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const admin = createAdminClient();
+
+  // Verify conversation and get other user
+  const { data: conv } = await admin
+    .from("conversations")
+    .select("participant_1, participant_2")
+    .eq("id", conversationId)
+    .single();
+
+  if (!conv) return null;
+
+  const otherId =
+    conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
+
+  // Only relevant for creators viewing their clients
+  const { data: myProfile } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (myProfile?.role !== "creator") return null;
+
+  // 1. Check subscription status
+  const { data: sub } = await admin
+    .from("subscriptions")
+    .select("id")
+    .eq("subscriber_id", otherId)
+    .eq("creator_id", user.id)
+    .eq("status", "active")
+    .gte("current_period_end", new Date().toISOString())
+    .limit(1)
+    .maybeSingle();
+
+  // 2. Chat tips: sum from creator's transactions
+  const { data: tipTxns } = await admin
+    .from("transactions")
+    .select("amount")
+    .eq("user_id", user.id)
+    .eq("type", "chat_tip_received")
+    .eq("related_id", conversationId);
+
+  const totalTips = (tipTxns ?? []).reduce((sum, t) => sum + t.amount, 0);
+
+  // 3. Also count profile tips (tip_received where related_id = senderId)
+  const { data: profileTipTxns } = await admin
+    .from("transactions")
+    .select("amount")
+    .eq("user_id", user.id)
+    .eq("type", "tip_received")
+    .eq("related_id", otherId);
+
+  const totalProfileTips = (profileTipTxns ?? []).reduce(
+    (sum, t) => sum + t.amount,
+    0
+  );
+
+  // 4. PPV message earnings: get PPV messages in this conversation by me,
+  //    then sum purchases by this client
+  let totalPpv = 0;
+  const { data: ppvMsgs } = await admin
+    .from("messages")
+    .select("id")
+    .eq("conversation_id", conversationId)
+    .eq("sender_id", user.id)
+    .eq("is_ppv", true);
+
+  if (ppvMsgs && ppvMsgs.length > 0) {
+    const ppvMsgIds = ppvMsgs.map((m) => m.id);
+    const { data: purchases } = await admin
+      .from("message_ppv_purchases")
+      .select("price_paid")
+      .eq("buyer_id", otherId)
+      .in("message_id", ppvMsgIds);
+
+    totalPpv = (purchases ?? []).reduce((sum, p) => sum + p.price_paid, 0);
+  }
+
+  // 5. Subscription payments: client's transactions to this creator
+  const { data: subTxns } = await admin
+    .from("transactions")
+    .select("amount")
+    .eq("user_id", otherId)
+    .eq("type", "subscription_payment")
+    .eq("related_id", user.id);
+
+  const totalSubscription = Math.abs(
+    (subTxns ?? []).reduce((sum, t) => sum + t.amount, 0)
+  );
+
+  const allTips = totalTips + totalProfileTips;
+
+  return {
+    isSubscriber: !!sub,
+    totalTips: allTips,
+    totalPpv,
+    totalSubscription,
+    totalCredits: allTips + totalPpv + totalSubscription,
+  };
 }

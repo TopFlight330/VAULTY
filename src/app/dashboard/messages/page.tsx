@@ -9,15 +9,14 @@ import {
   getMessages,
   sendMessage,
   markMessagesRead,
-  pinMessage,
-  deleteMessage,
   pinConversation,
   sendTipInChat,
   unlockPPVMessage,
   getMessageAllowance,
   purchaseMessages,
+  getChatClientInfo,
 } from "@/lib/actions/messages";
-import type { MessageAllowance } from "@/lib/actions/messages";
+import type { MessageAllowance, ChatClientInfo } from "@/lib/actions/messages";
 import { uploadFileWithProgress } from "@/lib/helpers/storage";
 import { createClient } from "@/lib/supabase/client";
 import type { ConversationWithProfile, Message } from "@/types/database";
@@ -96,6 +95,9 @@ function MessagesContent() {
   const [allowance, setAllowance] = useState<MessageAllowance | null>(null);
   const [buyingMessages, setBuyingMessages] = useState(false);
 
+  // Client info (creator view)
+  const [clientInfo, setClientInfo] = useState<ChatClientInfo | null>(null);
+
   // Tip modal
   const [showTipModal, setShowTipModal] = useState(false);
   const [tipAmount, setTipAmount] = useState("");
@@ -103,8 +105,6 @@ function MessagesContent() {
 
   // UI
   const [showMobileChat, setShowMobileChat] = useState(false);
-  const [hoveredMsg, setHoveredMsg] = useState<string | null>(null);
-  const [contextMenuMsg, setContextMenuMsg] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -178,6 +178,18 @@ function MessagesContent() {
     loadAllowance(activeConv.other_user?.id);
   }, [activeConv, loadAllowance]);
 
+  /* ── Load client info when conversation changes (creator only) ── */
+  useEffect(() => {
+    if (!activeConvId || !isCreator) {
+      setClientInfo(null);
+      return;
+    }
+    (async () => {
+      const info = await getChatClientInfo(activeConvId);
+      setClientInfo(info);
+    })();
+  }, [activeConvId, isCreator]);
+
   /* ── Scroll to bottom on new messages ── */
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -201,7 +213,7 @@ function MessagesContent() {
     if (!user) return;
     const supabase = createClient();
 
-    // Listen for new messages - use ref to avoid stale closures
+    // Listen for new messages and read status updates
     const channel = supabase
       .channel(`user-messages-${user.id}`)
       .on(
@@ -228,6 +240,21 @@ function MessagesContent() {
           await loadConversations();
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          const updated = payload.new as Message;
+          // Update read status in real-time (for sent messages)
+          setMessages((prev) =>
+            prev.map((m) => (m.id === updated.id ? { ...m, is_read: updated.is_read } : m))
+          );
+        }
+      )
       .subscribe();
 
     return () => {
@@ -241,10 +268,10 @@ function MessagesContent() {
     const interval = setInterval(async () => {
       const result = await getMessages(activeConvId, 1, 50);
       setMessages((prev) => {
-        // Only update if there are new messages (compare last message id)
-        const prevLast = prev[prev.length - 1]?.id;
-        const newLast = result.messages[result.messages.length - 1]?.id;
-        if (prevLast !== newLast) return result.messages;
+        // Update if new messages or read status changed
+        const prevKey = prev.map(m => `${m.id}:${m.is_read}`).join(",");
+        const newKey = result.messages.map(m => `${m.id}:${m.is_read}`).join(",");
+        if (prevKey !== newKey) return result.messages;
         return prev;
       });
       setTotalMessages(result.total);
@@ -381,30 +408,6 @@ function MessagesContent() {
     setUnlocking(null);
   };
 
-  /* ── Pin/delete message ── */
-  const handlePinMsg = async (messageId: string) => {
-    const result = await pinMessage(messageId);
-    if (result.success) {
-      setMessages((prev) =>
-        prev.map((m) => {
-          if (m.id === messageId) return { ...m, is_pinned: !m.is_pinned };
-          // Unpin others
-          if (m.is_pinned) return { ...m, is_pinned: false };
-          return m;
-        })
-      );
-    }
-    setContextMenuMsg(null);
-  };
-
-  const handleDeleteMsg = async (messageId: string) => {
-    const result = await deleteMessage(messageId);
-    if (result.success) {
-      setMessages((prev) => prev.filter((m) => m.id !== messageId));
-    }
-    setContextMenuMsg(null);
-  };
-
   /* ── Pin conversation ── */
   const handlePinConv = async (convId: string) => {
     await pinConversation(convId);
@@ -447,8 +450,6 @@ function MessagesContent() {
   const filteredConvs = conversations.filter((c) =>
     !convSearch || c.other_user?.display_name?.toLowerCase().includes(convSearch.toLowerCase())
   );
-
-  const pinnedMessage = messages.find((m) => m.is_pinned);
 
   /* ── Date grouping ── */
   const getMessageDate = (dateStr: string) => new Date(dateStr).toDateString();
@@ -495,7 +496,6 @@ function MessagesContent() {
                   onClick={() => {
                     setActiveConvId(conv.id);
                     setShowMobileChat(true);
-                    setContextMenuMsg(null);
                   }}
                 >
                   <div className={s.convAvatar}>
@@ -577,18 +577,25 @@ function MessagesContent() {
               </div>
             </div>
 
-            {/* Pinned Message Banner */}
-            {pinnedMessage && (
-              <div className={s.pinnedBanner} onClick={() => {
-                const el = document.getElementById(`msg-${pinnedMessage.id}`);
-                el?.scrollIntoView({ behavior: "smooth", block: "center" });
-              }}>
-                <div className={s.pinnedBannerIcon}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22" /><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z" /></svg>
+            {/* Client Info Bar (creator view only) */}
+            {clientInfo && (
+              <div className={s.clientInfoBar}>
+                <div className={`${s.clientInfoBadge} ${clientInfo.isSubscriber ? s.clientInfoBadgeSub : s.clientInfoBadgeFree}`}>
+                  {clientInfo.isSubscriber ? "Subscriber" : "Free User"}
                 </div>
-                <div className={s.pinnedBannerText}>
-                  {pinnedMessage.body || (pinnedMessage.media_type === "video" ? "Pinned video" : "Pinned image")}
-                </div>
+                {clientInfo.totalCredits > 0 && (
+                  <div className={s.clientInfoCredits}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
+                    <span>{clientInfo.totalCredits} credits received</span>
+                    <span className={s.clientInfoBreakdown}>
+                      ({clientInfo.totalTips > 0 ? `${clientInfo.totalTips} tips` : ""}
+                      {clientInfo.totalTips > 0 && clientInfo.totalPpv > 0 ? " · " : ""}
+                      {clientInfo.totalPpv > 0 ? `${clientInfo.totalPpv} PPV` : ""}
+                      {(clientInfo.totalTips > 0 || clientInfo.totalPpv > 0) && clientInfo.totalSubscription > 0 ? " · " : ""}
+                      {clientInfo.totalSubscription > 0 ? `${clientInfo.totalSubscription} sub` : ""})
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -634,26 +641,25 @@ function MessagesContent() {
                       <div
                         id={`msg-${msg.id}`}
                         className={`${s.msgRow} ${isSent ? s.msgRowSent : s.msgRowReceived}`}
-                        onMouseEnter={() => setHoveredMsg(msg.id)}
-                        onMouseLeave={() => { setHoveredMsg(null); if (contextMenuMsg === msg.id) setContextMenuMsg(null); }}
                       >
-                        <div style={{ position: "relative" }}>
-                          {/* Pin badge */}
-                          {msg.is_pinned && (
-                            <div className={s.msgPinBadge}>
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22" /><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z" /></svg>
-                              Pinned
-                            </div>
-                          )}
-
+                        <div className={`${s.msgContent} ${isSent ? s.msgContentSent : s.msgContentReceived}`}>
                           {/* PPV media (locked) */}
                           {msg.is_ppv && !msg.is_ppv_unlocked && msg.media_url && !isSent ? (
                             <div className={s.msgPpv}>
-                              <img
-                                src={getMediaUrl(msg.media_url)}
-                                alt=""
-                                className={s.msgPpvBlur}
-                              />
+                              {msg.media_type === "video" ? (
+                                <video
+                                  src={getMediaUrl(msg.media_url)}
+                                  className={s.msgPpvBlur}
+                                  preload="metadata"
+                                  muted
+                                />
+                              ) : (
+                                <img
+                                  src={getMediaUrl(msg.media_url)}
+                                  alt=""
+                                  className={s.msgPpvBlur}
+                                />
+                              )}
                               <div className={s.msgPpvOverlay}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
                                 <div className={s.msgPpvPrice}>Unlock for {msg.ppv_price} credits</div>
@@ -715,26 +721,6 @@ function MessagesContent() {
                             )}
                           </div>
 
-                          {/* Context menu */}
-                          {hoveredMsg === msg.id && (
-                            <div
-                              className={`${s.msgContextMenu} ${isSent ? s.msgContextMenuSent : s.msgContextMenuReceived}`}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {/* Pin (creator only) */}
-                              {isCreator && (
-                                <button className={s.msgContextBtn} title={msg.is_pinned ? "Unpin" : "Pin"} onClick={() => handlePinMsg(msg.id)}>
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22" /><path d="M5 17h14v-1.76a2 2 0 00-1.11-1.79l-1.78-.9A2 2 0 0115 10.76V6h1a2 2 0 000-4H8a2 2 0 000 4h1v4.76a2 2 0 01-1.11 1.79l-1.78.9A2 2 0 005 15.24z" /></svg>
-                                </button>
-                              )}
-                              {/* Delete (own messages only) */}
-                              {isSent && (
-                                <button className={`${s.msgContextBtn} ${s.msgContextBtnDanger}`} title="Delete" onClick={() => handleDeleteMsg(msg.id)}>
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
-                                </button>
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
                     )}
@@ -748,7 +734,7 @@ function MessagesContent() {
             {/* Chat Input Area */}
             <div className={s.chatInputArea}>
               {/* Message allowance banner */}
-              {allowance && !allowance.isSubscribedToRecipient && (
+              {allowance && !allowance.isSubscribedToRecipient && !allowance.isCreatorExempt && (
                 <div className={s.allowanceBanner}>
                   {allowance.totalRemaining > 0 ? (
                     <>
@@ -781,7 +767,7 @@ function MessagesContent() {
               )}
 
               {/* Show input only if user can send */}
-              {(!allowance || allowance.isSubscribedToRecipient || allowance.totalRemaining > 0) && (
+              {(!allowance || allowance.isSubscribedToRecipient || allowance.isCreatorExempt || allowance.totalRemaining > 0) && (
                 <>
                   {/* Upload progress */}
                   {uploadProgress > 0 && uploadProgress < 100 && (
@@ -835,18 +821,22 @@ function MessagesContent() {
                   {/* Input row */}
                   <div className={s.chatInputRow}>
                     <div className={s.chatInputBtns} style={{ position: "relative" }}>
-                      {/* Emoji picker */}
-                      <button className={s.chatInputBtn} title="Emoji" onClick={() => setShowEmojiPicker((v) => !v)}>
-                        <span style={{ fontSize: "1rem", lineHeight: 1 }}>😀</span>
-                      </button>
-                      {showEmojiPicker && (
-                        <div className={s.emojiPicker}>
-                          {popularEmojis.map((emoji) => (
-                            <button key={emoji} type="button" className={s.emojiBtn} onClick={() => insertEmoji(emoji)}>
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
+                      {/* Tip button (non-creators only, when chatting with creator) */}
+                      {!isCreator && activeConv.other_user?.role === "creator" && (
+                        <button className={s.chatInputBtn} title="Send tip" onClick={() => setShowTipModal(true)}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
+                        </button>
+                      )}
+
+                      {/* PPV toggle (creators only) */}
+                      {isCreator && (
+                        <button
+                          className={`${s.chatInputBtn} ${isPpvMode ? s.chatInputBtnActive : ""}`}
+                          title="Pay-per-view"
+                          onClick={() => setIsPpvMode(!isPpvMode)}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+                        </button>
                       )}
 
                       {/* Image/video attach */}
@@ -861,22 +851,18 @@ function MessagesContent() {
                         onChange={handleFileSelect}
                       />
 
-                      {/* PPV toggle (creators only) */}
-                      {isCreator && (
-                        <button
-                          className={`${s.chatInputBtn} ${isPpvMode ? s.chatInputBtnActive : ""}`}
-                          title="Pay-per-view"
-                          onClick={() => setIsPpvMode(!isPpvMode)}
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
-                        </button>
-                      )}
-
-                      {/* Tip button (non-creators only, when chatting with creator) */}
-                      {!isCreator && activeConv.other_user?.role === "creator" && (
-                        <button className={s.chatInputBtn} title="Send tip" onClick={() => setShowTipModal(true)}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
-                        </button>
+                      {/* Emoji picker */}
+                      <button className={s.chatInputBtn} title="Emoji" onClick={() => setShowEmojiPicker((v) => !v)}>
+                        <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>😀</span>
+                      </button>
+                      {showEmojiPicker && (
+                        <div className={s.emojiPicker}>
+                          {popularEmojis.map((emoji) => (
+                            <button key={emoji} type="button" className={s.emojiBtn} onClick={() => insertEmoji(emoji)}>
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
 
