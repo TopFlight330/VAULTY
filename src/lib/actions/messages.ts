@@ -11,6 +11,35 @@ import type {
 } from "@/types/database";
 
 /* ═══════════════════════════════════════════════
+   CONSTANTS
+   ═══════════════════════════════════════════════ */
+
+const FREE_MESSAGES_PER_DAY = 3;
+const PURCHASED_MESSAGES_PER_PACK = 10;
+const PACK_COST_CREDITS = 1;
+
+/* ── Helper: get midnight NY time as ISO string ── */
+function getMidnightNYISO(): string {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  }).formatToParts(now);
+
+  const get = (type: string) =>
+    parseInt(parts.find((p) => p.type === type)?.value || "0");
+  const nyH = get("hour") === 24 ? 0 : get("hour");
+  const nyM = get("minute");
+  const nyS = get("second");
+
+  const msSinceMidnightNY = (nyH * 3600 + nyM * 60 + nyS) * 1000;
+  return new Date(now.getTime() - msSinceMidnightNY).toISOString();
+}
+
+/* ═══════════════════════════════════════════════
    CONVERSATIONS
    ═══════════════════════════════════════════════ */
 
@@ -160,6 +189,182 @@ export async function pinConversation(
 }
 
 /* ═══════════════════════════════════════════════
+   MESSAGE ALLOWANCE
+   ═══════════════════════════════════════════════ */
+
+export interface MessageAllowance {
+  freeRemaining: number;
+  purchasedRemaining: number;
+  totalRemaining: number;
+  isSubscribedToRecipient: boolean;
+  usedToday: number;
+}
+
+export async function getMessageAllowance(
+  recipientId?: string
+): Promise<MessageAllowance> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return {
+      freeRemaining: 0,
+      purchasedRemaining: 0,
+      totalRemaining: 0,
+      isSubscribedToRecipient: false,
+      usedToday: 0,
+    };
+
+  const admin = createAdminClient();
+
+  // Check subscription to recipient
+  let isSubscribed = false;
+  if (recipientId) {
+    const { data: sub } = await admin
+      .from("subscriptions")
+      .select("id")
+      .eq("subscriber_id", user.id)
+      .eq("creator_id", recipientId)
+      .eq("status", "active")
+      .gte("current_period_end", new Date().toISOString())
+      .limit(1)
+      .maybeSingle();
+    isSubscribed = !!sub;
+  }
+
+  // Count messages sent today (since midnight NY) to non-subscribed users
+  const midnightNY = getMidnightNYISO();
+
+  // Get all active subscription creator IDs for this user
+  const { data: activeSubs } = await admin
+    .from("subscriptions")
+    .select("creator_id")
+    .eq("subscriber_id", user.id)
+    .eq("status", "active")
+    .gte("current_period_end", new Date().toISOString());
+
+  const subscribedCreatorIds = (activeSubs ?? []).map((s) => s.creator_id);
+
+  // Count messages sent today
+  const { count: totalToday } = await admin
+    .from("messages")
+    .select("*", { count: "exact", head: true })
+    .eq("sender_id", user.id)
+    .eq("is_tip", false)
+    .gte("created_at", midnightNY);
+
+  // Count messages sent today to subscribed creators (these are free/unlimited)
+  let subscribedCount = 0;
+  if (subscribedCreatorIds.length > 0) {
+    // Get conversations with subscribed creators
+    const { data: subConvs } = await admin
+      .from("conversations")
+      .select("id, participant_1, participant_2")
+      .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`);
+
+    const subConvIds = (subConvs ?? [])
+      .filter((c) => {
+        const otherId =
+          c.participant_1 === user.id ? c.participant_2 : c.participant_1;
+        return subscribedCreatorIds.includes(otherId);
+      })
+      .map((c) => c.id);
+
+    if (subConvIds.length > 0) {
+      const { count } = await admin
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("sender_id", user.id)
+        .eq("is_tip", false)
+        .gte("created_at", midnightNY)
+        .in("conversation_id", subConvIds);
+      subscribedCount = count ?? 0;
+    }
+  }
+
+  // Messages that count against the daily limit
+  const countedToday = (totalToday ?? 0) - subscribedCount;
+
+  // Get purchased messages
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("purchased_messages")
+    .eq("id", user.id)
+    .single();
+
+  const purchasedRemaining = profile?.purchased_messages ?? 0;
+  const freeRemaining = Math.max(0, FREE_MESSAGES_PER_DAY - countedToday);
+  const totalRemaining = freeRemaining + purchasedRemaining;
+
+  return {
+    freeRemaining,
+    purchasedRemaining,
+    totalRemaining,
+    isSubscribedToRecipient: isSubscribed,
+    usedToday: countedToday,
+  };
+}
+
+export async function purchaseMessages(): Promise<
+  ActionResult & { newPurchasedBalance?: number }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: "Not authenticated." };
+
+  const admin = createAdminClient();
+
+  // Get current balance
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("credit_balance, purchased_messages")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) return { success: false, message: "Profile not found." };
+
+  if (profile.credit_balance < PACK_COST_CREDITS) {
+    return {
+      success: false,
+      message: `Not enough credits. You need ${PACK_COST_CREDITS} credit.`,
+    };
+  }
+
+  const newCreditBalance = profile.credit_balance - PACK_COST_CREDITS;
+  const newPurchased =
+    (profile.purchased_messages ?? 0) + PURCHASED_MESSAGES_PER_PACK;
+
+  // Deduct credit and add messages
+  const { error } = await admin
+    .from("profiles")
+    .update({
+      credit_balance: newCreditBalance,
+      purchased_messages: newPurchased,
+    })
+    .eq("id", user.id);
+
+  if (error) return { success: false, message: "Purchase failed." };
+
+  // Record transaction
+  await admin.from("transactions").insert({
+    user_id: user.id,
+    type: "message_purchase",
+    amount: -PACK_COST_CREDITS,
+    balance_after: newCreditBalance,
+    description: `Purchased ${PURCHASED_MESSAGES_PER_PACK} messages for ${PACK_COST_CREDITS} credit`,
+  });
+
+  return {
+    success: true,
+    message: `${PURCHASED_MESSAGES_PER_PACK} messages added!`,
+    newPurchasedBalance: newPurchased,
+  };
+}
+
+/* ═══════════════════════════════════════════════
    MESSAGES
    ═══════════════════════════════════════════════ */
 
@@ -238,7 +443,7 @@ export async function sendMessage(
   // Get sender profile to check role
   const { data: senderProfile } = await admin
     .from("profiles")
-    .select("role")
+    .select("role, purchased_messages")
     .eq("id", user.id)
     .single();
 
@@ -257,6 +462,93 @@ export async function sendMessage(
   const trimmedBody = (body ?? "").trim();
   if (!trimmedBody && !mediaUrl) {
     return { success: false, message: "Message cannot be empty." };
+  }
+
+  // ── Message allowance check ──
+  const otherId =
+    conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
+
+  // Check if user is subscribed to the recipient (unlimited messages)
+  const { data: activeSub } = await admin
+    .from("subscriptions")
+    .select("id")
+    .eq("subscriber_id", user.id)
+    .eq("creator_id", otherId)
+    .eq("status", "active")
+    .gte("current_period_end", new Date().toISOString())
+    .limit(1)
+    .maybeSingle();
+
+  const isSubscribedToRecipient = !!activeSub;
+
+  if (!isSubscribedToRecipient) {
+    // Count messages sent today to non-subscribed users
+    const midnightNY = getMidnightNYISO();
+
+    // Get subscribed creator IDs
+    const { data: allSubs } = await admin
+      .from("subscriptions")
+      .select("creator_id")
+      .eq("subscriber_id", user.id)
+      .eq("status", "active")
+      .gte("current_period_end", new Date().toISOString());
+
+    const subCreatorIds = (allSubs ?? []).map((s) => s.creator_id);
+
+    // Count all messages sent today
+    const { count: totalToday } = await admin
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .eq("sender_id", user.id)
+      .eq("is_tip", false)
+      .gte("created_at", midnightNY);
+
+    // Count messages to subscribed creators (don't count against limit)
+    let subMsgCount = 0;
+    if (subCreatorIds.length > 0) {
+      const { data: subConvs } = await admin
+        .from("conversations")
+        .select("id, participant_1, participant_2")
+        .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`);
+
+      const subConvIds = (subConvs ?? [])
+        .filter((c) => {
+          const oid =
+            c.participant_1 === user.id ? c.participant_2 : c.participant_1;
+          return subCreatorIds.includes(oid);
+        })
+        .map((c) => c.id);
+
+      if (subConvIds.length > 0) {
+        const { count } = await admin
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .eq("sender_id", user.id)
+          .eq("is_tip", false)
+          .gte("created_at", midnightNY)
+          .in("conversation_id", subConvIds);
+        subMsgCount = count ?? 0;
+      }
+    }
+
+    const countedToday = (totalToday ?? 0) - subMsgCount;
+    const freeRemaining = Math.max(0, FREE_MESSAGES_PER_DAY - countedToday);
+    const purchasedRemaining = senderProfile?.purchased_messages ?? 0;
+
+    if (freeRemaining <= 0 && purchasedRemaining <= 0) {
+      return {
+        success: false,
+        message: "NO_MESSAGES_LEFT",
+      };
+    }
+
+    // If free messages are used up, deduct from purchased
+    if (freeRemaining <= 0 && purchasedRemaining > 0) {
+      await admin
+        .from("profiles")
+        .update({ purchased_messages: purchasedRemaining - 1 })
+        .eq("id", user.id);
+    }
   }
 
   // Insert message
@@ -294,9 +586,6 @@ export async function sendMessage(
     .eq("id", conversationId);
 
   // Send notification to the other user
-  const otherId =
-    conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
-
   const { data: senderFull } = await admin
     .from("profiles")
     .select("display_name")

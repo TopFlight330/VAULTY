@@ -14,7 +14,10 @@ import {
   pinConversation,
   sendTipInChat,
   unlockPPVMessage,
+  getMessageAllowance,
+  purchaseMessages,
 } from "@/lib/actions/messages";
+import type { MessageAllowance } from "@/lib/actions/messages";
 import { uploadFileWithProgress } from "@/lib/helpers/storage";
 import { createClient } from "@/lib/supabase/client";
 import type { ConversationWithProfile, Message } from "@/types/database";
@@ -89,6 +92,10 @@ function MessagesContent() {
   const [isPpvMode, setIsPpvMode] = useState(false);
   const [ppvPrice, setPpvPrice] = useState("");
 
+  // Message allowance
+  const [allowance, setAllowance] = useState<MessageAllowance | null>(null);
+  const [buyingMessages, setBuyingMessages] = useState(false);
+
   // Tip modal
   const [showTipModal, setShowTipModal] = useState(false);
   const [tipAmount, setTipAmount] = useState("");
@@ -158,6 +165,17 @@ function MessagesContent() {
       );
     })();
   }, [activeConvId]);
+
+  /* ── Load message allowance when conversation changes ── */
+  const loadAllowance = useCallback(async (recipientId?: string) => {
+    const result = await getMessageAllowance(recipientId);
+    setAllowance(result);
+  }, []);
+
+  useEffect(() => {
+    if (!activeConv) return;
+    loadAllowance(activeConv.other_user?.id);
+  }, [activeConv, loadAllowance]);
 
   /* ── Scroll to bottom on new messages ── */
   useEffect(() => {
@@ -291,6 +309,11 @@ function MessagesContent() {
             : c
         )
       );
+      // Refresh allowance after sending
+      if (activeConv) loadAllowance(activeConv.other_user?.id);
+    } else if (result.message === "NO_MESSAGES_LEFT") {
+      // Allowance exhausted - refresh UI
+      if (activeConv) loadAllowance(activeConv.other_user?.id);
     }
     setSending(false);
     textareaRef.current?.focus();
@@ -330,6 +353,17 @@ function MessagesContent() {
       setTotalMessages(msgResult.total);
     }
     setSendingTip(false);
+  };
+
+  /* ── Handle buy messages ── */
+  const handleBuyMessages = async () => {
+    if (buyingMessages) return;
+    setBuyingMessages(true);
+    const result = await purchaseMessages();
+    if (result.success) {
+      if (activeConv) await loadAllowance(activeConv.other_user?.id);
+    }
+    setBuyingMessages(false);
   };
 
   /* ── Handle PPV unlock ── */
@@ -693,112 +727,150 @@ function MessagesContent() {
 
             {/* Chat Input Area */}
             <div className={s.chatInputArea}>
-              {/* Upload progress */}
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <div className={s.uploadProgress}>
-                  <div className={s.uploadProgressBar}>
-                    <div className={s.uploadProgressFill} style={{ width: `${uploadProgress}%` }} />
-                  </div>
-                  <div className={s.uploadProgressText}>{uploadProgress}%</div>
+              {/* Message allowance banner */}
+              {allowance && !allowance.isSubscribedToRecipient && (
+                <div className={s.allowanceBanner}>
+                  {allowance.totalRemaining > 0 ? (
+                    <>
+                      <div className={s.allowanceInfo}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
+                        <span>
+                          {allowance.freeRemaining > 0
+                            ? `${allowance.freeRemaining} free message${allowance.freeRemaining !== 1 ? "s" : ""} left today`
+                            : `${allowance.purchasedRemaining} purchased message${allowance.purchasedRemaining !== 1 ? "s" : ""} left`}
+                        </span>
+                      </div>
+                      {allowance.freeRemaining <= 1 && allowance.purchasedRemaining === 0 && (
+                        <button className={s.allowanceBuyBtn} onClick={handleBuyMessages} disabled={buyingMessages}>
+                          {buyingMessages ? "..." : "Get 10 for 1 credit"}
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <div className={s.allowanceBlocked}>
+                      <div className={s.allowanceBlockedText}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>
+                        <span>No messages left today</span>
+                      </div>
+                      <button className={s.allowanceBuyBtnLarge} onClick={handleBuyMessages} disabled={buyingMessages}>
+                        {buyingMessages ? "Purchasing..." : "Buy 10 messages for 1 credit"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* PPV mode bar */}
-              {isPpvMode && isCreator && (
-                <div className={s.ppvBar}>
-                  <div className={s.ppvBarLabel}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
-                    PPV
-                  </div>
-                  <input
-                    className={s.ppvBarInput}
-                    type="number"
-                    placeholder="Price"
-                    min="1"
-                    value={ppvPrice}
-                    onChange={(e) => setPpvPrice(e.target.value)}
-                  />
-                  <span style={{ fontSize: "0.78rem", color: "var(--dim)" }}>credits</span>
-                  <button className={s.ppvBarClose} onClick={() => { setIsPpvMode(false); setPpvPrice(""); }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                  </button>
-                </div>
-              )}
+              {/* Show input only if user can send */}
+              {(!allowance || allowance.isSubscribedToRecipient || allowance.totalRemaining > 0) && (
+                <>
+                  {/* Upload progress */}
+                  {uploadProgress > 0 && uploadProgress < 100 && (
+                    <div className={s.uploadProgress}>
+                      <div className={s.uploadProgressBar}>
+                        <div className={s.uploadProgressFill} style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                      <div className={s.uploadProgressText}>{uploadProgress}%</div>
+                    </div>
+                  )}
 
-              {/* Media preview */}
-              {mediaFile && mediaPreviewUrl && (
-                <div className={s.mediaPreview}>
-                  <div className={s.mediaPreviewThumb}>
-                    {mediaFile.type.startsWith("video/") ? (
-                      <video src={mediaPreviewUrl} muted />
-                    ) : (
-                      <img src={mediaPreviewUrl} alt="" />
-                    )}
-                  </div>
-                  <div className={s.mediaPreviewName}>{mediaFile.name}</div>
-                  <button className={s.mediaPreviewRemove} onClick={() => { setMediaFile(null); setMediaPreviewUrl(null); }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                  </button>
-                </div>
-              )}
+                  {/* PPV mode bar */}
+                  {isPpvMode && isCreator && (
+                    <div className={s.ppvBar}>
+                      <div className={s.ppvBarLabel}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+                        PPV
+                      </div>
+                      <input
+                        className={s.ppvBarInput}
+                        type="number"
+                        placeholder="Price"
+                        min="1"
+                        value={ppvPrice}
+                        onChange={(e) => setPpvPrice(e.target.value)}
+                      />
+                      <span style={{ fontSize: "0.78rem", color: "var(--dim)" }}>credits</span>
+                      <button className={s.ppvBarClose} onClick={() => { setIsPpvMode(false); setPpvPrice(""); }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
+                    </div>
+                  )}
 
-              {/* Input row */}
-              <div className={s.chatInputRow}>
-                <div className={s.chatInputBtns}>
-                  {/* Image/video attach */}
-                  <button className={s.chatInputBtn} title={isCreator ? "Attach image or video" : "Attach image"} onClick={() => fileInputRef.current?.click()}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept={isCreator ? "image/*,video/*" : "image/*"}
-                    style={{ display: "none" }}
-                    onChange={handleFileSelect}
-                  />
+                  {/* Media preview */}
+                  {mediaFile && mediaPreviewUrl && (
+                    <div className={s.mediaPreview}>
+                      <div className={s.mediaPreviewThumb}>
+                        {mediaFile.type.startsWith("video/") ? (
+                          <video src={mediaPreviewUrl} muted />
+                        ) : (
+                          <img src={mediaPreviewUrl} alt="" />
+                        )}
+                      </div>
+                      <div className={s.mediaPreviewName}>{mediaFile.name}</div>
+                      <button className={s.mediaPreviewRemove} onClick={() => { setMediaFile(null); setMediaPreviewUrl(null); }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
+                    </div>
+                  )}
 
-                  {/* PPV toggle (creators only) */}
-                  {isCreator && (
+                  {/* Input row */}
+                  <div className={s.chatInputRow}>
+                    <div className={s.chatInputBtns}>
+                      {/* Image/video attach */}
+                      <button className={s.chatInputBtn} title={isCreator ? "Attach image or video" : "Attach image"} onClick={() => fileInputRef.current?.click()}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={isCreator ? "image/*,video/*" : "image/*"}
+                        style={{ display: "none" }}
+                        onChange={handleFileSelect}
+                      />
+
+                      {/* PPV toggle (creators only) */}
+                      {isCreator && (
+                        <button
+                          className={`${s.chatInputBtn} ${isPpvMode ? s.chatInputBtnActive : ""}`}
+                          title="Pay-per-view"
+                          onClick={() => setIsPpvMode(!isPpvMode)}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+                        </button>
+                      )}
+
+                      {/* Tip button (non-creators only, when chatting with creator) */}
+                      {!isCreator && activeConv.other_user?.role === "creator" && (
+                        <button className={s.chatInputBtn} title="Send tip" onClick={() => setShowTipModal(true)}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
+                        </button>
+                      )}
+                    </div>
+
+                    <textarea
+                      ref={textareaRef}
+                      className={s.chatTextarea}
+                      placeholder="Type a message..."
+                      value={inputText}
+                      onChange={handleTextareaChange}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      rows={1}
+                    />
+
                     <button
-                      className={`${s.chatInputBtn} ${isPpvMode ? s.chatInputBtnActive : ""}`}
-                      title="Pay-per-view"
-                      onClick={() => setIsPpvMode(!isPpvMode)}
+                      className={s.chatSendBtn}
+                      onClick={handleSend}
+                      disabled={sending || (!inputText.trim() && !mediaFile)}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
                     </button>
-                  )}
-
-                  {/* Tip button (non-creators only, when chatting with creator) */}
-                  {!isCreator && activeConv.other_user?.role === "creator" && (
-                    <button className={s.chatInputBtn} title="Send tip" onClick={() => setShowTipModal(true)}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
-                    </button>
-                  )}
-                </div>
-
-                <textarea
-                  ref={textareaRef}
-                  className={s.chatTextarea}
-                  placeholder="Type a message..."
-                  value={inputText}
-                  onChange={handleTextareaChange}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  rows={1}
-                />
-
-                <button
-                  className={s.chatSendBtn}
-                  onClick={handleSend}
-                  disabled={sending || (!inputText.trim() && !mediaFile)}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-                </button>
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}

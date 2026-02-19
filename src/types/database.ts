@@ -18,7 +18,8 @@ export type TransactionType =
   | "chat_tip_sent"
   | "chat_tip_received"
   | "message_ppv_payment"
-  | "message_ppv_earning";
+  | "message_ppv_earning"
+  | "message_purchase";
 
 export type NotificationType =
   | "new_subscriber"
@@ -57,6 +58,7 @@ export interface Profile {
   setting_notif_payouts: boolean;
   setting_marketing: boolean;
   online_status: "available" | "invisible";
+  purchased_messages: number;
   created_at: string;
   updated_at: string;
 }
