@@ -102,6 +102,7 @@ function MessagesContent() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesAreaRef = useRef<HTMLDivElement>(null);
+  const activeConvIdRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -133,6 +134,11 @@ function MessagesContent() {
       })();
     }
   }, [searchParams, user, loadConversations]);
+
+  /* ── Keep ref in sync for Realtime callback ── */
+  useEffect(() => {
+    activeConvIdRef.current = activeConvId;
+  }, [activeConvId]);
 
   /* ── Load messages when conversation changes ── */
   useEffect(() => {
@@ -176,9 +182,9 @@ function MessagesContent() {
     if (!user) return;
     const supabase = createClient();
 
-    // Listen for new messages in any conversation the user is part of
+    // Listen for new messages - use ref to avoid stale closures
     const channel = supabase
-      .channel("user-messages")
+      .channel(`user-messages-${user.id}`)
       .on(
         "postgres_changes",
         {
@@ -188,11 +194,16 @@ function MessagesContent() {
         },
         async (payload) => {
           const newMsg = payload.new as Message;
+          const currentConvId = activeConvIdRef.current;
           // If this message is in the active conversation, add it
-          if (newMsg.conversation_id === activeConvId && newMsg.sender_id !== user.id) {
-            setMessages((prev) => [...prev, newMsg]);
+          if (newMsg.conversation_id === currentConvId && newMsg.sender_id !== user.id) {
+            setMessages((prev) => {
+              // Avoid duplicates
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              return [...prev, newMsg];
+            });
             // Mark as read immediately since we're viewing
-            await markMessagesRead(activeConvId);
+            await markMessagesRead(currentConvId!);
           }
           // Refresh conversation list for updated previews / unread counts
           await loadConversations();
@@ -203,7 +214,24 @@ function MessagesContent() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, activeConvId, loadConversations]);
+  }, [user, loadConversations]);
+
+  /* ── Polling fallback: refresh messages every 5s ── */
+  useEffect(() => {
+    if (!activeConvId) return;
+    const interval = setInterval(async () => {
+      const result = await getMessages(activeConvId, 1, 50);
+      setMessages((prev) => {
+        // Only update if there are new messages (compare last message id)
+        const prevLast = prev[prev.length - 1]?.id;
+        const newLast = result.messages[result.messages.length - 1]?.id;
+        if (prevLast !== newLast) return result.messages;
+        return prev;
+      });
+      setTotalMessages(result.total);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [activeConvId]);
 
   /* ── Send message ── */
   const handleSend = async () => {
